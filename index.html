@@ -1,589 +1,657 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Shalu Shah – Portfolio</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;--card:#1e1e2c;
-  --accent:#7c6af7;--accent2:#a78bfa;--gold:#f4c542;--teal:#3ecfb0;
-  --text:#f0eef8;--text2:#a09cba;--text3:#6b6880;
-  --border:#2a2840;--radius:14px;--font:'DM Sans',sans-serif;
-  --display:'Playfair Display',serif;--mono:'JetBrains Mono',monospace;
-}
-body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden;}
-.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
-
-/* NAV */
-nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px;}
-.nav-logo{font-family:var(--display);font-size:1.35rem;font-weight:700;color:var(--accent2);letter-spacing:.02em;}
-.nav-links{display:flex;gap:.25rem;}
-.nav-links button{background:none;border:none;color:var(--text2);font-size:.85rem;font-family:var(--font);padding:.45rem .9rem;border-radius:8px;cursor:pointer;transition:all .2s;}
-.nav-links button:hover,.nav-links button.active{color:var(--accent2);background:rgba(124,106,247,.12);}
-
-/* PAGE TRANSITIONS */
-.page{display:none;animation:fadeIn .35s ease;}
-.page.active{display:block;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-
-/* HERO */
-.hero{min-height:calc(100vh - 60px);display:flex;align-items:center;justify-content:center;text-align:center;padding:4rem 2rem;position:relative;overflow:hidden;}
-.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 30%,rgba(124,106,247,.18) 0%,transparent 70%);pointer-events:none;}
-.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(124,106,247,.15);border:1px solid rgba(124,106,247,.3);color:var(--accent2);font-size:.8rem;padding:.4rem 1rem;border-radius:100px;margin-bottom:1.5rem;font-weight:500;}
-.hero h1{font-family:var(--display);font-size:clamp(3rem,8vw,6rem);font-weight:900;line-height:1.05;margin-bottom:1rem;}
-.hero h1 span{color:var(--accent2);}
-.hero-sub{font-size:1.15rem;color:var(--text2);max-width:520px;margin:0 auto 2rem;line-height:1.7;}
-.hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;}
-.btn-primary{background:var(--accent);color:#fff;border:none;padding:.75rem 1.75rem;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:var(--font);}
-.btn-primary:hover{background:var(--accent2);transform:translateY(-2px);}
-.btn-outline{background:none;border:1.5px solid var(--border);color:var(--text);padding:.75rem 1.75rem;border-radius:10px;font-size:.95rem;cursor:pointer;transition:all .2s;font-family:var(--font);}
-.btn-outline:hover{border-color:var(--accent2);color:var(--accent2);}
-
-/* GRID LAYOUTS */
-.section{max-width:960px;margin:0 auto;padding:3.5rem 1.5rem;}
-.section-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.15em;color:var(--accent);font-weight:600;margin-bottom:.5rem;}
-.section-title{font-family:var(--display);font-size:2.4rem;font-weight:700;margin-bottom:.75rem;line-height:1.2;}
-.section-desc{color:var(--text2);font-size:1rem;line-height:1.7;max-width:600px;margin-bottom:2.5rem;}
-
-/* CARDS */
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;transition:border-color .2s,transform .2s;}
-.card:hover{border-color:rgba(124,106,247,.4);transform:translateY(-3px);}
-.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem;}
-.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;}
-
-/* SKILLS */
-.skill-tag{display:inline-flex;align-items:center;gap:.5rem;background:rgba(124,106,247,.12);border:1px solid rgba(124,106,247,.25);color:var(--accent2);padding:.45rem 1rem;border-radius:8px;font-size:.88rem;font-weight:500;margin:.3rem;}
-
-/* TIMELINE */
-.timeline{position:relative;padding-left:1.75rem;}
-.timeline::before{content:'';position:absolute;left:0;top:.5rem;bottom:.5rem;width:2px;background:linear-gradient(to bottom,var(--accent),transparent);}
-.timeline-item{position:relative;margin-bottom:1.75rem;}
-.timeline-item::before{content:'';position:absolute;left:-1.875rem;top:.35rem;width:10px;height:10px;background:var(--accent2);border-radius:50%;border:2px solid var(--bg);}
-.timeline-title{font-weight:600;font-size:1rem;margin-bottom:.25rem;}
-.timeline-org{color:var(--teal);font-size:.85rem;font-weight:500;margin-bottom:.35rem;}
-.timeline-desc{color:var(--text2);font-size:.9rem;line-height:1.6;}
-
-/* AIMS */
-.aim-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;display:flex;gap:1rem;align-items:flex-start;}
-.aim-icon{width:44px;height:44px;border-radius:10px;background:rgba(62,207,176,.15);display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0;}
-
-/* WEEKS SECTION */
-.weeks-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;}
-.week-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;cursor:pointer;transition:all .25s;text-align:center;}
-.week-card:hover{border-color:var(--accent);background:rgba(124,106,247,.08);transform:translateY(-4px);}
-.week-num{font-family:var(--display);font-size:2.5rem;font-weight:900;color:var(--accent2);line-height:1;}
-.week-label{color:var(--text2);font-size:.85rem;margin-top:.5rem;}
-.week-days-count{display:inline-block;margin-top:.75rem;background:rgba(124,106,247,.15);color:var(--accent2);border-radius:100px;padding:.25rem .85rem;font-size:.78rem;font-weight:600;}
-
-/* DAYS VIEW */
-.back-btn{display:inline-flex;align-items:center;gap:.5rem;background:none;border:1.5px solid var(--border);color:var(--text2);padding:.5rem 1rem;border-radius:8px;cursor:pointer;font-family:var(--font);font-size:.88rem;margin-bottom:1.75rem;transition:all .2s;}
-.back-btn:hover{color:var(--accent2);border-color:var(--accent2);}
-.days-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;}
-.day-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;cursor:pointer;transition:all .25s;text-align:center;}
-.day-card:hover{border-color:var(--teal);background:rgba(62,207,176,.07);transform:translateY(-3px);}
-.day-num{font-family:var(--display);font-size:2rem;font-weight:900;color:var(--teal);line-height:1;}
-.day-label{color:var(--text2);font-size:.82rem;margin-top:.4rem;}
-.day-dot{width:8px;height:8px;border-radius:50%;background:var(--border);margin:.75rem auto 0;transition:background .2s;}
-.day-card:hover .day-dot{background:var(--teal);}
-
-/* DAY DETAIL */
-.day-detail-header{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;margin-bottom:1.5rem;}
-.day-detail-title{font-family:var(--display);font-size:2rem;font-weight:700;margin-bottom:.25rem;}
-.day-detail-subtitle{color:var(--text2);}
-.upload-box{background:var(--bg3);border:2px dashed var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center;cursor:pointer;transition:all .2s;display:block;}
-.upload-box:hover{border-color:var(--accent);background:rgba(124,106,247,.06);}
-.upload-icon{font-size:2rem;margin-bottom:.75rem;}
-.upload-label{font-weight:600;font-size:.95rem;margin-bottom:.25rem;}
-.upload-hint{color:var(--text3);font-size:.8rem;}
-.upload-input{display:none;}
-.entries-area{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;min-height:180px;}
-.entry-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:.75rem;display:flex;align-items:flex-start;gap:.75rem;}
-.entry-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
-.entry-text{flex:1;}
-.entry-name{font-weight:500;font-size:.9rem;}
-.entry-meta{color:var(--text3);font-size:.78rem;margin-top:.2rem;}
-.entry-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:1rem;padding:4px;border-radius:6px;transition:color .2s;}
-.entry-del:hover{color:#f87171;}
-.note-form{display:flex;gap:.75rem;margin-top:1rem;}
-.note-input{flex:1;background:var(--bg3);border:1.5px solid var(--border);color:var(--text);padding:.65rem 1rem;border-radius:10px;font-family:var(--font);font-size:.9rem;outline:none;transition:border-color .2s;}
-.note-input:focus{border-color:var(--accent);}
-.code-area{width:100%;background:var(--bg);border:1.5px solid var(--border);color:#a9c2e4;padding:1rem;border-radius:10px;font-family:var(--mono);font-size:.85rem;resize:vertical;min-height:120px;outline:none;transition:border-color .2s;margin-top:.75rem;}
-.code-area:focus{border-color:var(--accent);}
-.save-btn{background:var(--accent);color:#fff;border:none;padding:.6rem 1.25rem;border-radius:8px;cursor:pointer;font-family:var(--font);font-weight:600;font-size:.88rem;transition:background .2s;}
-.save-btn:hover{background:var(--accent2);}
-.tab-row{display:flex;gap:.5rem;margin-bottom:1.25rem;flex-wrap:wrap;}
-.tab{background:none;border:1.5px solid var(--border);color:var(--text2);padding:.45rem 1rem;border-radius:8px;cursor:pointer;font-family:var(--font);font-size:.85rem;transition:all .2s;}
-.tab.active,.tab:hover{border-color:var(--accent);color:var(--accent2);background:rgba(124,106,247,.1);}
-.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.75rem;margin-top:.75rem;}
-.photo-thumb{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--border);}
-
-/* CONTACT / FOOTER */
-.footer-section{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5rem;text-align:center;}
-.contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;max-width:700px;margin:0 auto 2rem;}
-.contact-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-align:center;}
-.contact-item a{color:var(--accent2);text-decoration:none;font-weight:500;}
-.contact-item a:hover{text-decoration:underline;}
-.quote{font-family:var(--display);font-style:italic;font-size:1.2rem;color:var(--text2);max-width:580px;margin:0 auto;line-height:1.7;}
-.quote span{color:var(--gold);}
-.domain{font-size:.95rem;color:var(--text3);margin-top:1rem;}
-.domain a{color:var(--accent);text-decoration:none;font-weight:600;}
-.pill{display:inline-block;padding:.3rem .9rem;border-radius:100px;font-size:.8rem;font-weight:600;margin:.2rem;}
-.pill-teal{background:rgba(62,207,176,.15);color:#3ecfb0;}
-</style>
+  <title>Shalu Shah — Week 1 Technical Documentation Report</title>
 </head>
+
 <body>
 
-<nav>
-  <div class="nav-logo">Shalu Shah</div>
-  <div class="nav-links">
-    <button class="active" onclick="showPage('home')">Home</button>
-    <button onclick="showPage('about')">About</button>
-    <button onclick="showPage('report')">Journal</button>
-    <button onclick="showPage('contact')">Contact</button>
-  </div>
-</nav>
+<h1>Mechatronics Engineering Program</h1>
+<h2>Week 1 Technical Documentation Report</h2>
+<p><b>Status:</b> Completed &nbsp;|&nbsp; <b>Tools Explored:</b> 7 &nbsp;|&nbsp; <b>Domains Covered:</b> 4 &nbsp;|&nbsp; <b>Author:</b> Shalu Shah</p>
 
-<!-- ==================== HOME PAGE ==================== -->
-<div id="page-home" class="page active">
-  <section class="hero">
-    <div>
-      <div class="hero-badge">🤖 Mechatronics Engineer in Progress</div>
-      <h1>Hi, I'm<br/><span>Shalu Shah</span></h1>
-      <p class="hero-sub">Passionate engineer, robotics enthusiast, and lifelong learner — building the future one project at a time.</p>
-      <div class="hero-cta">
-        <button class="btn-primary" onclick="showPage('about')">Explore My Journey</button>
-        <button class="btn-outline" onclick="showPage('report')">Weekly Journal</button>
-      </div>
-    </div>
-  </section>
+<hr>
 
-  <div class="section" style="padding-top:0;">
-    <div class="grid-3">
-      <div class="card" style="text-align:center;">
-        <div style="font-family:var(--display);font-size:2.5rem;font-weight:900;color:var(--accent2);">1+</div>
-        <div style="color:var(--text2);font-size:.9rem;margin-top:.35rem;">Year Engineering Diploma</div>
-      </div>
-      <div class="card" style="text-align:center;">
-        <div style="font-family:var(--display);font-size:2.5rem;font-weight:900;color:var(--teal);">🤖</div>
-        <div style="color:var(--text2);font-size:.9rem;margin-top:.35rem;">Robotics Club Member</div>
-      </div>
-      <div class="card" style="text-align:center;">
-        <div style="font-family:var(--display);font-size:2.5rem;font-weight:900;color:var(--gold);">1</div>
-        <div style="color:var(--text2);font-size:.9rem;margin-top:.35rem;">Haemodialysis Project</div>
-      </div>
-    </div>
-  </div>
-</div>
+<h2>Table of Contents</h2>
+<ol>
+  <li><a href="#intro">Introduction</a></li>
+  <li><a href="#section1">1. Portfolio Website — Project Overview</a></li>
+  <li><a href="#section2">2. HTML Structure &amp; Page Architecture</a></li>
+  <li><a href="#section3">3. CSS Design System &amp; Theming</a></li>
+  <li><a href="#section4">4. JavaScript — SPA Navigation &amp; State Management</a></li>
+  <li><a href="#section5">5. Weekly Journal &amp; Progress Tracker</a></li>
+  <li><a href="#section6">6. Responsive Design &amp; Layout Techniques</a></li>
+  <li><a href="#section7">7. UI Components &amp; Interaction Design</a></li>
+  <li><a href="#section8">8. Deployment &amp; File Structure</a></li>
+  <li><a href="#skills">9. Key Skills &amp; Competencies Developed</a></li>
+  <li><a href="#tools">10. Tool Reference Table</a></li>
+  <li><a href="#reflection">11. Personal Reflection</a></li>
+  <li><a href="#resources">12. Useful Learning Resources &amp; References</a></li>
+</ol>
 
-<!-- ==================== ABOUT PAGE ==================== -->
-<div id="page-about" class="page">
+<hr>
 
-  <!-- Skills -->
-  <div class="section">
-    <div class="section-label">What I bring</div>
-    <div class="section-title">Skills &amp; Strengths</div>
-    <p class="section-desc">A blend of technical and interpersonal abilities that drive real results in engineering environments.</p>
-    <div>
-      <span class="skill-tag">💬 Communication</span>
-      <span class="skill-tag">⚡ Smart Working</span>
-      <span class="skill-tag">🤝 Coordination</span>
-      <span class="skill-tag">👑 Leadership</span>
-      <span class="skill-tag">👥 Team Working</span>
-      <span class="skill-tag">🔥 Passionate</span>
-      <span class="skill-tag">🔧 Mechatronics</span>
-      <span class="skill-tag">🤖 Robotics</span>
-    </div>
-  </div>
+<h2 id="intro">Introduction</h2>
 
-  <!-- Experience -->
-  <div class="section" style="padding-top:0;">
-    <div class="section-label">My journey</div>
-    <div class="section-title">Experience</div>
-    <div class="timeline">
-      <div class="timeline-item">
-        <div class="timeline-title">Engineering Diploma – Mechatronics</div>
-        <div class="timeline-org">Mechatronics Department · 1 Year</div>
-        <div class="timeline-desc">Completed a comprehensive 1-year engineering diploma covering mechanical systems, electronics, programming, and automation fundamentals.</div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-title">Robotics Club Member</div>
-        <div class="timeline-org">Robotics Club · Active Member</div>
-        <div class="timeline-desc">Active participant in robotics design challenges, competitions, and hands-on workshops. Collaborating with peers to build and program robotic systems.</div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-title">Haemodialysis Project</div>
-        <div class="timeline-org">Engineering Project · Research &amp; Development</div>
-        <div class="timeline-desc">Worked on a haemodialysis (kidney dialysis) engineering project — applying mechatronics principles to a real-world medical device challenge.</div>
-      </div>
-    </div>
-  </div>
+<p>
+  The Mechatronics Engineering Program commenced with an introductory session that laid the groundwork for the
+  practical learning journey ahead. This first week focused on the development of a <b>personal portfolio website</b>
+  — a real-world project combining web design, frontend development, and structured content planning.
+</p>
 
-  <!-- Aims -->
-  <div class="section" style="padding-top:0;">
-    <div class="section-label">Looking ahead</div>
-    <div class="section-title">My Aims</div>
-    <div class="grid-2">
-      <div class="aim-card">
-        <div class="aim-icon">🎯</div>
-        <div>
-          <div style="font-weight:600;margin-bottom:.3rem;">Become a Successful Mechatronics Engineer</div>
-          <div style="color:var(--text2);font-size:.9rem;line-height:1.6;">My primary goal is to master mechatronics and contribute to innovative engineering solutions that make a real difference in the world.</div>
-        </div>
-      </div>
-      <div class="aim-card">
-        <div class="aim-icon">🤖</div>
-        <div>
-          <div style="font-weight:600;margin-bottom:.3rem;">Advance in Robotics &amp; Automation</div>
-          <div style="color:var(--text2);font-size:.9rem;line-height:1.6;">Deepen expertise in robotics, automation systems, and AI-driven engineering to build smart machines of the future.</div>
-        </div>
-      </div>
-      <div class="aim-card">
-        <div class="aim-icon">💡</div>
-        <div>
-          <div style="font-weight:600;margin-bottom:.3rem;">Innovate in Medical Engineering</div>
-          <div style="color:var(--text2);font-size:.9rem;line-height:1.6;">Building on the haemodialysis project, aspire to contribute engineering innovations that improve patient lives in healthcare.</div>
-        </div>
-      </div>
-      <div class="aim-card">
-        <div class="aim-icon">🌍</div>
-        <div>
-          <div style="font-weight:600;margin-bottom:.3rem;">Lead &amp; Inspire</div>
-          <div style="color:var(--text2);font-size:.9rem;line-height:1.6;">Use leadership and teamwork skills to guide future engineers and drive impactful collaborative projects.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<p>
+  During this week, I was introduced to core concepts in <b>HTML5, CSS3, and vanilla JavaScript</b> through the lens
+  of building a functional, multi-page portfolio application. The project integrated professional design principles,
+  interactive UI components, and a practical journaling system for tracking weekly engineering progress.
+</p>
 
-<!-- ==================== JOURNAL / REPORT PAGE ==================== -->
-<div id="page-report" class="page">
-  <div class="section">
-    <div class="section-label">Progress Tracker</div>
-    <div class="section-title">Weekly Journal</div>
-    <p class="section-desc">Track your daily progress — upload photos, write notes, share files, and log code for each day of your training.</p>
+<p>
+  The week revolved around 4 major areas: <b>page architecture, visual design systems, JavaScript-driven
+  interactivity,</b> and <b>component-based thinking</b>. Together, these topics created a strong foundation showing
+  how front-end technologies are used in real engineering documentation and professional presentation contexts.
+</p>
 
-    <!-- Week selection view -->
-    <div id="view-weeks">
-      <div class="weeks-grid">
-        <div class="week-card" onclick="openWeek(1)">
-          <div class="week-num">01</div>
-          <div class="week-label">Week One</div>
-          <div class="week-days-count">6 Days</div>
-        </div>
-        <div class="week-card" onclick="openWeek(2)">
-          <div class="week-num">02</div>
-          <div class="week-label">Week Two</div>
-          <div class="week-days-count">6 Days</div>
-        </div>
-        <div class="week-card" onclick="openWeek(3)">
-          <div class="week-num">03</div>
-          <div class="week-label">Week Three</div>
-          <div class="week-days-count">6 Days</div>
-        </div>
-        <div class="week-card" onclick="openWeek(4)">
-          <div class="week-num">04</div>
-          <div class="week-label">Week Four</div>
-          <div class="week-days-count">6 Days</div>
-        </div>
-      </div>
-    </div>
+<p>
+  The portfolio itself serves a dual purpose — it showcases academic and project experience while also acting as a
+  live engineering journal where daily progress, notes, photos, files, and code can be documented week by week.
+</p>
 
-    <!-- Days view -->
-    <div id="view-days" style="display:none;">
-      <button class="back-btn" onclick="backToWeeks()">← Back to Weeks</button>
-      <div style="margin-bottom:1.5rem;">
-        <div class="section-label" id="days-week-label"></div>
-        <div class="section-title" id="days-week-title"></div>
-      </div>
-      <div class="days-grid" id="days-grid"></div>
-    </div>
+<hr>
 
-    <!-- Day detail view -->
-    <div id="view-day-detail" style="display:none;">
-      <button class="back-btn" onclick="backToDays()">← Back to Days</button>
-      <div class="day-detail-header">
-        <div class="day-detail-title" id="detail-title"></div>
-        <div class="day-detail-subtitle" id="detail-subtitle"></div>
-      </div>
+<h2 id="section1">1. Portfolio Website — Project Overview</h2>
 
-      <div class="tab-row">
-        <button class="tab active" onclick="switchTab('notes',this)">📝 Notes</button>
-        <button class="tab" onclick="switchTab('photos',this)">🖼️ Photos</button>
-        <button class="tab" onclick="switchTab('files',this)">📁 Files</button>
-        <button class="tab" onclick="switchTab('code',this)">💻 Code</button>
-      </div>
+<p>
+  The primary deliverable for Week 1 was the design and development of a <b>personal engineering portfolio website</b>
+  for Shalu Shah, a Mechatronics Engineering student. The site was built as a single HTML file using no external
+  frameworks, making it lightweight, portable, and easy to host.
+</p>
 
-      <!-- Notes tab -->
-      <div id="tab-notes" class="entries-area">
-        <div id="notes-list"></div>
-        <div class="note-form">
-          <input class="note-input" id="note-input" type="text" placeholder="Write a note for today..." />
-          <button class="save-btn" onclick="addNote()">Add</button>
-        </div>
-      </div>
+<p>
+  The portfolio contains four main sections: <b>Home</b> (hero landing with profile stats), <b>About</b> (skills,
+  experience timeline, and future aims), <b>Journal</b> (a structured weekly/daily progress tracker), and
+  <b>Contact</b> (links and a closing quote). Navigation between sections is handled by a JavaScript-based
+  Single Page Application (SPA) pattern — no page reloads occur.
+</p>
 
-      <!-- Photos tab -->
-      <div id="tab-photos" class="entries-area" style="display:none;">
-        <label class="upload-box">
-          <div class="upload-icon">🖼️</div>
-          <div class="upload-label">Upload Photos</div>
-          <div class="upload-hint">Click to select images</div>
-          <input class="upload-input" type="file" accept="image/*" multiple onchange="addPhotos(this)"/>
-        </label>
-        <div class="photo-grid" id="photos-grid"></div>
-      </div>
+<p>
+  The design adopts a <b>dark, futuristic aesthetic</b> with purple and teal accents. Typography uses Google Fonts:
+  Playfair Display for headings, DM Sans for body text, and JetBrains Mono for code blocks.
+</p>
 
-      <!-- Files tab -->
-      <div id="tab-files" class="entries-area" style="display:none;">
-        <label class="upload-box">
-          <div class="upload-icon">📁</div>
-          <div class="upload-label">Upload Files</div>
-          <div class="upload-hint">PDF, DOCX, XLSX, ZIP, etc.</div>
-          <input class="upload-input" type="file" multiple onchange="addFiles(this)"/>
-        </label>
-        <div id="files-list" style="margin-top:.75rem;"></div>
-      </div>
+<p>
+  <b>Reference / Source:</b>
+  <a href="https://fonts.google.com" target="_blank">Google Fonts — Typography Resources</a>
+</p>
 
-      <!-- Code tab -->
-      <div id="tab-code" class="entries-area" style="display:none;">
-        <textarea class="code-area" id="code-input" placeholder="// Paste or type your code here...&#10;// e.g. Arduino, Python, C++..."></textarea>
-        <div style="display:flex;gap:.75rem;margin-top:.75rem;align-items:center;flex-wrap:wrap;">
-          <select id="code-lang" style="background:var(--bg3);border:1.5px solid var(--border);color:var(--text);padding:.55rem .9rem;border-radius:8px;font-family:var(--font);font-size:.85rem;outline:none;">
-            <option>Arduino / C++</option>
-            <option>Python</option>
-            <option>JavaScript</option>
-            <option>C</option>
-            <option>Other</option>
-          </select>
-          <button class="save-btn" onclick="saveCode()">Save Code</button>
-        </div>
-        <div id="code-saved-list" style="margin-top:1rem;"></div>
-      </div>
-    </div>
-  </div>
-</div>
+<br>
+<img src="[image-path/hero-section.png]" alt="Portfolio hero section screenshot" width="600">
+<br>
+<p><b>Fig. 1.0:</b> Hero section of the Shalu Shah portfolio showing the name, badge, tagline, and call-to-action buttons.</p>
 
-<!-- ==================== CONTACT PAGE ==================== -->
-<div id="page-contact" class="page">
-  <div class="section">
-    <div class="section-label">Get in touch</div>
-    <div class="section-title">Contact Shalu</div>
-    <p class="section-desc">Feel free to reach out for collaborations, questions, or just to say hello!</p>
-    <div class="contact-grid">
-      <div class="contact-item">
-        <div style="font-size:1.5rem;margin-bottom:.5rem;">🌐</div>
-        <div style="color:var(--text2);font-size:.82rem;margin-bottom:.35rem;">Website</div>
-        <a href="#">shalushah1912@gmail</a>
-      </div>
-      <div class="contact-item">
-        <div style="font-size:1.5rem;margin-bottom:.5rem;">📧</div>
-        <div style="color:var(--text2);font-size:.82rem;margin-bottom:.35rem;">Email</div>
-        <a href="#">shalushah1912@gmail.com</a>
-      </div>
-      <div class="contact-item">
-        <div style="font-size:1.5rem;margin-bottom:.5rem;">💼</div>
-        <div style="color:var(--text2);font-size:.82rem;margin-bottom:.35rem;">LinkedIn</div>
-        <a href="#">linkedin.com/in/shalu shah</a>
-      </div>
-    </div>
-  </div>
+<hr>
 
-  <div class="footer-section">
-    <p class="quote">"The <span>engine of success</span> runs on passion, precision, and the courage to build what doesn't yet exist."</p>
-    <div class="domain" style="margin-top:1.5rem;">
-      <a href="#">shalushah.com</a> · Mechatronics Engineer · India
-    </div>
-    <div style="margin-top:1rem;color:var(--text3);font-size:.8rem;">© 2026 Shalu Shah. Built with passion. 🤖</div>
-  </div>
-</div>
+<h2 id="section2">2. HTML Structure &amp; Page Architecture</h2>
 
-<!-- ==================== JAVASCRIPT ==================== -->
-<script>
-const DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-let currentWeek = null;
-let currentDay = null;
-const storage = {};
+<p>
+  The portfolio is built on <b>semantic HTML5</b>, with all four pages represented as &lt;div&gt; elements assigned
+  unique IDs (page-home, page-about, page-report, page-contact). Only one page carries the .active class at a time,
+  controlled by the showPage() JavaScript function.
+</p>
 
-function getKey() { return 'w' + currentWeek + 'd' + currentDay; }
-function getData() {
-  if (!storage[getKey()]) {
-    storage[getKey()] = { notes: [], photos: [], files: [], codes: [] };
-  }
-  return storage[getKey()];
+<p>
+  Key structural concepts explored this week include: the <b>sticky navigation bar</b>, <b>section-based content
+  layout</b>, <b>nested view states</b> (weeks → days → day detail inside the Journal page), and <b>accessible form
+  elements</b> for note-taking and file uploads.
+</p>
+
+<p><b>Official Links:</b></p>
+<ul>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML" target="_blank">MDN Web Docs — HTML Reference</a></li>
+  <li><a href="https://html.spec.whatwg.org/" target="_blank">WHATWG HTML Living Standard</a></li>
+</ul>
+
+<p><b>Learning References:</b></p>
+<ul>
+  <li><a href="https://www.w3schools.com/html/" target="_blank">W3Schools — HTML Tutorial</a></li>
+  <li><a href="https://web.dev/learn/html" target="_blank">web.dev — Learn HTML</a></li>
+</ul>
+
+<br>
+<img src="[image-path/html-structure.png]" alt="HTML page structure diagram" width="600">
+<br>
+<p><b>Fig. 2.0:</b> Structural layout of the four portfolio pages within a single HTML document.</p>
+<br><br>
+
+<img src="[image-path/journal-views.png]" alt="Journal nested view state diagram" width="600">
+<br>
+<p><b>Fig. 2.1:</b> Three-level view hierarchy inside the Journal page: Weeks → Days → Day Detail.</p>
+<br><br>
+
+<img src="[image-path/navbar.png]" alt="Navigation bar screenshot" width="600">
+<br>
+<p><b>Fig. 2.2:</b> Sticky navigation bar with active state highlighting on current section.</p>
+
+<br>
+<hr>
+
+<h2 id="section3">3. CSS Design System &amp; Theming</h2>
+
+<p>
+  A core feature of the portfolio is its use of <b>CSS Custom Properties (variables)</b> to define a centralized
+  design system. All colors, fonts, spacing, and border radii are stored as variables in the :root selector, making
+  the entire visual theme easy to update or modify from one location.
+</p>
+
+<p>
+  The design system includes dedicated variables for background layers (--bg, --bg2, --bg3), accent colors
+  (--accent, --accent2, --teal, --gold), and text hierarchy (--text, --text2, --text3). This ensures visual
+  consistency across all components without repetition.
+</p>
+
+<h3>Official Link</h3>
+<ul>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties" target="_blank">MDN — CSS Custom Properties</a></li>
+</ul>
+
+<h3>Learning Resources</h3>
+<ul>
+  <li><a href="https://css-tricks.com/a-complete-guide-to-custom-properties/" target="_blank">CSS-Tricks — Complete Guide to Custom Properties</a></li>
+  <li><a href="https://web.dev/learn/css" target="_blank">web.dev — Learn CSS</a></li>
+</ul>
+
+<h3>CSS Variables Defined in :root</h3>
+<pre>
+:root {
+  --bg: #0a0a0f;        /* Primary background */
+  --bg2: #111118;       /* Secondary background */
+  --bg3: #1a1a24;       /* Tertiary / input areas */
+  --card: #1e1e2c;      /* Card component background */
+  --accent: #7c6af7;    /* Primary purple accent */
+  --accent2: #a78bfa;   /* Lighter purple accent */
+  --gold: #f4c542;      /* Gold highlight */
+  --teal: #3ecfb0;      /* Teal accent */
+  --text: #f0eef8;      /* Primary text */
+  --text2: #a09cba;     /* Secondary text */
+  --text3: #6b6880;     /* Muted / placeholder text */
+  --border: #2a2840;    /* Border color */
+  --radius: 14px;       /* Global border radius */
 }
+</pre>
 
+<p>These variables are referenced throughout all CSS rules, ensuring a unified and maintainable dark theme across the entire portfolio.</p>
+
+<h3>Project Snapshot</h3>
+
+<img src="[image-path/css-variables.png]" alt="CSS variables screenshot" width="600">
+<br>
+<p><b>Fig. 3.0:</b> The CSS :root design system variables showing the color palette used throughout the portfolio.</p>
+<br>
+
+<img src="[image-path/card-hover.png]" alt="Card hover effects" width="600">
+<br>
+<p><b>Fig. 3.1:</b> Card components demonstrating hover state transitions and border color changes.</p>
+<br>
+
+<img src="[image-path/skill-tags.png]" alt="Skill tag badges" width="600">
+<br>
+<p><b>Fig. 3.2:</b> Skill tag badges using semi-transparent accent backgrounds from the design system.</p>
+<br>
+
+<hr>
+
+<h2 id="section4">4. JavaScript — SPA Navigation &amp; State Management</h2>
+
+<p>
+  The portfolio's interactivity is powered entirely by <b>vanilla JavaScript</b>, with no external libraries.
+  The core pattern used is a <b>Single Page Application (SPA)</b> approach — all pages exist in the DOM
+  simultaneously, and JavaScript controls which one is visible at any given time.
+</p>
+
+<h3>4.1 Page Navigation System</h3>
+
+<p>
+  The showPage(p) function is the central navigation controller. It removes the .active class from all pages,
+  then adds it to the target page. It also updates the navigation bar to highlight the current section.
+</p>
+
+<ul>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelectorAll" target="_blank">MDN — querySelectorAll</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/classList" target="_blank">MDN — classList API</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@keyframes" target="_blank">MDN — CSS @keyframes Animations</a></li>
+</ul>
+
+<pre>
 function showPage(p) {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
   document.getElementById('page-' + p).classList.add('active');
   document.querySelectorAll('.nav-links button').forEach(b => {
-    const map = { home: 'home', about: 'about', report: 'journal', contact: 'contact' };
+    const map = { home:'home', about:'about', report:'journal', contact:'contact' };
     b.classList.toggle('active', b.textContent.toLowerCase().includes(map[p]));
   });
   if (p === 'report') showWeeksView();
 }
+</pre>
 
-function showWeeksView() {
-  document.getElementById('view-weeks').style.display = '';
-  document.getElementById('view-days').style.display = 'none';
-  document.getElementById('view-day-detail').style.display = 'none';
-}
+<img src="[image-path/page-transition.png]" alt="Page transition animation" width="600">
+<br>
+<p><b>Fig. 4.1.0:</b> CSS fadeIn animation applied to .page.active — creates smooth page transitions.</p>
+<br>
 
-function ordinal(n) {
-  return ['', 'One', 'Two', 'Three', 'Four'][n] || n;
-}
+<img src="[image-path/nav-active.png]" alt="Nav button active state" width="600">
+<br>
+<p><b>Fig. 4.1.1:</b> Navigation bar with active button highlighted using accent color and background.</p>
+<br>
 
-function openWeek(w) {
-  currentWeek = w;
-  document.getElementById('view-weeks').style.display = 'none';
-  document.getElementById('view-days').style.display = '';
-  document.getElementById('view-day-detail').style.display = 'none';
-  document.getElementById('days-week-label').textContent = 'Week ' + w;
-  document.getElementById('days-week-title').textContent = 'Week ' + ordinal(w) + ' – Daily Log';
-  const grid = document.getElementById('days-grid');
-  grid.innerHTML = '';
-  for (let d = 1; d <= 6; d++) {
-    const dc = document.createElement('div');
-    dc.className = 'day-card';
-    dc.onclick = () => openDay(d);
-    dc.innerHTML = `
-      <div class="day-num">${String(d).padStart(2,'0')}</div>
-      <div class="day-label">Day ${d} &middot; ${DAY_NAMES[d-1]}</div>
-      <div class="day-dot"></div>`;
-    grid.appendChild(dc);
-  }
-}
+<img src="[image/vs 1.png]" alt="About page rendered" width="600">
+<br>
+<p><b>Fig. 4.1.2:</b> About page displayed after showPage('about') is triggered.</p>
+<br>
 
-function openDay(d) {
-  currentDay = d;
-  document.getElementById('view-days').style.display = 'none';
-  document.getElementById('view-day-detail').style.display = '';
-  document.getElementById('detail-title').textContent = 'Week ' + currentWeek + ' · Day ' + d;
-  document.getElementById('detail-subtitle').textContent = DAY_NAMES[d-1] + ' — Week ' + ordinal(currentWeek) + ' Journal Entry';
-  // Reset to notes tab
-  switchTab('notes', document.querySelector('.tab'));
-  renderNotes(); renderPhotos(); renderFiles(); renderCodes();
-}
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/eEud0crzDC4?si=zNu9OL5VEAxMnNsmq11111111"
+    title="SPA Navigation Demo"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+<br>
+<p><b>Video 4.1:</b> Demonstration of SPA navigation switching between Home, About, Journal, and Contact pages.</p>
+<br>
 
-function backToWeeks() {
-  document.getElementById('view-weeks').style.display = '';
-  document.getElementById('view-days').style.display = 'none';
-  document.getElementById('view-day-detail').style.display = 'none';
-}
+<hr>
 
-function backToDays() {
-  document.getElementById('view-days').style.display = '';
-  document.getElementById('view-day-detail').style.display = 'none';
-}
+<h3>4.2 Journal State Management</h3>
 
+<p>
+  The Journal page uses a three-level nested navigation system: Weeks view → Days view → Day Detail view.
+  Each level is a separate &lt;div&gt; whose visibility is toggled using the display style property.
+  The current week and day are tracked with the module-level variables currentWeek and currentDay.
+</p>
+
+<p>
+  Data for each day (notes, photos, files, code snippets) is stored in a plain JavaScript object (storage = {})
+  keyed by week-day combinations (e.g., w1d3 for Week 1, Day 3). This is in-memory storage — data resets on
+  page refresh. A future improvement would use localStorage to persist entries.
+</p>
+
+<ul>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" target="_blank">MDN — JavaScript Objects</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage" target="_blank">MDN — localStorage API</a></li>
+</ul>
+
+<img src="[image-path/week-grid.png]" alt="Week selection grid" width="600">
+<br>
+<p><b>Fig. 4.2.0:</b> Week selection cards (Week 01–04) with click handlers to navigate into day views.</p>
+<br>
+
+<img src="[image-path/day-grid.png]" alt="Day selection grid" width="600">
+<br>
+<p><b>Fig. 4.2.1:</b> Day cards (Day 01–06) displayed after selecting a week.</p>
+<br>
+
+<img src="[image-path/day-detail.png]" alt="Day detail view with tabs" width="600">
+<br>
+<p><b>Fig. 4.2.2:</b> Day detail view showing the Notes, Photos, Files, and Code tabs for a selected day.</p>
+<br>
+
+<hr>
+
+<h3>4.3 Notes, Photos, Files &amp; Code Modules</h3>
+
+<p>
+  Each day entry has four interactive modules managed by dedicated JavaScript functions:
+</p>
+
+<ul>
+  <li><b>Notes:</b> addNote(), renderNotes(), delNote(i) — text notes with timestamps.</li>
+  <li><b>Photos:</b> addPhotos(inp), renderPhotos(), delPhoto(i) — image uploads using FileReader API converted to base64.</li>
+  <li><b>Files:</b> addFiles(inp), renderFiles(), delFile(i) — file metadata logging (name, size, timestamp).</li>
+  <li><b>Code:</b> saveCode(), renderCodes(), delCode(i) — code snippets with language selector and HTML escaping.</li>
+</ul>
+
+<ul>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/FileReader" target="_blank">MDN — FileReader API</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea" target="_blank">MDN — Textarea Element</a></li>
+</ul>
+
+
+
+<hr>
+
+<h3>4.4 Tab Switching System</h3>
+
+<p>
+  Within the Day Detail view, a tab system controls which content panel (Notes, Photos, Files, Code) is visible.
+  The switchTab(tab, btn) function iterates over all four panel IDs and hides all except the selected one,
+  while also toggling the .active class on the corresponding tab button.
+</p>
+
+<ul>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/id" target="_blank">MDN — HTML id Attribute</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/display" target="_blank">MDN — CSS display Property</a></li>
+</ul>
+
+<pre>
 function switchTab(tab, btn) {
   ['notes','photos','files','code'].forEach(t => {
-    document.getElementById('tab-' + t).style.display = t === tab ? '' : 'none';
+    document.getElementById('tab-' + t).style.display = (t === tab) ? '' : 'none';
   });
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
 }
+</pre>
+<p>print("week one day 1 ") </p> 
 
-/* ---- NOTES ---- */
-function addNote() {
-  const inp = document.getElementById('note-input');
-  const txt = inp.value.trim();
-  if (!txt) return;
-  getData().notes.push({ text: txt, time: new Date().toLocaleTimeString() });
-  inp.value = '';
-  renderNotes();
-}
-function renderNotes() {
-  const list = document.getElementById('notes-list');
-  const notes = getData().notes;
-  if (!notes.length) {
-    list.innerHTML = '<div style="color:var(--text3);text-align:center;padding:1.5rem 0;font-size:.9rem;">No notes yet. Add your first note below!</div>';
-    return;
-  }
-  list.innerHTML = notes.map((n, i) => `
-    <div class="entry-item">
-      <div class="entry-icon" style="background:rgba(124,106,247,.2);">📝</div>
-      <div class="entry-text">
-        <div class="entry-name">${n.text}</div>
-        <div class="entry-meta">${n.time}</div>
-      </div>
-      <button class="entry-del" onclick="delNote(${i})">✕</button>
-    </div>`).join('');
-}
-function delNote(i) { getData().notes.splice(i, 1); renderNotes(); }
-document.getElementById('note-input').addEventListener('keydown', e => { if (e.key === 'Enter') addNote(); });
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/0TJcsJ-yUIo?si=1Wp43jqIVZFqwLIT"
+    title="Tab Switching Demo"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+<p>print("week one day 2 ") </p> 
 
-/* ---- PHOTOS ---- */
-function addPhotos(inp) {
-  const files = Array.from(inp.files);
-  files.forEach(f => {
-    const reader = new FileReader();
-    reader.onload = e => { getData().photos.push({ src: e.target.result, name: f.name }); renderPhotos(); };
-    reader.readAsDataURL(f);
-  });
-  inp.value = '';
-}
-function renderPhotos() {
-  const grid = document.getElementById('photos-grid');
-  const photos = getData().photos;
-  grid.innerHTML = photos.map((p, i) => `
-    <div style="position:relative;">
-      <img class="photo-thumb" src="${p.src}" alt="${p.name}" />
-      <button onclick="delPhoto(${i})" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);border:none;color:#fff;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:.75rem;">✕</button>
-    </div>`).join('');
-}
-function delPhoto(i) { getData().photos.splice(i, 1); renderPhotos(); }
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/eEud0crzDC4?si=zNu9OL5VEAxMnNsm"
+    title="Tab Switching Demo"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+<p>print("week one day 3 ") </p> 
 
-/* ---- FILES ---- */
-function addFiles(inp) {
-  Array.from(inp.files).forEach(f => {
-    getData().files.push({ name: f.name, size: (f.size / 1024).toFixed(1) + 'KB', time: new Date().toLocaleTimeString() });
-  });
-  renderFiles();
-  inp.value = '';
-}
-function renderFiles() {
-  const list = document.getElementById('files-list');
-  const files = getData().files;
-  if (!files.length) { list.innerHTML = ''; return; }
-  list.innerHTML = files.map((f, i) => `
-    <div class="entry-item">
-      <div class="entry-icon" style="background:rgba(244,197,66,.15);">📎</div>
-      <div class="entry-text">
-        <div class="entry-name">${f.name}</div>
-        <div class="entry-meta">${f.size} · ${f.time}</div>
-      </div>
-      <button class="entry-del" onclick="delFile(${i})">✕</button>
-    </div>`).join('');
-}
-function delFile(i) { getData().files.splice(i, 1); renderFiles(); }
 
-/* ---- CODE ---- */
-function saveCode() {
-  const code = document.getElementById('code-input').value.trim();
-  const lang = document.getElementById('code-lang').value;
-  if (!code) return;
-  getData().codes.push({ code, lang, time: new Date().toLocaleTimeString() });
-  document.getElementById('code-input').value = '';
-  renderCodes();
-}
-function renderCodes() {
-  const list = document.getElementById('code-saved-list');
-  const codes = getData().codes;
-  list.innerHTML = codes.map((c, i) => `
-    <div class="entry-item" style="flex-direction:column;gap:.5rem;">
-      <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
-        <span class="pill pill-teal">${c.lang}</span>
-        <span style="color:var(--text3);font-size:.78rem;">${c.time}</span>
-        <button class="entry-del" onclick="delCode(${i})">✕</button>
-      </div>
-      <pre style="background:var(--bg);border-radius:8px;padding:.75rem;font-family:var(--mono);font-size:.82rem;color:#a9c2e4;white-space:pre-wrap;width:100%;overflow-x:auto;">${escHtml(c.code)}</pre>
-    </div>`).join('');
-}
-function delCode(i) { getData().codes.splice(i, 1); renderCodes(); }
-function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-</script>
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/bBv9XXZYFhQ?si=8CnMp5HJo7uks5j6"
+    title="Tab Switching Demo"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/1EeT7qX78_s?si=gCkWIVySyqXep41o"
+    title="Tab Switching Demo"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+<p>print("week one day 4 ") </p> 
+
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/5sv9jrRyYXw?si=6MSDYzJXfDicoJUW"
+    title="Tab Switching Demo"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+<p>print("week one day 5 ") </p> 
+
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/jF_FwVoOwuk?si=FFbicb0mufO81rdn"
+    title="Tab Switching Demo"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/7oQMEB9l2C4?si=PPkdJlZCbH69i3wB"
+    title="Tab Switching Demo"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+<br>
+<p><b>Video 4.4:</b> Demonstration of tab switching between Notes, Photos, Files, and Code panels.</p>
+<br>
+
+<hr>
+
+<h2 id="section5">5. Weekly Journal &amp; Progress Tracker</h2>
+
+<p>
+  The <b>Weekly Journal</b> is the most feature-rich section of the portfolio. It provides a structured system for
+  logging daily engineering activities across 4 weeks, with 6 working days per week (Monday–Saturday).
+</p>
+
+<p>
+  Each day entry supports four types of content: written notes (with Enter-key shortcut support), photo uploads
+  (rendered as a responsive image grid), file attachments (logged by name, size, and time), and code snippets
+  (with a language selector for Arduino/C++, Python, JavaScript, C, and Other). This makes the journal suitable
+  for documenting practical engineering lab sessions in detail.
+</p>
+
+
+
+<hr>
+
+<h2 id="section6">6. Responsive Design &amp; Layout Techniques</h2>
+
+<p>
+  The portfolio uses <b>CSS Grid</b> with auto-fit and minmax() to create layouts that automatically reflow on
+  smaller screens without explicit breakpoints. This ensures the site remains usable on mobile devices,
+  tablets, and desktops.
+</p>
+
+<h3>6.1 Grid Layouts</h3>
+
+<p>
+  Two primary grid classes are used: .grid-2 (minimum 280px columns) for two-column card layouts such as Aims,
+  and .grid-3 (minimum 200px columns) for three-column stat cards. Both collapse to a single column on narrow
+  screens automatically.
+</p>
+
+<p><b>Common CSS layout patterns used:</b> display:grid, repeat(auto-fit, minmax()), gap, flexbox</p>
+
+
+
+<p>
+  Navigation bars, button groups, and contact grids all use <b>CSS Flexbox</b> with flex-wrap:wrap to gracefully
+  adapt to available width. The hero section uses clamp() for fluid typography — the heading scales from
+  3rem to 6rem based on viewport width.
+</p>
+
+<p><b>Common CSS properties used:</b> display:flex, flex-wrap:wrap, gap, clamp(), align-items, justify-content</p>
+
+
+
+<p>
+  The portfolio features several reusable UI components designed with consistent visual language and smooth
+  micro-interactions. Each component was crafted with hover states, transitions, and clear visual hierarchy.
+</p>
+
+<p>
+  Key components built include: <b>stat cards</b> (home page), <b>skill tags</b> (about page),
+  <b>timeline items</b> (experience section), <b>aim cards</b> with icon badges, <b>week/day cards</b> with
+  animated dot indicators, <b>upload boxes</b> with dashed borders, <b>entry items</b> for notes/files/code,
+  and <b>photo thumbnails</b> with overlay delete buttons.
+</p>
+
+<ul>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transition" target="_blank">MDN — CSS Transitions</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform" target="_blank">MDN — CSS Transform</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/animation" target="_blank">MDN — CSS Animations</a></li>
+</ul>
+
+
+<h2 id="section8">8. Deployment &amp; File Structure</h2>
+
+<p>
+  The portfolio is designed as a <b>self-contained single HTML file</b> — all CSS is embedded in a &lt;style&gt;
+  block and all JavaScript is embedded in a &lt;script&gt; block at the end of the document. The only external
+  dependency is Google Fonts, loaded via a &lt;link&gt; tag.
+</p>
+
+<p>
+  This architecture means the portfolio can be deployed by simply uploading one file to any web host, opened
+  locally in a browser, or shared directly. The following settings and considerations were studied:
+</p>
+
+<ul>
+  <li>Single-file architecture — no build tools or bundlers needed</li>
+  <li>Google Fonts loaded via CDN (requires internet connection)</li>
+  <li>All images referenced via relative paths (e.g., ./images/photo.jpg)</li>
+  <li>JavaScript data stored in-memory (resets on refresh — no backend required)</li>
+  <li>Future improvement: use localStorage to persist journal entries</li>
+  <li>Future improvement: add a manifest and service worker for offline PWA support</li>
+  <li>Compatible with GitHub Pages, Netlify, Vercel, and any static host</li>
+  <li>No framework dependencies — works in any modern browser</li>
+  <li>Minification can reduce file size for production deployment</li>
+  <li>Meta viewport tag ensures correct rendering on mobile devices</li>
+  <li>UTF-8 charset declaration ensures proper text encoding</li>
+</ul>
+
+<ul>
+  <li><a href="https://pages.github.com/" target="_blank">GitHub Pages — Free Static Hosting</a></li>
+  <li><a href="https://developer.chrome.com/docs/devtools/" target="_blank">Chrome DevTools — Developer Reference</a></li>
+</ul>
+
+
+<hr>
+
+<h2 id="skills">9. Key Skills &amp; Competencies Developed</h2>
+
+<p>
+  Beyond tool exposure, Week 1 contributed toward developing a combination of technical, organizational,
+  and design-oriented skills across all areas explored during the portfolio project.
+</p>
+
+<ul>
+  <li>Semantic HTML5 structure and document architecture</li>
+  <li>CSS Custom Properties (variables) for scalable design systems</li>
+  <li>CSS Grid and Flexbox for responsive, adaptive layouts</li>
+  <li>CSS animations and transitions for micro-interactions</li>
+  <li>Vanilla JavaScript for DOM manipulation and dynamic rendering</li>
+  <li>Single Page Application (SPA) navigation pattern without frameworks</li>
+  <li>In-memory state management with JavaScript objects</li>
+  <li>FileReader API for client-side image uploads</li>
+  <li>Accessibility considerations: keyboard navigation (Enter-to-submit)</li>
+  <li>Typography pairing: display fonts, body fonts, and monospace fonts</li>
+  <li>UI component thinking: reusable cards, timelines, tabs, upload boxes</li>
+</ul>
+
+<img src="[image-path/skills-summary.png]" alt="Skills summary" width="600">
+
+<hr>
+
+<h2 id="tools">10. Tool Reference Table</h2>
+
+<table border="1" cellpadding="8">
+  <tr>
+    <th>Tool / Technology</th>
+    <th>Primary Purpose</th>
+    <th>Official Link</th>
+  </tr>
+  <tr>
+    <td>HTML5</td>
+    <td>Page structure and semantic markup</td>
+    <td><a href="https://developer.mozilla.org/en-US/docs/Web/HTML" target="_blank">developer.mozilla.org</a></td>
+  </tr>
+  <tr>
+    <td>CSS3</td>
+    <td>Styling, layout, animations, and design system</td>
+    <td><a href="https://developer.mozilla.org/en-US/docs/Web/CSS" target="_blank">developer.mozilla.org</a></td>
+  </tr>
+  <tr>
+    <td>Vanilla JavaScript</td>
+    <td>SPA navigation, state management, DOM manipulation</td>
+    <td><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">developer.mozilla.org</a></td>
+  </tr>
+  <tr>
+    <td>Google Fonts</td>
+    <td>Web typography (Playfair Display, DM Sans, JetBrains Mono)</td>
+    <td><a href="https://fonts.google.com" target="_blank">fonts.google.com</a></td>
+  </tr>
+  <tr>
+    <td>CSS Grid</td>
+    <td>Responsive card and component layouts</td>
+    <td><a href="https://css-tricks.com/snippets/css/complete-guide-grid/" target="_blank">css-tricks.com</a></td>
+  </tr>
+  <tr>
+    <td>FileReader API</td>
+    <td>Client-side image preview and upload handling</td>
+    <td><a href="https://developer.mozilla.org/en-US/docs/Web/API/FileReader" target="_blank">developer.mozilla.org</a></td>
+  </tr>
+  <tr>
+    <td>GitHub Pages</td>
+    <td>Free static site hosting for portfolio deployment</td>
+    <td><a href="https://pages.github.com" target="_blank">pages.github.com</a></td>
+  </tr>
+  <tr>
+    <td>VS Code</td>
+    <td>Code editor for writing and previewing HTML/CSS/JS</td>
+    <td><a href="https://code.visualstudio.com" target="_blank">code.visualstudio.com</a></td>
+  </tr>
+  <tr>
+    <td>Chrome DevTools</td>
+    <td>Debugging, responsive testing, performance auditing</td>
+    <td><a href="https://developer.chrome.com/docs/devtools/" target="_blank">developer.chrome.com</a></td>
+  </tr>
+</table>
+
+<hr>
+
+<h2 id="reflection">11. Personal Reflection</h2>
+
+<p>
+  Week 1 was an exciting and intensive introduction to frontend web development through the lens of building
+  something personally meaningful — my own engineering portfolio. What stood out most was the realization that
+  a single HTML file, when thoughtfully structured, can deliver a fully interactive, multi-page application
+  experience without any framework or build tool.
+</p>
+
+<p>
+  The most challenging aspect was designing the <b>Journal's nested navigation system</b> — managing three layers
+  of view state (weeks, days, day detail) with clean transitions required careful planning of DOM structure and
+  JavaScript logic. Understanding how to use a simple object as an in-memory database, keyed by week-day pairs,
+  was a particularly valuable pattern that I can apply in future projects.
+</p>
+
+<p>
+  This week's work connects directly to my goals as a Mechatronics engineer — the ability to document,
+  communicate, and present technical work clearly is as important as the engineering itself. The portfolio now
+  serves as both a professional showcase and a practical tool for logging my engineering learning journey going
+  forward. I am eager to expand it with real project content, photos, and code snippets as the program progresses.
+</p>
+
+<img src="[image-path/final-portfolio.png]" alt="Final portfolio screenshot" width="600">
+
+<hr>
+
+<h2 id="resources">12. Useful Learning Resources &amp; References</h2>
+
+<ul>
+  <li>MDN Web Docs — HTML, CSS, JavaScript Reference — <a href="https://developer.mozilla.org" target="_blank">https://developer.mozilla.org</a></li>
+  <li>CSS-Tricks — Complete Guides to Flexbox and Grid — <a href="https://css-tricks.com" target="_blank">https://css-tricks.com</a></li>
+  <li>Google Fonts — Web Typography — <a href="https://fonts.google.com" target="_blank">https://fonts.google.com</a></li>
+  <li>web.dev — Learn HTML, CSS, and JavaScript — <a href="https://web.dev/learn" target="_blank">https://web.dev/learn</a></li>
+  <li>W3Schools — HTML &amp; CSS Tutorials — <a href="https://www.w3schools.com" target="_blank">https://www.w3schools.com</a></li>
+</ul>
+
+<hr>
+
+<h2>Week 1 Completion Status</h2>
+
+<p><b>Status:</b> Completed</p>
+<p><b>Week Focus:</b> Personal portfolio website development — covering HTML5 structure, CSS design systems,
+vanilla JavaScript SPA navigation, responsive layouts, interactive UI components, and a multi-tab daily
+journal tracker for engineering progress documentation.</p>
+
+<img src="[image-path/week1-complete.png]" alt="Week 1 final deliverable" width="600">
+
+<hr>
+
+<p><b>Prepared for:</b> Mechatronics Engineering Program 2026</p>
+<p>Week 1 Technical Documentation Record</p>
+<p>Prepared by: <b>Shalu Shah</b></p>
+
 </body>
 </html>
