@@ -2,6 +2,631 @@
 <html>
 
 <head>
+  <title>Shalu Shah — Week 1 Technical Documentation Report</title>
+</head>
+
+<body>
+
+<h1>Mechatronics Engineering Program</h1>
+<h2>Week 1 Technical Documentation Report</h2>
+<p><b>Status:</b> Completed &nbsp;|&nbsp; <b>Tools Explored:</b> [X] &nbsp;|&nbsp; <b>Domains Covered:</b> [X] &nbsp;|&nbsp; <b>Author:</b> Shalu Shah</p>
+
+<hr>
+
+<h2>Table of Contents</h2>
+<ol>
+  <li><a href="#intro">Introduction</a></li>
+  <li><a href="#section1">1. [Project/Topic Name] — Project Overview</a></li>
+  <li><a href="#section2">2. [Section 2 Title]</a></li>
+  <li><a href="#section3">3. [Section 3 Title]</a></li>
+  <li><a href="#section4">4. [Section 4 Title]</a></li>
+  <li><a href="#section5">5. [Section 5 Title]</a></li>
+  <li><a href="#section6">6. [Section 6 Title]</a></li>
+  <li><a href="#section7">7. [Section 7 Title]</a></li>
+  <li><a href="#section8">8. [Section 8 Title]</a></li>
+  <li><a href="#skills">9. Key Skills &amp; Competencies Developed</a></li>
+  <li><a href="#tools">10. Tool Reference Table</a></li>
+  <li><a href="#reflection">11. Personal Reflection</a></li>
+  <li><a href="#resources">12. Useful Learning Resources &amp; References</a></li>
+</ol>
+
+<hr>
+
+<h2 id="intro">Introduction</h2>
+
+<p>
+  [Write your Week 1 introduction here. Describe the overall focus of the week,
+  what was introduced, and what the primary deliverable or project was.]
+</p>
+
+<p>
+  [Describe the main technologies or tools explored during the week.]
+</p>
+
+<p>
+  [Summarize the major areas covered this week.]
+</p>
+
+<p>
+  [Describe how this week's work connects to the broader program goals.]
+</p>
+
+<hr>
+
+<!-- ============================================================
+     SECTION 1
+     ============================================================ -->
+
+<h2 id="section1">1. [Project/Topic Name] — Project Overview</h2>
+
+<p>
+  [Describe the primary deliverable or project for Week 1.]
+</p>
+
+<p>
+  [Describe the main components or features of the project.]
+</p>
+
+<p>
+  [Describe the design or technical approach taken.]
+</p>
+
+<p>
+  <b>Reference / Source:</b>
+  <a href="[URL]" target="_blank">[Reference Name]</a>
+</p>
+
+<br>
+<img src="[image-path/screenshot1.png]" alt="[Description]" width="600">
+<br>
+<p><b>Fig. 1.0:</b> [Caption for figure 1.0]</p>
+
+<hr>
+
+<!-- ============================================================
+     SECTION 2
+     ============================================================ -->
+
+<h2 id="section2">2. [Section 2 Title]</h2>
+
+<p>
+  [Main content for section 2.]
+</p>
+
+<p>
+  [Supporting detail or explanation.]
+</p>
+
+<p><b>Official Links:</b></p>
+<ul>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+</ul>
+
+<p><b>Learning References:</b></p>
+<ul>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+</ul>
+
+<br>
+<img src="[image-path/screenshot2.png]" alt="[Description]" width="600">
+<br>
+<p><b>Fig. 2.0:</b> [Caption for figure 2.0]</p>
+<br><br>
+
+<img src="[image-path/screenshot3.png]" alt="[Description]" width="600">
+<br>
+<p><b>Fig. 2.1:</b> [Caption for figure 2.1]</p>
+<br><br>
+
+<img src="[image-path/screenshot4.png]" alt="[Description]" width="600">
+<br>
+<p><b>Fig. 2.2:</b> [Caption for figure 2.2]</p>
+
+<br>
+<hr>
+
+<!-- ============================================================
+     SECTION 3
+     ============================================================ -->
+
+<h2 id="section3">3. [Section 3 Title]</h2>
+
+<p>
+  [Main content for section 3.]
+</p>
+
+<p>
+  [Supporting detail or explanation.]
+</p>
+
+<h3>Official Link</h3>
+<ul>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+</ul>
+
+<h3>Learning Resources</h3>
+<ul>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+</ul>
+
+<h3>[Subsection or Code Block Title]</h3>
+<pre>
+[Paste your code snippet here]
+</pre>
+
+<p>[Explanation of the code or concept above.]</p>
+
+<h3>Project Snapshot</h3>
+
+<img src="[image-path/screenshot5.png]" alt="[Description]" width="600">
+<br>
+<p><b>Fig. 3.0:</b> [Caption for figure 3.0]</p>
+<br>
+
+<img src="[image-path/screenshot6.png]" alt="[Description]" width="600">
+<br>
+<p><b>Fig. 3.1:</b> [Caption for figure 3.1]</p>
+<br>
+
+<img src="[image-path/screenshot7.png]" alt="[Description]" width="600">
+<br>
+<p><b>Fig. 3.2:</b> [Caption for figure 3.2]</p>
+<br>
+
+<hr>
+
+<!-- ============================================================
+     SECTION 4  (with subsections)
+     ============================================================ -->
+
+<h2 id="section4">4. [Section 4 Title]</h2>
+
+<p>
+  [Main content for section 4.]
+</p>
+
+<!-- --- Subsection 4.1 --- -->
+<h3>4.1 [Subsection Title]</h3>
+
+<p>
+  [Content for subsection 4.1.]
+</p>
+
+<ul>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+</ul>
+
+<pre>
+[Code snippet for section 4.1]
+</pre>
+
+<img src="[image-path/screenshot8.png]" alt="[Description]" width="600">
+<br>
+<p><b>Fig. 4.1.0:</b> [Caption for figure 4.1.0]</p>
+<br>
+
+<img src="[image-path/screenshot9.png]" alt="[Description]" width="600">
+<br>
+<p><b>Fig. 4.1.1:</b> [Caption for figure 4.1.1]</p>
+<br>
+
+<img src="[image-path/screenshot10.png]" alt="[Description]" width="600">
+<br>
+<p><b>Fig. 4.1.2:</b> [Caption for figure 4.1.2]</p>
+<br>
+
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/[VIDEO_ID]"
+    title="[Video Title]"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+<br>
+<p><b>Video 4.1:</b> [Video caption/description]</p>
+<br>
+
+<hr>
+
+<!-- --- Subsection 4.2 --- -->
+<h3>4.2 [Subsection Title]</h3>
+
+<p>
+  [Content for subsection 4.2.]
+</p>
+
+<ul>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+</ul>
+
+<img src="[image-path/screenshot11.png]" alt="[Description]" width="600">
+<br>
+<p><b>Fig. 4.2.0:</b> [Caption for figure 4.2.0]</p>
+<br>
+
+<img src="[image-path/screenshot12.png]" alt="[Description]" width="600">
+<br>
+<p><b>Fig. 4.2.1:</b> [Caption for figure 4.2.1]</p>
+<br>
+
+<img src="[image-path/screenshot13.png]" alt="[Description]" width="600">
+<br>
+<p><b>Fig. 4.2.2:</b> [Caption for figure 4.2.2]</p>
+<br>
+
+<hr>
+
+<!-- --- Subsection 4.3 --- -->
+<h3>4.3 [Subsection Title]</h3>
+
+<p>
+  [Content for subsection 4.3.]
+</p>
+
+<ul>
+  <li><b>[Item 1]:</b> [Description]</li>
+  <li><b>[Item 2]:</b> [Description]</li>
+  <li><b>[Item 3]:</b> [Description]</li>
+  <li><b>[Item 4]:</b> [Description]</li>
+</ul>
+
+<ul>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+</ul>
+
+<hr>
+
+<!-- --- Subsection 4.4 --- -->
+<h3>4.4 [Subsection Title]</h3>
+
+<p>
+  [Content for subsection 4.4.]
+</p>
+
+<ul>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+</ul>
+
+<pre>
+[Code snippet for section 4.4]
+</pre>
+
+<p>print("week one day 1 ") </p>
+
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/0TJcsJ-yUIo?si=1Wp43jqIVZFqwLIT"
+    title="[Day 1 Video Title]"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+
+<p>print("week one day 2 ") </p>
+
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/watch?v=eEud0crzDC4&feature=shared"
+    title="[Day 2 Video Title]"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+
+<p>print("week one day 3 ") </p>
+
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/bBv9XXZYFhQ?si=8CnMp5HJo7uks5j6"
+    title="[Day 3A Video Title]"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/1EeT7qX78_s?si=gCkWIVySyqXep41o"
+    title="[Day 3B Video Title]"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+
+<p>print("week one day 4 ") </p>
+
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/5sv9jrRyYXw?si=6MSDYzJXfDicoJUW"
+    title="[Day 4 Video Title]"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+
+<p>print("week one day 5 ") </p>
+
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/jF_FwVoOwuk?si=FFbicb0mufO81rdn"
+    title="[Day 5A Video Title]"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+<iframe
+    width="700"
+    height="400"
+    src="https://www.youtube.com/embed/7oQMEB9l2C4?si=PPkdJlZCbH69i3wB"
+    title="[Day 5B Video Title]"
+    frameborder="0"
+    allowfullscreen>
+</iframe>
+<br>
+<p><b>Video 4.4:</b> [Caption describing the video series above]</p>
+<br>
+
+<hr>
+
+<!-- ============================================================
+     SECTION 5
+     ============================================================ -->
+
+<h2 id="section5">5. [Section 5 Title]</h2>
+
+<p>
+  [Main content for section 5.]
+</p>
+
+<p>
+  [Supporting detail or explanation.]
+</p>
+
+<hr>
+
+<!-- ============================================================
+     SECTION 6
+     ============================================================ -->
+
+<h2 id="section6">6. [Section 6 Title]</h2>
+
+<p>
+  [Main content for section 6.]
+</p>
+
+<h3>6.1 [Subsection Title]</h3>
+
+<p>
+  [Content for subsection 6.1.]
+</p>
+
+<p><b>Common concepts or patterns used:</b> [list them here]</p>
+
+<p>
+  [Additional paragraph for section 6.]
+</p>
+
+<p><b>Common properties or tools used:</b> [list them here]</p>
+
+<p>
+  [Another supporting paragraph if needed.]
+</p>
+
+<ul>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+</ul>
+
+<!-- ============================================================
+     SECTION 7
+     ============================================================ -->
+
+<h2 id="section7">7. [Section 7 Title]</h2>
+
+<p>
+  [Main content for section 7.]
+</p>
+
+<p>
+  Key components built include: <b>[component 1]</b>, <b>[component 2]</b>,
+  <b>[component 3]</b>, <b>[component 4]</b>, and <b>[component 5]</b>.
+</p>
+
+<ul>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+</ul>
+
+<!-- ============================================================
+     SECTION 8
+     ============================================================ -->
+
+<h2 id="section8">8. [Section 8 Title]</h2>
+
+<p>
+  [Main content for section 8.]
+</p>
+
+<p>
+  [Supporting detail or explanation for section 8.]
+</p>
+
+<ul>
+  <li>[Point 1]</li>
+  <li>[Point 2]</li>
+  <li>[Point 3]</li>
+  <li>[Point 4]</li>
+  <li>[Point 5]</li>
+  <li>[Point 6]</li>
+  <li>[Point 7]</li>
+  <li>[Point 8]</li>
+</ul>
+
+<ul>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+  <li><a href="[URL]" target="_blank">[Resource Name]</a></li>
+</ul>
+
+<hr>
+
+<!-- ============================================================
+     KEY SKILLS
+     ============================================================ -->
+
+<h2 id="skills">9. Key Skills &amp; Competencies Developed</h2>
+
+<p>
+  Beyond tool exposure, Week 1 contributed toward developing a combination of technical, organizational,
+  and design-oriented skills across all areas explored during the week.
+</p>
+
+<ul>
+  <li>[Skill 1]</li>
+  <li>[Skill 2]</li>
+  <li>[Skill 3]</li>
+  <li>[Skill 4]</li>
+  <li>[Skill 5]</li>
+  <li>[Skill 6]</li>
+  <li>[Skill 7]</li>
+  <li>[Skill 8]</li>
+  <li>[Skill 9]</li>
+  <li>[Skill 10]</li>
+  <li>[Skill 11]</li>
+</ul>
+
+<img src="[image-path/skills-summary.png]" alt="Skills summary" width="600">
+
+<hr>
+
+<!-- ============================================================
+     TOOL REFERENCE TABLE
+     ============================================================ -->
+
+<h2 id="tools">10. Tool Reference Table</h2>
+
+<table border="1" cellpadding="8">
+  <tr>
+    <th>Tool / Technology</th>
+    <th>Primary Purpose</th>
+    <th>Official Link</th>
+  </tr>
+  <tr>
+    <td>[Tool 1]</td>
+    <td>[Purpose]</td>
+    <td><a href="[URL]" target="_blank">[link text]</a></td>
+  </tr>
+  <tr>
+    <td>[Tool 2]</td>
+    <td>[Purpose]</td>
+    <td><a href="[URL]" target="_blank">[link text]</a></td>
+  </tr>
+  <tr>
+    <td>[Tool 3]</td>
+    <td>[Purpose]</td>
+    <td><a href="[URL]" target="_blank">[link text]</a></td>
+  </tr>
+  <tr>
+    <td>[Tool 4]</td>
+    <td>[Purpose]</td>
+    <td><a href="[URL]" target="_blank">[link text]</a></td>
+  </tr>
+  <tr>
+    <td>[Tool 5]</td>
+    <td>[Purpose]</td>
+    <td><a href="[URL]" target="_blank">[link text]</a></td>
+  </tr>
+  <tr>
+    <td>[Tool 6]</td>
+    <td>[Purpose]</td>
+    <td><a href="[URL]" target="_blank">[link text]</a></td>
+  </tr>
+  <tr>
+    <td>[Tool 7]</td>
+    <td>[Purpose]</td>
+    <td><a href="[URL]" target="_blank">[link text]</a></td>
+  </tr>
+  <tr>
+    <td>[Tool 8]</td>
+    <td>[Purpose]</td>
+    <td><a href="[URL]" target="_blank">[link text]</a></td>
+  </tr>
+  <tr>
+    <td>[Tool 9]</td>
+    <td>[Purpose]</td>
+    <td><a href="[URL]" target="_blank">[link text]</a></td>
+  </tr>
+</table>
+
+<hr>
+
+<!-- ============================================================
+     PERSONAL REFLECTION
+     ============================================================ -->
+
+<h2 id="reflection">11. Personal Reflection</h2>
+
+<p>
+  [Write your Week 1 personal reflection here. What was exciting or new about this week?
+  What did you enjoy most?]
+</p>
+
+<p>
+  [Describe the most challenging aspect of Week 1 and what you learned from it.]
+</p>
+
+<p>
+  [Connect this week's learning to your broader goals as a Mechatronics engineer
+  and how you plan to build on it going forward.]
+</p>
+
+<img src="[image-path/final-week1.png]" alt="Final Week 1 screenshot" width="600">
+
+<hr>
+
+<!-- ============================================================
+     LEARNING RESOURCES
+     ============================================================ -->
+
+<h2 id="resources">12. Useful Learning Resources &amp; References</h2>
+
+<ul>
+  <li>[Resource 1] — <a href="[URL]" target="_blank">[URL display text]</a></li>
+  <li>[Resource 2] — <a href="[URL]" target="_blank">[URL display text]</a></li>
+  <li>[Resource 3] — <a href="[URL]" target="_blank">[URL display text]</a></li>
+  <li>[Resource 4] — <a href="[URL]" target="_blank">[URL display text]</a></li>
+  <li>[Resource 5] — <a href="[URL]" target="_blank">[URL display text]</a></li>
+</ul>
+
+<hr>
+
+<h2>Week 1 Completion Status</h2>
+
+<p><b>Status:</b> Completed</p>
+<p><b>Week Focus:</b> [Describe the week's focus in 1–2 sentences, covering the main topics and deliverables.]</p>
+
+<img src="[image-path/week1-complete.png]" alt="Week 1 final deliverable" width="600">
+
+<hr>
+
+<p><b>Prepared for:</b> Mechatronics Engineering Program 2026</p>
+<p>Week 1 Technical Documentation Record</p>
+<p>Prepared by: <b>Shalu Shah</b></p>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+
+<head>
   <title>Shalu Shah — Week 2 Technical Documentation Report</title>
 </head>
 
