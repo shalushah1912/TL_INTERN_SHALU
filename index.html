@@ -1,115 +1,878 @@
-<br> <P style = "font-size: 24px;"><strong>SANJIVANI UNIVERSITY </strong></P></br>
-      
-       <br> <p style ="font-size :24px;"> Mechtronics Engineer in Program  </p></br>
-        
-       <br><p style = "font-size: 24px;"><strong>Hello, I am Shalu Shah</strong></p></br>
-       
-       <p> I am a student of Sanjivani University, pursuing a degree in Mechatronics Engineering. I have a strong passion for technology and innovation, and I am eager to apply my knowledge and skills in the field of mechatronics. I am dedicated to learning and growing as an engineer, and I am excited about the opportunities that lie ahead in my academic and professional journey.</p> 
-        <p> I am committed to developing my expertise in areas such as robotics, automation, and control systems. I believe that my education at Sanjivani University will provide me with a solid foundation to excel in the field of mechatronics and contribute to advancements in technology. I am enthusiastic about collaborating with peers and professionals in the industry to further enhance my skills and make a positive impact in the world of engineering.</p>
-        <P>Passionate engineer, robotics enthusiast, and lifelong learner — building the future one project at a time. </P>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Shalu Shah | Mechatronics Engineer — Sanjivani University</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600&family=Space+Mono:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+/*──────────────────────────────────────────────
+  RESET & ROOT VARIABLES
+──────────────────────────────────────────────*/
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:        #04091a;
+  --bg2:       #070e24;
+  --bg3:       #0b1530;
+  --bg4:       #0e1c3a;
+  --cyan:      #00f0ff;
+  --purple:    #9b4dff;
+  --pink:      #ff2d78;
+  --gold:      #ffc947;
+  --green:     #00ff88;
+  --text:      #c0d4f0;
+  --text-dim:  #5a7aa8;
+  --card:      rgba(11,21,48,0.85);
+  --border:    rgba(0,240,255,0.12);
+  --border2:   rgba(155,77,255,0.12);
+  --glow-c:    0 0 18px rgba(0,240,255,0.55),0 0 60px rgba(0,240,255,0.18);
+  --glow-p:    0 0 18px rgba(155,77,255,0.55),0 0 60px rgba(155,77,255,0.18);
+  --fh:        'Orbitron',monospace;
+  --fb:        'Rajdhani',sans-serif;
+  --fm:        'Space Mono',monospace;
+  --r:         14px;
+}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--fb);
+  font-size:16px;
+  line-height:1.7;
+  overflow-x:hidden;
+}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--cyan),var(--purple));border-radius:3px;}
 
-        <br><P><STRONG> - 1 + Year engineering diploma</STRONG></P>
-<P><STRONG> - Robotics Club Member  </STRONG></P>
-<p><strong> - Haemodialysis Technician</strong></p></br>
+/*──────────────────────────────────────────────
+  BACKGROUND LAYERS
+──────────────────────────────────────────────*/
+.grid-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,240,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,240,255,0.025) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.star{
+  position:absolute;border-radius:50%;
+  background:#fff;
+  animation:twinkle var(--dur,3s) ease-in-out infinite;
+  animation-delay:var(--del,0s);
+}
+@keyframes twinkle{0%,100%{opacity:0.1}50%{opacity:var(--op,0.6)}}
 
-<br><p> what i  bring </p></br>
+/*──────────────────────────────────────────────
+  CUSTOM CURSOR
+──────────────────────────────────────────────*/
+.cursor{
+  width:18px;height:18px;
+  border:2px solid var(--cyan);
+  border-radius:50%;
+  position:fixed;top:0;left:0;
+  pointer-events:none;z-index:9999;
+  transition:transform 0.15s,background 0.2s,border-color 0.2s;
+  transform:translate(-50%,-50%);
+}
+.cursor-dot{
+  width:5px;height:5px;
+  background:var(--cyan);
+  border-radius:50%;
+  position:fixed;top:0;left:0;
+  pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 8px var(--cyan);
+}
 
-<br><p style = "font-size: 24px;"><strong>skills and strength</strong></p></br>
-<p> A blend of technical and interpersonal abilities that drive real results in engineering environments. </p>
+/*──────────────────────────────────────────────
+  NAVBAR
+──────────────────────────────────────────────*/
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:18px 60px;
+  background:rgba(4,9,26,0.88);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  transition:padding 0.3s;
+}
+nav.scrolled{padding:11px 60px;}
+.nav-logo{
+  font-family:var(--fh);font-size:1rem;
+  color:var(--cyan);letter-spacing:4px;
+  text-shadow:var(--glow-c);
+}
+.nav-logo em{color:var(--purple);font-style:normal;}
+.nav-links{display:flex;gap:32px;list-style:none;}
+.nav-links a{
+  color:var(--text-dim);text-decoration:none;
+  font-family:var(--fm);font-size:0.72rem;
+  letter-spacing:2px;text-transform:uppercase;
+  transition:color 0.3s;position:relative;
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-3px;left:0;
+  width:0;height:1px;
+  background:var(--cyan);box-shadow:var(--glow-c);
+  transition:width 0.3s;
+}
+.nav-links a:hover{color:var(--cyan);}
+.nav-links a:hover::after{width:100%;}
 
-<br><p><strong>-Communication skills </strong></p>
-<p><strong> -Smart Working </strong></p>
-<p><strong> -Coordination </strong></p>
-<p><strong>-Leadership</strong></p>
-<p><strong>-Team Working </strong></p>
-<p><strong>-Passionate</strong></p></br>
+/*──────────────────────────────────────────────
+  GLOW BUTTONS (Image 3 reference)
+──────────────────────────────────────────────*/
+.glow-btn{
+  font-family:var(--fm);font-size:0.78rem;
+  letter-spacing:2px;text-transform:uppercase;
+  color:#fff;padding:13px 34px;
+  border:2px solid var(--cyan);border-radius:50px;
+  background:transparent;cursor:pointer;
+  transition:all 0.35s ease-in-out;
+  position:relative;overflow:hidden;
+  text-decoration:none;display:inline-block;
+}
+.glow-btn::before{
+  content:'';position:absolute;
+  top:-50%;left:-50%;width:200%;height:200%;
+  background:radial-gradient(circle,rgba(0,240,255,0.28),rgba(0,240,255,0) 70%);
+  transition:transform 0.4s;transform:scale(0);
+}
+.glow-btn:hover::before{transform:scale(1);}
+.glow-btn:hover{
+  color:#000;background:var(--cyan);
+  box-shadow:0 0 15px var(--cyan),0 0 50px var(--cyan),0 0 110px rgba(0,240,255,0.35);
+}
+.glow-btn:active{transform:scale(0.96);}
+.glow-btn.purple{border-color:var(--purple);}
+.glow-btn.purple::before{background:radial-gradient(circle,rgba(155,77,255,0.28),rgba(155,77,255,0) 70%);}
+.glow-btn.purple:hover{color:#fff;background:var(--purple);box-shadow:var(--glow-p);}
+.glow-btn.gold{border-color:var(--gold);}
+.glow-btn.gold:hover{color:#000;background:var(--gold);box-shadow:0 0 15px var(--gold),0 0 50px var(--gold);}
 
-<br><P style ="font-size:23px;">My Journey </P></br>
+/*──────────────────────────────────────────────
+  HERO
+──────────────────────────────────────────────*/
+#hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  position:relative;z-index:1;
+  padding:130px 40px 90px;
+}
+.hero-orb{
+  position:absolute;
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle at 40% 40%,
+    rgba(155,77,255,0.10),rgba(0,240,255,0.06),transparent 70%);
+  filter:blur(50px);
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  pointer-events:none;
+  animation:orbPulse 7s ease-in-out infinite;
+}
+@keyframes orbPulse{
+  0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.5;}
+  50%{transform:translate(-50%,-50%) scale(1.18);opacity:1;}
+}
+.hero-badge{
+  font-family:var(--fm);font-size:0.72rem;letter-spacing:5px;
+  color:var(--cyan);text-transform:uppercase;
+  border:1px solid var(--border);padding:7px 22px;
+  border-radius:20px;margin-bottom:30px;
+  opacity:0;animation:fadeUp 0.8s 0.2s forwards;
+}
+.hero-univ{
+  font-family:var(--fm);font-size:0.8rem;letter-spacing:3px;
+  color:var(--purple);margin-bottom:20px;
+  opacity:0;animation:fadeUp 0.8s 0.35s forwards;
+}
+.hero-name{
+  font-family:var(--fh);
+  font-size:clamp(2.6rem,7vw,5.5rem);
+  font-weight:900;line-height:1.05;margin-bottom:16px;
+  opacity:0;animation:fadeUp 0.8s 0.5s forwards;
+}
+.hero-name .first{color:#fff;}
+.hero-name .last{
+  color:transparent;
+  -webkit-text-stroke:2px var(--cyan);
+  animation:nameGlow 3s ease-in-out infinite 1.3s;
+}
+@keyframes nameGlow{
+  0%,100%{filter:drop-shadow(0 0 8px var(--cyan));}
+  50%{filter:drop-shadow(0 0 22px var(--cyan)) drop-shadow(0 0 40px rgba(0,240,255,0.5));}
+}
+.hero-role{
+  font-family:var(--fm);font-size:1rem;
+  color:var(--purple);letter-spacing:3px;
+  margin-bottom:22px;min-height:1.6em;
+  opacity:0;animation:fadeUp 0.8s 0.7s forwards;
+}
+.hero-role::after{content:'|';color:var(--cyan);animation:blink 0.75s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.hero-desc{
+  max-width:580px;color:var(--text-dim);
+  font-size:1.05rem;margin-bottom:44px;
+  opacity:0;animation:fadeUp 0.8s 0.9s forwards;
+}
+.hero-btns{
+  display:flex;gap:18px;flex-wrap:wrap;justify-content:center;
+  opacity:0;animation:fadeUp 0.8s 1.1s forwards;
+}
+.hero-stats{
+  display:flex;gap:56px;margin-top:72px;flex-wrap:wrap;justify-content:center;
+  opacity:0;animation:fadeUp 0.8s 1.3s forwards;
+}
+.stat-num{
+  font-family:var(--fh);font-size:1.9rem;
+  color:var(--cyan);text-shadow:var(--glow-c);
+}
+.stat-label{
+  font-size:0.72rem;color:var(--text-dim);
+  letter-spacing:2px;text-transform:uppercase;
+}
 
-<br><p style = "font-size: 24px;"><strong>EXPERIENCE</strong></p></br>
-<p><strong>Engineering Diploma - MECHATRONICS  </strong></p>
-<p>mechtronics department : 1 year </p>
-<p>Completed a comprehensive 1-year engineering diploma covering mechanical systems, electronics, programming, and automation fundamentals.</p></BR>
+/*──────────────────────────────────────────────
+  SECTIONS — COMMON
+──────────────────────────────────────────────*/
+section{position:relative;z-index:1;padding:96px 60px;}
+.sec-label{
+  font-family:var(--fm);font-size:0.7rem;
+  letter-spacing:5px;color:var(--cyan);
+  text-transform:uppercase;margin-bottom:10px;
+}
+.sec-title{
+  font-family:var(--fh);
+  font-size:clamp(1.7rem,3.5vw,2.7rem);
+  font-weight:700;color:#fff;margin-bottom:14px;
+}
+.sec-title span{color:var(--cyan);}
+.sec-div{
+  width:56px;height:3px;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  border-radius:2px;margin-bottom:56px;
+  box-shadow:var(--glow-c);
+}
 
-<br><p><STRONG>-Robotics Club Member </STRONG></p>
-<p>Robotics Club · Active Member</p>
-<p>Active participant in robotics design challenges, competitions, and hands-on workshops. Collaborating with peers to build and program robotic systems.</p>
-<p>Haemodialysis Project</p></br>
+/* reveal animation */
+.reveal{opacity:0;transform:translateY(36px);transition:opacity 0.7s,transform 0.7s;}
+.reveal.visible{opacity:1;transform:translateY(0);}
 
-<br><P><STRONG>Haemodialysis Project</STRONG></P>
-<p>Engineering Project · Research & Development</P>
-<p>Worked on a haemodialysis (kidney dialysis) engineering project — applying mechatronics principles to a real-world medical device challenge.</p></br>
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(28px);}
+  to{opacity:1;transform:translateY(0);}
+}
 
-<br><p>looking ahead</p>
-<br><p style ="font-size:24px;"><strong>MY AIMS</strong></p></br>
+/*──────────────────────────────────────────────
+  ABOUT
+──────────────────────────────────────────────*/
+#about{background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center;}
+.about-text p{color:var(--text-dim);margin-bottom:16px;font-size:1.02rem;}
+.about-tags{display:flex;flex-wrap:wrap;gap:9px;margin-top:28px;}
+.tag{
+  font-family:var(--fm);font-size:0.7rem;
+  padding:5px 15px;border:1px solid var(--border);
+  border-radius:20px;color:var(--cyan);letter-spacing:1px;
+  transition:all 0.3s;cursor:default;
+}
+.tag:hover{background:rgba(0,240,255,0.07);border-color:var(--cyan);box-shadow:var(--glow-c);}
+.mini-cards{display:flex;flex-direction:column;gap:18px;}
+.mini-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:28px;
+  backdrop-filter:blur(10px);
+  transition:transform 0.3s,box-shadow 0.3s;
+}
+.mini-card:hover{transform:translateY(-5px);box-shadow:0 18px 50px rgba(0,240,255,0.08);}
+.mc-icon{font-size:2.2rem;margin-bottom:12px;}
+.mc-title{font-family:var(--fh);font-size:0.8rem;color:var(--cyan);letter-spacing:2px;margin-bottom:8px;}
 
-<br><p><strong>
-🎯
-Become a Successful Mechatronics Engineer</strong></p>
-<p>My primary goal is to master mechatronics and contribute to innovative engineering solutions that make a real difference in the world.</p></br>
+/*──────────────────────────────────────────────
+  SKILLS
+──────────────────────────────────────────────*/
+#skills{background:var(--bg);}
+.skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;}
+.skill-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:26px;
+  transition:all 0.35s;position:relative;overflow:hidden;
+}
+.skill-card::before{
+  content:'';position:absolute;top:0;left:0;
+  width:3px;height:100%;
+  background:linear-gradient(180deg,var(--cyan),var(--purple));
+}
+.skill-card:hover{transform:translateX(5px);border-color:rgba(0,240,255,0.28);}
+.skill-name{font-family:var(--fh);font-size:0.78rem;color:#fff;margin-bottom:11px;letter-spacing:1px;}
+.skill-bar-bg{height:5px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;}
+.skill-bar{
+  height:100%;width:0%;border-radius:3px;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  box-shadow:0 0 10px var(--cyan);
+  transition:width 1.3s cubic-bezier(0.4,0,0.2,1);
+}
+.skill-pct{font-family:var(--fm);font-size:0.7rem;color:var(--cyan);text-align:right;margin-top:5px;}
 
-< <br><p><strong>
-🤖
-Advance in Robotics & Automation </strong></p>
-<p>Deepen expertise in robotics, automation systems, and AI-driven engineering to build smart machines of the future.</p></br>
+/*──────────────────────────────────────────────
+  TIMELINE
+──────────────────────────────────────────────*/
+#experience{background:var(--bg2);}
+.timeline{position:relative;padding-left:38px;max-width:820px;}
+.timeline::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;
+  width:2px;
+  background:linear-gradient(180deg,var(--cyan),var(--purple),transparent);
+}
+.tl-item{
+  position:relative;margin-bottom:46px;
+  opacity:0;transform:translateX(-18px);
+  transition:all 0.6s;
+}
+.tl-item.visible{opacity:1;transform:translateX(0);}
+.tl-dot{
+  position:absolute;left:-44px;top:5px;
+  width:13px;height:13px;border-radius:50%;
+  background:var(--cyan);border:2px solid var(--bg2);
+  box-shadow:0 0 10px var(--cyan),0 0 22px rgba(0,240,255,0.4);
+}
+.tl-date{font-family:var(--fm);font-size:0.7rem;color:var(--purple);letter-spacing:2px;margin-bottom:5px;}
+.tl-title{font-family:var(--fh);font-size:0.95rem;color:#fff;margin-bottom:3px;}
+.tl-sub{font-size:0.85rem;color:var(--cyan);margin-bottom:8px;}
+.tl-desc{color:var(--text-dim);font-size:0.93rem;}
 
-<br><p><strong>
-💡
-Innovate in Medical Engineering </strong></p>
-<p>Building on the haemodialysis project, aspire to contribute engineering innovations that improve patient lives in healthcare.</p></br>
+/*──────────────────────────────────────────────
+  AIMS
+──────────────────────────────────────────────*/
+#aims{background:var(--bg3);}
+.aims-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px;}
+.aim-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:34px 26px;
+  text-align:center;transition:all 0.35s;
+  position:relative;overflow:hidden;
+}
+.aim-card::before{
+  content:'';position:absolute;top:-50px;left:50%;
+  transform:translateX(-50%);
+  width:100px;height:100px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,240,255,0.1),transparent 70%);
+  transition:top 0.4s;
+}
+.aim-card:hover::before{top:-10px;}
+.aim-card:hover{border-color:rgba(0,240,255,0.3);transform:translateY(-6px);box-shadow:0 18px 50px rgba(0,240,255,0.09);}
+.aim-emoji{font-size:2.4rem;margin-bottom:14px;}
+.aim-title{font-family:var(--fh);font-size:0.78rem;color:var(--cyan);letter-spacing:2px;margin-bottom:10px;}
+.aim-desc{color:var(--text-dim);font-size:0.88rem;}
 
-<br><p><strong>🌍
-Lead & Inspire</strong></p>
-<p>Use leadership and teamwork skills to guide future engineers and drive impactful collaborative projects.</p></br>
+/*──────────────────────────────────────────────
+  JOURNAL — WEEK SECTIONS  ★ MAIN NEW FEATURE
+──────────────────────────────────────────────*/
+#journal{background:var(--bg);}
 
-<br><p>progress tracker</p></br>
+/* Week tab selector */
+.week-tabs{
+  display:flex;gap:12px;flex-wrap:wrap;margin-bottom:48px;
+}
+.week-tab{
+  font-family:var(--fm);font-size:0.72rem;
+  letter-spacing:2px;text-transform:uppercase;
+  padding:10px 28px;border-radius:50px;
+  border:1px solid var(--border);
+  color:var(--text-dim);background:transparent;
+  cursor:pointer;transition:all 0.3s;
+}
+.week-tab:hover{border-color:var(--cyan);color:var(--cyan);}
+.week-tab.active{
+  background:linear-gradient(135deg,rgba(0,240,255,0.15),rgba(155,77,255,0.15));
+  border-color:var(--cyan);color:var(--cyan);
+  box-shadow:var(--glow-c);
+}
 
-<br><p style ="font-size:24px;"><strong>WEEKLY JOURNAL</strong></p>
-<P>Track your daily progress — upload photos, write notes, share files, and log code for each day of your training.Track your daily progress — upload photos, write notes, share files, and log code for each day of your training.</P></BR>
-<br><p style ="font-size:24px;"><strong>week one </strong></p></br>
-<br><p style="font-size: 24px;"><strong>week one day 1</strong> </p></br>
-<img src="images/git 1.png" alt="." width="600"> 
-<p>install the github and create a repository 
-</p>
-<br><img src="images/git 2.png" alt="." width="600"></br>
-<br><img src="images/git 3.png" alt="." width="600"></br>
-<br><img src="images/git 4.png" alt="." width="600"></br>
-<br><img src="images/git 5.png" alt="." width="600"></br>
-<br><img src="images/git 6.png" alt="." width="600"></br>
-<br><img src="images/git 7.png" alt="." width="600"></br>
-<br><img src="images/git 8.png" alt="." width="600"></br>
-<br><img src="images/git 9.png" alt="." width="600"></br>
+/* Week panel */
+.week-panel{display:none;}
+.week-panel.active{display:block;}
 
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/0TJcsJ-yUIo?si=1Wp43jqIVZFqwLIT"
-    title="[Day 1 Video Title]"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
-<br><img src="images/git 10.png" alt="." width="600"></br>
+/* Week header */
+.week-header{
+  display:flex;align-items:center;gap:20px;
+  margin-bottom:40px;
+  padding-bottom:20px;
+  border-bottom:1px solid var(--border);
+}
+.week-num{
+  font-family:var(--fh);
+  font-size:3.5rem;font-weight:900;
+  color:transparent;
+  -webkit-text-stroke:1px rgba(0,240,255,0.25);
+  line-height:1;
+}
+.week-info-title{font-family:var(--fh);font-size:1.1rem;color:#fff;margin-bottom:4px;}
+.week-info-sub{font-size:0.88rem;color:var(--text-dim);}
 
-<br><p style ="font-size: 24px;"><strong>week one day 2 </strong></p>
+/* Day section inside a week */
+.day-section{
+  margin-bottom:70px;
+  border:1px solid var(--border);
+  border-radius:18px;
+  overflow:hidden;
+  background:var(--card);
+  backdrop-filter:blur(10px);
+}
+.day-header{
+  display:flex;align-items:center;gap:16px;
+  padding:20px 28px;
+  background:linear-gradient(90deg,rgba(0,240,255,0.06),transparent);
+  border-bottom:1px solid var(--border);
+  cursor:pointer;
+  user-select:none;
+}
+.day-num-badge{
+  font-family:var(--fm);font-size:0.68rem;
+  letter-spacing:3px;color:var(--bg);
+  background:var(--cyan);
+  padding:4px 14px;border-radius:20px;
+  white-space:nowrap;
+  box-shadow:0 0 10px rgba(0,240,255,0.5);
+}
+.day-title-text{
+  font-family:var(--fh);font-size:0.9rem;
+  color:#fff;letter-spacing:1px;flex:1;
+}
+.day-icon-big{font-size:1.5rem;}
+.day-chevron{
+  font-size:0.8rem;color:var(--cyan);
+  transition:transform 0.3s;
+}
+.day-section.open .day-chevron{transform:rotate(180deg);}
 
-<br><img src="images 2/vs 3.png.png" alt="" width="600">
-<p>Create a Project Folder
+.day-body{
+  display:none;
+  padding:28px;
+}
+.day-section.open .day-body{display:block;}
+
+/* description text inside day */
+.day-desc-text{
+  color:var(--text-dim);font-size:0.97rem;
+  margin-bottom:28px;line-height:1.8;
+}
+.day-desc-text strong{color:var(--cyan);}
+.day-desc-text code{
+  font-family:var(--fm);font-size:0.82rem;
+  background:rgba(0,240,255,0.07);
+  border:1px solid var(--border);
+  padding:2px 8px;border-radius:4px;
+  color:var(--cyan);
+}
+
+/* image gallery */
+.img-gallery{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:14px;
+  margin-bottom:28px;
+}
+.img-gallery img{
+  width:100%;border-radius:10px;
+  border:1px solid var(--border);
+  transition:transform 0.3s,box-shadow 0.3s;
+  cursor:pointer;
+  display:block;
+}
+.img-gallery img:hover{
+  transform:scale(1.025);
+  box-shadow:0 0 20px rgba(0,240,255,0.15);
+  border-color:rgba(0,240,255,0.35);
+}
+
+/* video embed */
+.video-wrap{
+  position:relative;padding-bottom:56.25%;
+  height:0;overflow:hidden;
+  border-radius:12px;
+  border:1px solid var(--border);
+  margin-bottom:20px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.4);
+}
+.video-wrap iframe{
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;border:0;
+}
+.video-label{
+  font-family:var(--fm);font-size:0.7rem;
+  letter-spacing:3px;color:var(--purple);
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+
+/* steps list */
+.steps-list{
+  list-style:none;
+  counter-reset:step;
+  margin-bottom:24px;
+}
+.steps-list li{
+  counter-increment:step;
+  display:flex;align-items:flex-start;gap:14px;
+  margin-bottom:12px;color:var(--text-dim);
+  font-size:0.93rem;
+}
+.steps-list li::before{
+  content:counter(step,'0'counter(step));
+  font-family:var(--fm);font-size:0.68rem;
+  color:var(--cyan);
+  background:rgba(0,240,255,0.08);
+  border:1px solid var(--border);
+  padding:3px 8px;border-radius:4px;
+  white-space:nowrap;flex-shrink:0;margin-top:2px;
+}
+
+/* spec table */
+.spec-table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:0.9rem;}
+.spec-table th{
+  font-family:var(--fm);font-size:0.7rem;letter-spacing:2px;
+  text-align:left;color:var(--cyan);padding:10px 16px;
+  border-bottom:1px solid var(--border);
+  text-transform:uppercase;
+}
+.spec-table td{
+  padding:10px 16px;color:var(--text-dim);
+  border-bottom:1px solid rgba(0,240,255,0.04);
+}
+.spec-table tr:hover td{background:rgba(0,240,255,0.03);}
+
+/*──────────────────────────────────────────────
+  LIGHTBOX
+──────────────────────────────────────────────*/
+.lightbox{
+  display:none;position:fixed;inset:0;z-index:1000;
+  background:rgba(0,0,0,0.92);
+  align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);
+}
+.lightbox.open{display:flex;}
+.lightbox img{
+  max-width:90vw;max-height:88vh;
+  border-radius:10px;border:1px solid var(--border);
+  box-shadow:0 0 60px rgba(0,240,255,0.15);
+}
+.lb-close{
+  position:absolute;top:22px;right:30px;
+  font-size:2rem;color:var(--cyan);cursor:pointer;
+  font-family:var(--fm);line-height:1;
+  transition:transform 0.2s;
+}
+.lb-close:hover{transform:rotate(90deg);}
+
+/*──────────────────────────────────────────────
+  CONTACT
+──────────────────────────────────────────────*/
+#contact{background:var(--bg2);text-align:center;}
+.contact-box{max-width:580px;margin:0 auto;}
+.contact-box p{color:var(--text-dim);margin-bottom:38px;font-size:1.02rem;}
+.contact-row{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;}
+.contact-info{
+  display:flex;justify-content:center;gap:36px;
+  flex-wrap:wrap;margin-top:46px;
+}
+.ci-item span{
+  font-family:var(--fm);font-size:0.68rem;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--cyan);display:block;margin-bottom:3px;
+}
+.ci-item p{font-size:0.9rem;color:var(--text-dim);}
+
+/*──────────────────────────────────────────────
+  FOOTER
+──────────────────────────────────────────────*/
+footer{
+  text-align:center;padding:28px;
+  border-top:1px solid var(--border);
+  font-family:var(--fm);font-size:0.7rem;
+  color:var(--text-dim);letter-spacing:2px;
+  position:relative;z-index:1;
+}
+footer span{color:var(--cyan);}
+
+/*──────────────────────────────────────────────
+  RESPONSIVE
+──────────────────────────────────────────────*/
+@media(max-width:900px){
+  nav{padding:14px 22px;}
+  .nav-links{display:none;}
+  section{padding:64px 22px;}
+  .about-grid{grid-template-columns:1fr;gap:36px;}
+  .hero-stats{gap:28px;}
+}
+@media(max-width:500px){
+  .hero-name{font-size:2.2rem;}
+  .img-gallery{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND -->
+<div class="grid-bg"></div>
+<div class="stars" id="stars"></div>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <div class="lb-close" id="lbClose">✕</div>
+  <img id="lbImg" src="" alt=""/>
+</div>
+
+<!--══════════════════════════════════════════
+  NAV
+══════════════════════════════════════════-->
+<nav id="navbar">
+  <div class="nav-logo">S<em>.</em>SHAH</div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#experience">Journey</a></li>
+    <li><a href="#journal">Journal</a></li>
+    <li><a href="#aims">Aims</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!--══════════════════════════════════════════
+  HERO
+══════════════════════════════════════════-->
+<section id="hero">
+  <div class="hero-orb"></div>
+  <div class="hero-badge">⚡ Sanjivani University · Mechatronics</div>
+  <div class="hero-univ">BATCH 2024 — ENGINEERING PROGRAM</div>
+  <h1 class="hero-name"><span class="first">SHALU </span><span class="last">SHAH</span></h1>
+  <p class="hero-role" id="typedRole"></p>
+  <p class="hero-desc">Passionate engineer, robotics enthusiast, and lifelong learner — building the future one project at a time.</p>
+  <div class="hero-btns">
+    <a href="#journal" class="glow-btn">View My Journal</a>
+    <a href="#aims" class="glow-btn purple">My Goals</a>
+    <a href="#contact" class="glow-btn gold">Contact Me</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">1+</div><div class="stat-label">Yr Diploma</div></div>
+    <div class="stat"><div class="stat-num">3</div><div class="stat-label">Weeks Logged</div></div>
+    <div class="stat"><div class="stat-num">15+</div><div class="stat-label">Days Tracked</div></div>
+    <div class="stat"><div class="stat-num">2</div><div class="stat-label">Club Roles</div></div>
+  </div>
+</section>
+
+<!--══════════════════════════════════════════
+  ABOUT
+══════════════════════════════════════════-->
+<section id="about">
+  <div class="sec-label">// 01 — Who Am I</div>
+  <h2 class="sec-title">About <span>Me</span></h2>
+  <div class="sec-div"></div>
+  <div class="about-grid">
+    <div class="about-text reveal">
+      <p>I am a student of <strong style="color:#fff">Sanjivani University</strong>, pursuing a degree in Mechatronics Engineering. I have a strong passion for technology and innovation, eager to apply knowledge and skills in the field of mechatronics.</p>
+      <p>I am dedicated to developing expertise in <strong style="color:var(--cyan)">robotics, automation, and control systems</strong>. I believe my education at Sanjivani University will provide a solid foundation to excel and contribute to advancements in technology.</p>
+      <p>Enthusiastic about collaborating with peers and professionals in the industry to further enhance skills and make a positive impact in the world of engineering.</p>
+      <div class="about-tags">
+        <span class="tag">Robotics</span><span class="tag">Automation</span>
+        <span class="tag">Control Systems</span><span class="tag">Medical Engineering</span>
+        <span class="tag">3D Printing</span><span class="tag">Arduino / ESP32</span>
+        <span class="tag">Fusion 360</span><span class="tag">CNC Routing</span>
+        <span class="tag">Laser Cutting</span><span class="tag">GitHub</span>
+      </div>
+    </div>
+    <div class="mini-cards reveal" style="transition-delay:0.2s">
+      <div class="mini-card">
+        <div class="mc-icon">🤖</div>
+        <div class="mc-title">Robotics Club Member</div>
+        <p style="color:var(--text-dim);font-size:0.9rem">Active in design challenges, competitions, and hands-on workshops building and programming robotic systems.</p>
+      </div>
+      <div class="mini-card">
+        <div class="mc-icon">🏥</div>
+        <div class="mc-title">Haemodialysis Project</div>
+        <p style="color:var(--text-dim);font-size:0.9rem">Applied mechatronics principles to a real-world kidney dialysis medical device engineering challenge.</p>
+      </div>
+      <div class="mini-card">
+        <div class="mc-icon">🎓</div>
+        <div class="mc-title">1+ Year Engineering Diploma</div>
+        <p style="color:var(--text-dim);font-size:0.9rem">Completed a comprehensive diploma covering mechanical systems, electronics, programming and automation fundamentals.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--══════════════════════════════════════════
+  SKILLS
+══════════════════════════════════════════-->
+<section id="skills">
+  <div class="sec-label">// 02 — What I Bring</div>
+  <h2 class="sec-title">Skills &amp; <span>Strengths</span></h2>
+  <div class="sec-div"></div>
+  <p class="reveal" style="color:var(--text-dim);max-width:520px;margin-bottom:46px;">A blend of technical and interpersonal abilities that drive real results in engineering environments.</p>
+  <div class="skills-grid" id="skillsGrid">
+    <div class="skill-card reveal"><div class="skill-name">Communication Skills</div><div class="skill-bar-bg"><div class="skill-bar" data-pct="90"></div></div><div class="skill-pct">90%</div></div>
+    <div class="skill-card reveal" style="transition-delay:.1s"><div class="skill-name">Smart Working</div><div class="skill-bar-bg"><div class="skill-bar" data-pct="88"></div></div><div class="skill-pct">88%</div></div>
+    <div class="skill-card reveal" style="transition-delay:.2s"><div class="skill-name">Team Coordination</div><div class="skill-bar-bg"><div class="skill-bar" data-pct="85"></div></div><div class="skill-pct">85%</div></div>
+    <div class="skill-card reveal" style="transition-delay:.3s"><div class="skill-name">Leadership</div><div class="skill-bar-bg"><div class="skill-bar" data-pct="83"></div></div><div class="skill-pct">83%</div></div>
+    <div class="skill-card reveal" style="transition-delay:.4s"><div class="skill-name">Passion &amp; Drive</div><div class="skill-bar-bg"><div class="skill-bar" data-pct="96"></div></div><div class="skill-pct">96%</div></div>
+    <div class="skill-card reveal" style="transition-delay:.5s"><div class="skill-name">Problem Solving</div><div class="skill-bar-bg"><div class="skill-bar" data-pct="81"></div></div><div class="skill-pct">81%</div></div>
+  </div>
+</section>
+
+<!--══════════════════════════════════════════
+  EXPERIENCE TIMELINE
+══════════════════════════════════════════-->
+<section id="experience">
+  <div class="sec-label">// 03 — My Journey</div>
+  <h2 class="sec-title">Experience &amp; <span>Education</span></h2>
+  <div class="sec-div"></div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2024 — Present</div>
+      <div class="tl-title">Mechatronics Engineering Degree</div>
+      <div class="tl-sub">Sanjivani University</div>
+      <div class="tl-desc">Pursuing comprehensive engineering degree covering mechanical systems, electronics, programming, automation and robotics.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot" style="background:var(--purple);box-shadow:0 0 10px var(--purple);"></div>
+      <div class="tl-date">2023 — 2024</div>
+      <div class="tl-title">Engineering Diploma — Mechatronics</div>
+      <div class="tl-sub">Mechatronics Department · 1 Year</div>
+      <div class="tl-desc">Completed a comprehensive 1-year diploma covering mechanical systems, electronics, programming and automation fundamentals.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot" style="background:var(--green);box-shadow:0 0 10px var(--green);"></div>
+      <div class="tl-date">Ongoing</div>
+      <div class="tl-title">Robotics Club · Active Member</div>
+      <div class="tl-sub">Sanjivani University</div>
+      <div class="tl-desc">Active participant in robotics design challenges, competitions, and hands-on workshops. Collaborating with peers to build and program robotic systems.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot" style="background:var(--pink);box-shadow:0 0 10px var(--pink);"></div>
+      <div class="tl-date">Engineering Project</div>
+      <div class="tl-title">Haemodialysis Project</div>
+      <div class="tl-sub">Research &amp; Development</div>
+      <div class="tl-desc">Applied mechatronics principles to a kidney dialysis device — bridging engineering and healthcare innovation.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot" style="background:var(--gold);box-shadow:0 0 10px var(--gold);"></div>
+      <div class="tl-date">Certification</div>
+      <div class="tl-title">Haemodialysis Technician</div>
+      <div class="tl-sub">Medical Technology</div>
+      <div class="tl-desc">Certified technician knowledge in haemodialysis procedures and medical device operation.</div>
+    </div>
+  </div>
+</section>
+
+<!--══════════════════════════════════════════
+  JOURNAL — WEEKLY SECTIONS  ★
+══════════════════════════════════════════-->
+<section id="journal">
+  <div class="sec-label">// 04 — Progress Tracker</div>
+  <h2 class="sec-title">Weekly <span>Journal</span></h2>
+  <div class="sec-div"></div>
+  <p class="reveal" style="color:var(--text-dim);max-width:580px;margin-bottom:44px;">Daily progress log — tools learned, projects built, images captured and videos recorded each day of training.</p>
+
+  <!-- WEEK TABS -->
+  <div class="week-tabs reveal" id="weekTabs">
+    <button class="week-tab active" data-week="w1">📅 Week One</button>
+    <button class="week-tab" data-week="w2">📅 Week Two</button>
+    <button class="week-tab" data-week="w3">📅 Week Three</button>
+  </div>
+
+  <!-- ════ WEEK ONE ════ -->
+  <div class="week-panel active" id="w1">
+    <div class="week-header reveal">
+      <div class="week-num">01</div>
+      <div>
+        <div class="week-info-title">Week One — Foundation Tools</div>
+        <div class="week-info-sub">GitHub · VS Code · Fusion 360 · Lab Inventory · 3D Printers</div>
+      </div>
+    </div>
+
+    <!-- W1 D1 -->
+    <div class="day-section open">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-num-badge">W1 · DAY 1</div>
+        <div class="day-icon-big">🐙</div>
+        <div class="day-title-text">GitHub Setup &amp; Repository Creation</div>
+        <div class="day-chevron">▼</div>
+      </div>
+      <div class="day-body">
+        <p class="day-desc-text">Installed <strong>GitHub</strong> and created the first repository. Learned the basics of version control — committing files, pushing to remote, and managing a project repository online.</p>
+        <ul class="steps-list">
+          <li>Downloaded and installed GitHub Desktop</li>
+          <li>Created a new GitHub account and signed in</li>
+          <li>Created a new repository and initialized with README</li>
+          <li>Committed first files and pushed to remote origin</li>
+          <li>Explored branches, commit history, and file management</li>
+        </ul>
+        <div class="img-gallery">
+          <img src="images/git 1.png" alt="GitHub Step 1" loading="lazy"/>
+          <img src="images/git 2.png" alt="GitHub Step 2" loading="lazy"/>
+          <img src="images/git 3.png" alt="GitHub Step 3" loading="lazy"/>
+          <img src="images/git 4.png" alt="GitHub Step 4" loading="lazy"/>
+          <img src="images/git 5.png" alt="GitHub Step 5" loading="lazy"/>
+          <img src="images/git 6.png" alt="GitHub Step 6" loading="lazy"/>
+          <img src="images/git 7.png" alt="GitHub Step 7" loading="lazy"/>
+          <img src="images/git 8.png" alt="GitHub Step 8" loading="lazy"/>
+          <img src="images/git 9.png" alt="GitHub Step 9" loading="lazy"/>
+          <img src="images/git 10.png" alt="GitHub Step 10" loading="lazy"/>
+        </div>
+        <div class="video-label">▶ Day 1 — GitHub Tutorial Video</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/0TJcsJ-yUIo?si=1Wp43jqIVZFqwLIT" title="Day 1 GitHub Video" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- W1 D2 -->
+    <div class="day-section">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-num-badge">W1 · DAY 2</div>
+        <div class="day-icon-big">💻</div>
+        <div class="day-title-text">VS Code Setup &amp; First HTML Page</div>
+        <div class="day-chevron">▼</div>
+      </div>
+      <div class="day-body">
+        <p class="day-desc-text">Set up <strong>Visual Studio Code</strong> as the primary code editor. Created a project folder, wrote first HTML &amp; CSS code, used <code>Live Server</code> to preview in browser, and explored the integrated terminal.</p>
+        <ul class="steps-list">
+          <li>Create a new project folder → Open VS Code → File → Open Folder</li>
+          <li>Create a new file with <code>.html</code> extension</li>
+          <li>Write basic HTML structure with head, body, and elements</li>
+          <li>Right-click <code>index.html</code> → Open with Live Server</li>
+          <li>Open Terminal via <code>Ctrl + `</code> and run commands</li>
+          <li>Save all files with <code>Ctrl + S</code></li>
+        </ul>
+        <div class="img-gallery">
+          <figure>
+  <img src="images 2/vs 3.png.png" alt="vs code  Step 1" loading="lazy"/>
+  <figcaption>Create a Project Folder
 Create a new folder on your computer.
 Open VS Code.
 Click File → Open Folder.
 Select your project folder.Create a New File
-Click the New File icon.
-Save the file with the appropriate extension</p>
-
-<br><img src="images 2/v 1.png" alt="" width="600">
-
-<br><img src="images 2/v 2.png" alt="" width="600">
-<br><img src="images 2/v 3.png" alt="" width="600">
-
-
-<br><img src="images 2/vs 5 .png.png" alt="" width="600">
-<br><img src="images 2/v 4.png" alt="" width="600">
+Click the New File icon.</figcaption>
+</figure>
+          
+          <img src="images 2/v 1.png" alt="VS Code Step 2" loading="lazy"/>
+          <img src="images 2/v 2.png" alt="VS Code Step 3" loading="lazy"/>
+          <img src="images 2/v 3.png" alt="VS Code Step 4" loading="lazy"/>
+          <img src="images 2/vs 5 .png.png" alt="VS Code Step 5" loading="lazy"/>
+          <figurer>
+          <img src="images 2/v 4.png" alt="VS Code Step 6" loading="lazy"/>
+          
+          <figcaption>
 <p>Write Your Code
+            
 
 Example (HTML):
 
@@ -121,20 +884,23 @@ Example (HTML):
 <body>
     <h1>Hello World</h1>
 </body>
-</html></p>
+</html></p></figcaption>
+</figure>
 
-<br><img src="images 2/vs code6.png.png " alt="[Description]" width="600">
-
-
-<br><img src="images 2/vs 7.png.png" alt="[Description]" width="600">
-<p>Run the Code
+         
+         <img src="images 2/vs code6.png.png" alt="VS Code Step 7" loading="lazy"/>
+         <figure>
+          <img src="images 2/vs 7.png.png" alt="VS Code Step 8" loading="lazy"/>
+          <figcaption>
+            Run the Code
 For HTML
 Right-click on index.html.
 Click Open with Live Server.
-.</p>
-<br><img src="images 2/vs 8.png.png" alt="[Description]" width="600">
-<br>
-<p>Open the Terminal
+</figcaption>
+</figure>
+<figure>
+          <img src="images 2/vs 8.png.png" alt="VS Code Step 9" loading="lazy"/>
+          <figcaption>Open the Terminal
 Open VS Code.
 Click Terminal → New Terminal from the menu.
 Or press Ctrl + ` (backtick key).
@@ -146,60 +912,98 @@ Install software packages and extensions.
 Use Git commands for version control.
 Build and debug projects.</p>
 <p> now Save the File
-Press Ctrl + S to save your code.</p>
-<br><img src="images 2/v 5.png" alt="" width="600">
-<br><img src="images 2/vs 9 .png.png" alt="[Description]" width="600">
-<br>
-<br><img src="images 2/v 6.png" alt="" width="600">
-<p>Your webpage will open in a browser</p>
-<p>Conclusion
+Press Ctrl + S to save your code.</figcaption>
+</figure>
+
+          <img src="images 2/v 5.png" alt="VS Code Step 10" loading="lazy"/>
+          <img src="images 2/vs 9 .png.png" alt="VS Code Step 11" loading="lazy"/>
+          <figure>
+          <img src="images 2/v 6.png" alt="VS Code Step 12" loading="lazy"/>
+          <figcaption>Conclusion
 VS Code is a powerful and user-friendly code editor.
 It supports many programming languages.
 Extensions make coding easier and faster.
 The integrated terminal helps run programs directly.
-VS Code is widely used for web development, programming, and debugging.</p>
+VS Code is widely used for web development, programming, and debugging.</figcaption>
+</figure>
+          <img src="images 2/v 7.png" alt="VS Code Step 13" loading="lazy"/>
+        </div>
+        <div class="video-label">▶ Day 2 — VS Code Tutorial Video</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/eEud0crzDC4?feature=shared" title="Day 2 VS Code Video" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
 
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/eEud0crzDC4?feature=shared"
-    title="[Day 1 Video Title]"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
-
-
-<br><img src="images 2/v 7.png" alt="" width="600">
-
-
-<p style="font-size: 24px;"><strong>week one day 3 </strong></p>
-<br><img src="images/f3 1.png" alt="" width="600">
-<br><img src="images/af 1.png " alt="" width="600">
-<br><img src="images/af 2.png" alt="" width="600">
-<br><img src="images/af 3.png" alt="" width="600">
-<p>Open Fusion 360
+    <!-- W1 D3 -->
+    <div class="day-section">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-num-badge">W1 · DAY 3</div>
+        <div class="day-icon-big">🎨</div>
+        <div class="day-title-text">Fusion 360 — 2D Sketching &amp; 3D Design</div>
+        <div class="day-chevron">▼</div>
+      </div>
+      <div class="day-body">
+        <p class="day-desc-text">Launched <strong>Autodesk Fusion 360</strong> for the first time. Created new designs, started 2D sketches, drew basic shapes, added dimensions and constraints, and modified sketches using tools like Trim, Mirror and Fillet.</p>
+        <ul class="steps-list">
+          <li>Launch Fusion 360 → Sign in → File → New Design</li>
+          <li>Create Sketch → Select XY / XZ / YZ plane</li>
+          <li>Draw shapes: Line (L), Rectangle (R), Circle (C), Arc, Polygon</li>
+          <li>Add dimensions: Press <code>D</code> → click object → enter measurement</li>
+          <li>Apply constraints: Horizontal, Vertical, Perpendicular, Coincident</li>
+          <li>Modify with Trim, Extend, Move, Offset, Mirror, Fillet</li>
+          <li>Finish Sketch → Save Design</li>
+        </ul>
+        <div class="img-gallery">
+          <img src="images/f3 1.png" alt="Fusion 360 Step 1" loading="lazy"/>
+          <img src="images/af 1.png" alt="Fusion 360 Step 2" loading="lazy"/>
+          <img src="images/af 2.png" alt="Fusion 360 Step 3" loading="lazy"/>
+          <figure>
+          <img src="images/af 3.png" alt="Fusion 360 Step 4" loading="lazy"/>
+          <figcaption>Open Fusion 360
 Launch Autodesk Fusion 360.
 Sign in to your Autodesk account.
 2. Create a New Design
 Click File → New Design.
-Save the project with a suitable name. </p>
-<br><img src="images/af 4.png" alt="" width="600">
-<br><img src="images/f3 2.png" alt="" width="600">
-<br><img src="images/af 5.png" alt="" width="600">
-<br><img src="images/af 6.png" alt="" width="600">
-<p>Start a Sketch
+Save the project with a suitable name. </figcaption>
+</figure>
+          <img src="images/af 4.png" alt="Fusion 360 Step 5" loading="lazy"/>
+          <img src="images/f3 2.png" alt="Fusion 360 Step 6" loading="lazy"/>
+          <img src="images/af 5.png" alt="Fusion 360 Step 7" loading="lazy"/>
+          <figure>
+          <img src="images/af 6.png" alt="Fusion 360 Step 8" loading="lazy"/>
+          <figcaption>Start a Sketch
 Click Create Sketch from the toolbar.
 Select a plane:
 XY Plane
 XZ Plane
-YZ Plane</p>
-<br><img src="images/f3 3.png" alt="" width="600">
-<br><img src="images/af 7.png" alt="" width="600">
-<br><img src="images/af 8.png" alt="" width="600">
-<br><img src="images/af 9.png" alt="" width="600">
-<br><img src="images/af 10.png 1.png" alt="" width="600:>
+YZ Plane</figcaption>
+</figure>
+          <img src="images/f3 3.png" alt="Fusion 360 Step 9" loading="lazy"/>
+          <img src="images/af 7.png" alt="Fusion 360 Step 10" loading="lazy"/>
+          <img src="images/af 8.png" alt="Fusion 360 Step 11" loading="lazy"/>
+          <img src="images/af 9.png" alt="Fusion 360 Step 12" loading="lazy"/>
+          <img src="images/f3 4.png" alt="Fusion 360 Step 13" loading="lazy"/>
+          <figure>
+          <img src="images/f3 5.png" alt="Fusion 360 Step 14" loading="lazy"/>
+          <figcaption>Apply Constraints
 
-<p>Draw Basic Shapes
+Use constraints to control the sketch:
+
+Horizontal/Vertical
+Parallel
+Perpendicular
+Coincident
+Tangent
+Equal</figcaption>
+</figure>
+          <img src="images/f3 6.png" alt="Fusion 360 Step 15" loading="lazy"/>
+          <img src="images/f3 7.png" alt="Fusion 360 Step 16" loading="lazy"/>
+          <img src="images/f3 8.png" alt="Fusion 360 Step 17" loading="lazy"/>
+          <img src="images/f3 9.png" alt="Fusion 360 Step 18" loading="lazy"/>
+          <figure>
+          <img src="images/f3 10.png" alt="Fusion 360 Step 19" loading="lazy"/>
+          <figcaption>Draw Basic Shapes
 
 Use the Sketch tools to create your design:
 
@@ -212,191 +1016,203 @@ Polygon - Create polygons.
 Press D or select Sketch Dimension.
 Click the object.
 Enter the required measurement.
-Press Enter.</p>
+Press Enter.</figcaption>
+</figure>
 
-<br><img src="images/f3 4.png" alt="" width="600">
-<br><img src="images/f3 5.png" alt="" width="600">
-<p>Apply Constraints
+          <img src="images/af 11.png" alt="Fusion 360 Step 20" loading="lazy"/>
+          <img src="images/af 12.png" alt="Fusion 360 Step 21" loading="lazy"/>
+          <img src="images/af 13.png" alt="Fusion 360 Step 22" loading="lazy"/>
+          <img src="images/af 14.png" alt="Fusion 360 Step 23" loading="lazy"/>
+        </div>
+        <div class="video-label">▶ Day 3A — Fusion 360 Sketching Video</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/bBv9XXZYFhQ?si=8CnMp5HJo7uks5j6" title="Day 3A Fusion 360" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-label">▶ Day 3B — Fusion 360 Advanced Video</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/1EeT7qX78_s?si=gCkWIVySyqXep41o" title="Day 3B Fusion 360" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
 
-Use constraints to control the sketch:
+    <!-- W1 D4 -->
+    <div class="day-section">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-num-badge">W1 · DAY 4</div>
+        <div class="day-icon-big">🔧</div>
+        <div class="day-title-text">Lab Inventory &amp; Tools Exploration</div>
+        <div class="day-chevron">▼</div>
+      </div>
+      <div class="day-body">
+        <p class="day-desc-text">Explored the lab's <strong>tool inventory</strong>, engineering equipment, and hardware components. Learned about proper tool handling, storage, and safety protocols for the fabrication lab.</p>
+        <div class="img-gallery">
+          <img src="images/i 1.png" alt="Inventory Step 1" loading="lazy"/>
+          <img src="images/i 2.png" alt="Inventory Step 2" loading="lazy"/>
+          <img src="images/i 3.png" alt="Inventory Step 3" loading="lazy"/>
+          <img src="images/i 4.png" alt="Inventory Step 4" loading="lazy"/>
+          <img src="images/i 5.png" alt="Inventory Step 5" loading="lazy"/>
+          <img src="images/i 6.png" alt="Inventory Step 6" loading="lazy"/>
+          <img src="images/i 7.png" alt="Inventory Step 7" loading="lazy"/>
+          <img src="images/i 8.png" alt="Inventory Step 8" loading="lazy"/>
+          <img src="images/i 9.png" alt="Inventory Step 9" loading="lazy"/>
+        </div>
+        <div class="video-label">▶ Day 4 — Lab Inventory Video</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/5sv9jrRyYXw?si=6MSDYzJXfDicoJUW" title="Day 4 Inventory" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
 
-Horizontal/Vertical
-Parallel
-Perpendicular
-Coincident
-Tangent
-Equal</p>
+    <!-- W1 D5 -->
+    <div class="day-section">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-num-badge">W1 · DAY 5</div>
+        <div class="day-icon-big">🖨️</div>
+        <div class="day-title-text">Bambu Lab 3D Printers Overview</div>
+        <div class="day-chevron">▼</div>
+      </div>
+      <div class="day-body">
+        <p class="day-desc-text">Explored the <strong>Bambu Lab</strong> range of 3D printers available in the lab. Studied their specs, capabilities, and use cases.</p>
+        <table class="spec-table">
+          <tr><th>Model</th><th>Type</th><th>Best For</th></tr>
+          <tr><td>Bambu Lab H2D</td><td>Pro Multi-function</td><td>3D print + laser engrave + cut + draw</td></tr>
+          <tr><td>Bambu Lab P1S</td><td>Enclosed FDM</td><td>High speed, multi-colour, professional prototypes</td></tr>
+          <tr><td>Bambu Lab A1 Mini</td><td>Compact FDM</td><td>Beginners, students, fast &amp; easy setup</td></tr>
+          <tr><td>Bambu Lab A1</td><td>High-speed FDM</td><td>Auto-calibration, excellent print quality</td></tr>
+        </table>
+        <div class="img-gallery">
+          <img src="images/b 1.png" alt="Bambu Lab 1" loading="lazy"/>
+          <img src="images/b 2.png" alt="Bambu Lab 2" loading="lazy"/>
+          <img src="images/b 3.png" alt="Bambu Lab 3" loading="lazy"/>
+          <img src="images/b 4.png" alt="Bambu Lab 4" loading="lazy"/>
+          <img src="images/b 5.png" alt="Bambu Lab 5" loading="lazy"/>
+          <img src="images/b 6.png" alt="Bambu Lab 6" loading="lazy"/>
+          <img src="images/b 7.png" alt="Bambu Lab 7" loading="lazy"/>
+<figure>
+          <img src="images/b 8.png" alt="Bambu Lab H2D" loading="lazy"/>
+          <figcaption>The Bambu Lab H2D is a high-performance professional 3D printer designed for makers, engineers, designers, and advanced hobbyists. It combines 3D printing, laser engraving, cutting, and drawing capabilities in a single machine</figcaption>
+</figure>
+<figure>
+          <img src="images/b 9.png" alt="Bambu Lab P1S" loading="lazy"/>
+          <figcaption>The Bambu Lab P1S is one of the best all-round 3D printers for students, makers, and professionals. It offers high speed, excellent print quality, an enclosed chamber, and multi-color printing support, making it ideal for prototypes, functional parts, and creative projects.</figcaption>
+          </figure>
+          <figure>
+          <img src="images/b 10.png" alt="Bambu Lab A1 Mini" loading="lazy"/>
+<figcaption>The Bambu Lab A1 Mini is a compact and beginner-friendly 3D printer designed for fast, high-quality printing. It is popular among students, hobbyists, and makers because it is easy to set up and use.</figcaption>
+          </figure>
+          <img src="images/b 11.png" alt="Bambu Lab 11" loading="lazy"/>
+          <img src="images/b 12.png" alt="Bambu Lab 12" loading="lazy"/>
+          <img src="images/b 13.png" alt="Bambu Lab 13" loading="lazy"/>
+          <img src="images/b 14.png" alt="Bambu Lab 14" loading="lazy"/>
+          <figure>
+            <img src="images/b 15.png" alt="Bambu Lab A1" loading="lazy"/>
+            <figcaption>The Bambu Lab A1 is a high-speed FDM (Fused Deposition Modeling) 3D printer designed for beginners, students, hobbyists, and professionals. It is known for its easy setup, automatic calibration, and excellent print quality</figcaption>
+          </figure>
+        </div>
+        <div class="video-label">▶ Day 5A — Bambu Lab Video 1</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/jF_FwVoOwuk?si=FFbicb0mufO81rdn" title="Day 5A Bambu Lab" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-label">▶ Day 5B — Bambu Lab Video 2</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/7oQMEB9l2C4?si=PPkdJlZCbH69i3wB" title="Day 5B Bambu Lab" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div><!-- /w1 -->
 
+  <!-- ════ WEEK TWO ════ -->
+  <div class="week-panel" id="w2">
+    <div class="week-header reveal">
+      <div class="week-num">02</div>
+      <div>
+        <div class="week-info-title">Week Two — Fabrication &amp; Electronics</div>
+        <div class="week-info-sub">Fusion 360 Advanced · Laser Cutting · Cricut · Arduino ESP32 · CNC Router</div>
+      </div>
+    </div>
 
-<br><img src="images/f3 6.png" alt="" width="600">
-<br><img src="images/f3 7.png" alt="" width="600">
-<br><img src="images/f3 8.png" alt="" width="600">
-<br><img src="images/f3 9.png" alt="" width="600">
-<p>Modify the Sketch
+    <!-- W2 D1 -->
+    <div class="day-section open">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-num-badge">W2 · DAY 1</div>
+        <div class="day-icon-big">⚙️</div>
+        <div class="day-title-text">Advanced Fusion 360 — 3D Bodies &amp; Assembly</div>
+        <div class="day-chevron">▼</div>
+      </div>
+      <div class="day-body">
+        <p class="day-desc-text">Deeper dive into <strong>Fusion 360</strong> — moved beyond 2D sketching into 3D extrusion, body creation, components, and assembly workflows for complete engineering models.</p>
+        <div class="img-gallery">
+          <img src="images/f 1.png" alt="Fusion Advanced 1" loading="lazy"/>
+          <img src="images/f 2.png" alt="Fusion Advanced 2" loading="lazy"/>
+          <img src="images/f 3.png" alt="Fusion Advanced 3" loading="lazy"/>
+          <img src="images/f 4.png" alt="Fusion Advanced 4" loading="lazy"/>
+          <img src="images/f 5.png" alt="Fusion Advanced 5" loading="lazy"/>
+          <img src="images/f 6.png" alt="Fusion Advanced 6" loading="lazy"/>
+          <img src="images/f 7.png" alt="Fusion Advanced 7" loading="lazy"/>
+          <img src="images/f 8.png" alt="Fusion Advanced 8" loading="lazy"/>
+          <img src="images/f 10.png" alt="Fusion Advanced 10" loading="lazy"/>
+          <img src="images/F 9.jpeg" alt="Fusion Advanced 9" loading="lazy"/>
+        </div>
+        <div class="video-label">▶ W2 Day 1A — Fusion 360 3D Video</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/WfnT0N9sBK0?si=y1wl8TdK4yvphPoa" title="W2D1A Fusion" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-label">▶ W2 Day 1B — Fusion 360 Assembly Video</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/LH_vKXHWzws?si=OaKUnkFBCk9tM7OX" title="W2D1B Fusion" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
 
-Use tools such as:
+    <!-- W2 D2 -->
+    <div class="day-section">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-num-badge">W2 · DAY 2</div>
+        <div class="day-icon-big">🔦</div>
+        <div class="day-title-text">Laser Cutting Machine</div>
+        <div class="day-chevron">▼</div>
+      </div>
+      <div class="day-body">
+        <p class="day-desc-text">Learned to operate the <strong>laser cutting machine</strong> — designing cut files, material preparation, safety protocols, and running precise cuts on acrylic and cardboard.</p>
+        <div class="img-gallery">
+          <img src="images/l 1.png" alt="Laser Cutting 1" loading="lazy"/>
+          <img src="images/l 2.png" alt="Laser Cutting 2" loading="lazy"/>
+          <img src="images/l 3.png" alt="Laser Cutting 3" loading="lazy"/>
+          <img src="images/l 4.png" alt="Laser Cutting 4" loading="lazy"/>
+          <img src="images/l 5.png" alt="Laser Cutting 5" loading="lazy"/>
+          <img src="images/l 6.png" alt="Laser Cutting 6" loading="lazy"/>
+          <img src="images/l 7.png" alt="Laser Cutting 7" loading="lazy"/>
+          <img src="images/l 8.png" alt="Laser Cutting 8" loading="lazy"/>
+        </div>
+        <div class="video-label">▶ W2 Day 2 — Laser Cutting Video</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/QO7mCOu0rG4?si=OPCYw-GCDKHxzutj" title="W2D2 Laser" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
 
-Trim
-Extend
-Move
-Offset
-Mirror
-Fillet</p>
-<p>Finish the Sketch
-Check that all dimensions are correct.
-Click Finish Sketch.
-9. Save the Design
-Click File → Save.
-Enter a project name and save.
-</p>
-<p>Conclusion
-Fusion 360 sketching tools help create accurate 2D drawings.
-Dimensions and constraints improve precision.
-Basic shapes can be combined to create complex designs.
-A well-defined sketch is the foundation of a successful 3D model.
-Fusion 360 provides an easy and efficient drawing environment for engineering and design projects.</p>
-<br><img src="images/f3 10.png" alt="" width="600">
-<br><img src="images/af 11.png" alt="" width="600">
-<br><img src="images/af 12.png" alt="" width="600">
-<br><img src="images/af 13.png" alt="" width="600">
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/bBv9XXZYFhQ?si=8CnMp5HJo7uks5j6"
-    title="DAY 3A VIDEO"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/1EeT7qX78_s?si=gCkWIVySyqXep41o"
-    title="DAY 3B VIDEO"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
-<br><img src="images/af 14.png" alt="" width="600">
-
-
-<p style="font-size: 24px;"><strong>week one day 4</strong></p>
-<br><img src="images/i 1.png" alt="" width="600">
-<br><img src="images/i 2.png" alt="" width="600">
-<br><img src="images/i 3.png" alt="" width="600">
-<br><img src="images/i 4.png" alt="" width="600">
-<br><img src="images/i 5.png" alt="" width="600">
-<br><img src="images/i 6.png" alt="" width="600">
-<br><img src="images/i 7.png" alt="" width="600">
-<br><img src="images/i 8.png" alt="" width="600">
-
-
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/5sv9jrRyYXw?si=6MSDYzJXfDicoJUW"
-    title="[Day 4 Video Title]"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
-<br><img src="images/i 9.png" alt="" width="600">
-
-
-<p style="font-size: 24px;"><strong>week one day 5</strong></p>
-<br><img src="images/b 1.png " alt="-------" width="600"></br>
-<br><img src="images/b 2.png " alt="-------" width="600"></br>
-<br><img src="images/b 3.png " alt="-------" width="600"></br>
-<br><img src="images/b 4.png" alt="-------" width="600"></br>
-<br><img src="images/b 5.png" alt="-------" width="600"></br>
-<br><img src="images/b 6.png" alt="-------" width="600"></br>
-
-<br><img src="images/b 8.png " alt="-------" width="600"></br>
-<p>The Bambu Lab H2D is a high-performance professional 3D printer designed for makers, engineers, designers, and advanced hobbyists. It combines 3D printing, laser engraving, cutting, and drawing capabilities in a single machine</p>
-<br><img src="images/b 9.png " alt="-------" width="600"></br>
-<p>The Bambu Lab P1S is one of the best all-round 3D printers for students, makers, and professionals. It offers high speed, excellent print quality, an enclosed chamber, and multi-color printing support, making it ideal for prototypes, functional parts, and creative projects.</p>
-<br><img src="images/b 10.png " alt="-------" width="600"></br>
-<p>The Bambu Lab A1 Mini is a compact and beginner-friendly 3D printer designed for fast, high-quality printing. It is popular among students, hobbyists, and makers because it is easy to set up and use.</p>
-<br><img src="images/b 11.png" alt="-------" width="600"></br>
-<br><img src="images/b 12.png" alt="-------" width="600"></br>
-<br><img src="images/b 13.png" alt="-------" width="600"></br>
-<br><img src="images/b 14.png " alt="-------" width="600"></br>
-<br><img src="images/b 15.png"alt=""width="600"></br>
-<p>The Bambu Lab A1 is a high-speed FDM (Fused Deposition Modeling) 3D printer designed for beginners, students, hobbyists, and professionals. It is known for its easy setup, automatic calibration, and excellent print quality.</p>
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/jF_FwVoOwuk?si=FFbicb0mufO81rdn"
-    title="[Day 5A Video Title]"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/7oQMEB9l2C4?si=PPkdJlZCbH69i3wB"
-    title="[Day 5B Video Title]"
-    frameborder="0"
-    allowfullscreen>
-    </iframe>
-<br><img src="images/b 7.png " alt="-------" width="600"></br>
-<p style =font-size:24px;><strong>week two</strong></p>
-<p style =font-size:24px;><strong>Week Two Day 1</strong></p>
-
-
-
-
-<br><img src="images/f 1.png " alt="-------" width="600"></br>
-<br><img src="images/f 2.png " alt="-------" width="600"></br>
-<br><img src="images/f 3.png " alt="-------" width="600"></br>
-<br><img src="images/f 4.png" alt="-------" width="600"></br>
-<br><img src="images/f 5.png" alt="-------" width="600"></br>
-<br><img src="images/f 6.png" alt="-------" width="600"></br>
-<br><img src="images/f 7.png " alt="-------" width="600"></br>
-
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/WfnT0N9sBK0?si=y1wl8TdK4yvphPoa"
-    title="[Day 5A Video Title]"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
-
-<br><img src="images/F 9.jpeg " alt="-------" width="600"></br>
-<br><img src="images/f 10.png" alt=""width="600"></br>
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/LH_vKXHWzws?si=OaKUnkFBCk9tM7OX"
-    title="[Day 1 Video Title]"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
-<br><img src="images/f 8.png " alt="-------" width="600"></br>
-
-
-
-
-<p style =font-size:24px;><strong>Week Two Day 2</strong></p>
-
-<br><img src="images/l 1.png"alt="."width="600"></br>
-<br><img src="images/l 2.png"alt="."width="600"></br>
-<br><img src="images/l 3.png"alt="."width="600"></br>
-<br><img src="images/l 4.png"alt="."width="600"></br>
-<br><img src="images/l 5.png"alt="."width="600"></br>
-<br><img src="images/l 6.png"alt="."width="600"></br>
-<br><img src="images/l 7.png"alt="."width="600"></br>
-<br><img src="images/l 8.png"alt="."width="600"></br>
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/QO7mCOu0rG4?si=OPCYw-GCDKHxzutj"
-    title="[Day 5A Video Title]"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
-
-<p style =font-size:24px;><strong>Week Two Day 3</strong></p>
-<br><img src="images/c 1.png"alt="."width="600"></br>
-<p><b>Here is a simplified summary of how a Cricut machine works:</b></p>
+    <!-- W2 D3 -->
+    <div class="day-section">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-num-badge">W2 · DAY 3</div>
+        <div class="day-icon-big">✂️</div>
+        <div class="day-title-text">Cricut Smart Cutting Machine</div>
+        <div class="day-chevron">▼</div>
+      </div>
+      <div class="day-body">
+        <p class="day-desc-text">Operated the <strong>Cricut machine</strong> — a smart craft cutter that acts like a printer but uses a tiny blade to cut shapes from vinyl, iron-on, and cardstock materials.</p>
+        <ul class="steps-list">
+          <li>Design in Cricut Design Space app (phone or computer)</li>
+          <li>Stick material flat onto the sticky cutting mat</li>
+          <li>Load the mat into the machine and select your material type</li>
+          <li>Press Start — the machine cuts the design automatically</li>
+          <li>Peel away excess material and apply cut design to project</li>
+        </ul>
+        <p class="day-desc-text">The machine connects via <strong>Bluetooth</strong> or USB cable to the Design Space software (free on iOS, Android, Windows, Mac). The ER11 collet sticky mat holds raw material flat while cutting.</p>
+        <div class="img-gallery">
+          <figure>
+          <img src="images/c 1.png" alt="Cricut 1" loading="lazy"/>
+          <figcaption><p></p><b>Here is a simplified summary of how a Cricut machine works:</b></p>
  <p>What it is</p>
 <p>A smart craft cutter** that acts like a printer, but uses a tiny blade to cut out shapes and designs instead of printing ink.</p>
 <p> What you need</p>
@@ -407,34 +1223,60 @@ Fusion 360 provides an easy and efficient drawing environment for engineering an
 <p>How to use it </p>
  <p>1. Design: Choose or create a design in the app.</p>
  <p>2. Prep:Stick your material flat onto the sticky mat.</p>
- <p>3. Cut: Load the mat into the machine, choose your material in the app, and press **Start**.</p>
- <p>4. Finish: Peel away the extra material around your cut design and apply it to your project.</b></p>
-<br><img src="images/c 2.png"alt="."width="600"></br>
-<br><img src="images/c 3.png"alt="."width="600"></br>
-<p>Core Components Needed to Work
+ <p>3. Cut: Load the mat into the machine, choose your material in the app, and press *Start*.</p>
+ <p>4. Finish: Peel away the extra material around your cut design and apply it to your project.</b></p></figcaption>
+
+          <img src="images/c 2.png" alt="Cricut 2" loading="lazy"/>
+          <figure></figure>
+          <img src="images/c 3.png" alt="Cricut 3" loading="lazy"/>
+          <figcaption>Core Components Needed to Work
 To operate the machine, you typically use a combination of three components:
 The Machine: Connects to your device wirelessly via Bluetooth or via a USB cable.  
 Design Space Software: The official software (free to download on iOS, Android, Windows, and Mac) where you layout, type, or import the images you want to cut.  
-The Cutting Mat: A flexible plastic mat with a sticky surface that holds your raw material completely flat and securely in place while the machine moves and cuts it.</p>
+The Cutting Mat: A flexible plastic mat with a sticky surface that holds your raw material completely flat and securely in place while the machine moves and cuts it.
+</figcaption>
+</figure>
+        </div>
+        <div class="video-label">▶ W2 Day 3 — Cricut Machine Video</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/JwMMzN9kF8o?si=WVtsfCTjdLIi6aAU" title="W2D3 Cricut" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
 
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/JwMMzN9kF8o?si=WVtsfCTjdLIi6aAU"
-    title="[Day 5A Video Title]"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
-<p style =font-size:24px;><strong>week two day 4</strong></p>
-<br><img src="images/ard 1.png"alt="."width="600"></br>
-<p>Step 1: Download Arduino IDE
+    <!-- W2 D4 -->
+    <div class="day-section">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-num-badge">W2 · DAY 4</div>
+        <div class="day-icon-big">🔌</div>
+        <div class="day-title-text">Arduino IDE &amp; ESP32 Programming</div>
+        <div class="day-chevron">▼</div>
+      </div>
+      <div class="day-body">
+        <p class="day-desc-text">Installed <strong>Arduino IDE</strong>, configured the <strong>ESP32</strong> board package, connected hardware, wrote a basic program and successfully uploaded it to the microcontroller.</p>
+        <ul class="steps-list">
+          <li>Download Arduino IDE from official website → Install on Windows</li>
+          <li>File → Preferences → Add ESP32 Board URL in Additional Boards Manager URLs</li>
+          <li>Tools → Board → Boards Manager → Search "ESP32" → Install by Espressif Systems</li>
+          <li>Connect ESP32 via USB → Tools → Board → Select ESP32 Dev Module</li>
+          <li>Tools → Port → Select the correct COM port</li>
+          <li>File → New Sketch → Write <code>setup()</code> and <code>loop()</code> functions</li>
+          <li>Click ✓ Verify → click → Upload (hold BOOT button if required)</li>
+          <li>Open Serial Monitor to view output and debug</li>
+        </ul>
+        <div class="img-gallery">
+          <figure>
+          <img src="images/ard 1.png" alt="Arduino 1" loading="lazy"/>
+          <figcaption>Step 1: Download Arduino IDE
 Open your browser.
 Visit:
 Arduino IDE Download Page
 Click Download Arduino IDE for Windows.
-Choose Windows 10 and newer (64-bit)</p>
-<br><img src="images/ard 2.png"alt="."width="600"></br>
-<p>Step 2: Install Arduino IDE
+Choose Windows 10 and newer (64-bit)</figcaption>
+          </figure>
+        <figure>
+          <img src="images/ard 2.png" alt="Arduino 2" loading="lazy"/>
+          <figcaption>Step 2: Install Arduino IDE
 Open the downloaded .exe file.
 Click I Agree.
 Select all components.
@@ -442,30 +1284,42 @@ Click Next.
 Choose the installation folder.
 Click Install.
 Wait for installation to finish.
-Click Finish.</p>
-<br><img src="images/ard 3.png"alt="."width="600"></br>
-<br><img src="images/ard 4.png"alt="."width="600"></br>
-<p>Step 3: Open Arduino IDE
+Click Finish.
+</figcaption>
+</figure>
+        
+          <img src="images/ard 3.png" alt="Arduino 3" loading="lazy"/>
+          <figure>
+          <img src="images/ard 4.png" alt="Arduino 4" loading="lazy"/>
+          <figcaption>Step 3: Open Arduino IDE
 Press the Windows key.
 Search for Arduino IDE.
-Open the application.</p>
-<br><img src="images/ard 5.png"alt="."width="600"></br>
-<p>Step 1: Open Preferences
+Open the application.</figcaption>
+</figure>
+<figure>
+          <img src="images/ard 5.png" alt="Arduino 5" loading="lazy"/>
+          <figcaption>Step 1: Open Preferences
 Open Arduino IDE.
 Click File → Preferences.
 Step 2: Add ESP32 Board URL
 
 In Additional Boards Manager URLs, paste:
-then click on the ok</p>
-<br><img src="images/ard 6.png"alt="."width="600"></br>
-<p>Step 3: Install ESP32 Package
+then click on the ok</figcaption>
+</figure>
+<figure>
+          <img src="images/ard 6.png" alt="Arduino 6" loading="lazy"/>
+          <figcaption>Step 3: Install ESP32 Package
 Click Tools → Board → Boards Manager.
 Search for ESP32.
 Find ESP32 by Espressif Systems.
 Click Install.
-Wait for the installation to complete.</p>
-<br><img src="images/ard 7.png"alt="."width="600"></br>
-<p>Step 1: Connect Hardware
+Wait for the installation to complete.</figcaption>
+</figure>
+<figure>
+
+<figure>
+          <img src="images/ard 7.png" alt="Arduino 7" loading="lazy"/>
+          <figcaption>Step 1: Connect Hardware
 Connect ESP32 to the computer using a USB cable.
 Wait for Windows to detect the device.
 Step 2: Select Board
@@ -473,13 +1327,16 @@ Click Tools → Board.
 Select your ESP32 board (usually ESP32 Dev Module).
 Step 3: Select Port
 Click Tools → Port.
-Select the COM port of your ESP32.</p>
-<br><img src="images/ard 8.png"alt="."width="600"></br>
-<p>Step 1: Create New Sketch
+Select the COM port of your ESP32.</figcaption>
+          </figure>
+          <img src="images/ard 8.png" alt="Arduino 8" loading="lazy"/>
+          <figcaption>Step 1: Create New Sketch
 Click File → New Sketch.
-Step 2: Write Code</p>
-<br><img src="images/ard 9.png"alt="."width="600"></br>
-<p>Part 5: Verify the Code
+Step 2: Write Code</figcaption>
+</figure>
+<figure>
+          <img src="images/ard 9.png" alt="Arduino 9" loading="lazy"/>
+          <figcaption>Part 5: Verify the Code
 Click the ✓ Verify button.
 Arduino IDE checks for errors.
 If no errors are found, compilation is successful.
@@ -488,50 +1345,72 @@ Click the → Upload button.
 Wait for compiling.
 Upload starts automatically.
 If required, press and hold the BOOT button on ESP32 while uploading.
-Release the button when uploading beg</p>
-<br><img src="images/ard 10.png"alt="."width="600"></br>
+Release the button when uploading begins.</figcaption>
+</figure>
 
-<br><img src="images/ard 11.png"alt="."width="600"></br>
-<p>Conclusion
+          <img src="images/ard 10.png" alt="Arduino 10" loading="lazy"/>
+          <figure>
+          <img src="images/ard 11.png" alt="Arduino 11" loading="lazy"/>
+          <figcaption>Conclusion
 Arduino IDE is used to write, compile, and upload programs to ESP32.
 Install Arduino IDE first, then install the ESP32 board package.
 Select the correct board and COM port before uploading.
 Every Arduino program contains setup() and loop() functions.
 The Serial Monitor helps view messages and debug your ESP32 programs.
-After setup, you can create projects using sensors, Wi-Fi, Firebase, IoT, and displays with ESP32.</p>
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/I9rEfDR6JNQ?si=yk-vsPm4_WpceyhZ"
-    title="[Day 5A Video Title]"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/CemfFJB5RS0?si=jmg8YFF96Ki05yFM"
-    title="[Day 5A Video Title]"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
-<p style="font-size: 24px;"><strong>week two day 5</strong></p>
-<p style="font-size: 24px;"><strong><B> Two Tree TTC-450</B></strong></p>
-<img src="images 2/t 1.png" alt="."width="600"></br>
-<p>the two trees TTC-450 is a high-performance 3D printer designed for professiionals, makers, and advanted hobbyists. it offers a large build volume, high precision, and a range of features that make it ideal for prototyping, manufacturing, and creative projects.</p>
-<img src="images 2/t 2.png" alt="."width="600"></br>
-<p>Cutting Tool / End Mill Information for TwoTrees TTC450 CNC Router</p>
+After setup, you can create projects using sensors, Wi-Fi, Firebase, IoT, and displays with ESP32.</figcaption>
+</figure>
+        </div>
+        <div class="video-label">▶ W2 Day 4A — Arduino IDE Setup Video</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/I9rEfDR6JNQ?si=yk-vsPm4_WpceyhZ" title="W2D4A Arduino" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-label">▶ W2 Day 4B — ESP32 Programming Video</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/CemfFJB5RS0?si=jmg8YFF96Ki05yFM" title="W2D4B ESP32" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
 
-<p>The TwoTrees TTC450 uses an ER11 collet spindle, which can hold cutting tools (end mills) with diameters from 0.5 mm to 7 mm. The newer TTC450 Ultra comes with a 500 W spindle that can run between 8,000 and 30,000 RPM.</p>
-<p>Standard Tools Included with TTC450
+    <!-- W2 D5 -->
+    <div class="day-section">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-num-badge">W2 · DAY 5</div>
+        <div class="day-icon-big">🪚</div>
+        <div class="day-title-text">Two Trees TTC-450 CNC Router</div>
+        <div class="day-chevron">▼</div>
+      </div>
+      <div class="day-body">
+        <p class="day-desc-text">Explored the <strong>Two Trees TTC-450 CNC Router</strong> — a high-performance machine for engraving, cutting, and milling wood, acrylic, plastic and PCBs.</p>
+        <table class="spec-table">
+          <tr><th>Component</th><th>Specification</th></tr>
+          <tr><td>Spindle (Stock)</td><td>80W, 8,000 RPM, 775 DC Motor</td></tr>
+          <tr><td>Spindle (Ultra)</td><td>500W, 8,000–30,000 RPM</td></tr>
+          <tr><td>Stepper Motor</td><td>NEMA 23 · Model 17HS8401S · A4988 Driver</td></tr>
+          <tr><td>Rated Current</td><td>1.3 A</td></tr>
+          <tr><td>Collet System</td><td>ER11 · 0.5mm–7mm tool diameter</td></tr>
+          <tr><td>Included Tools</td><td>ER11 collets (3.175mm &amp; 6mm) + 10× V-cutters (30°)</td></tr>
+        </table>
+        <p class="day-desc-text">Materials suitable for cutting: <strong>Wood, Acrylic, Plastic, PCB engraving</strong>. The X-axis assembly carries the Z-axis and spindle from left to right. Stepper motors convert electrical pulses into precise mechanical movement.</p>
+        <div class="img-gallery">
+          <figure>
+          <img src="images 2/t 1.png" alt="TTC-450 1" loading="lazy"/>
+          <figcaption>the two trees TTC-450 is a high-performance 3D printer designed for professiionals, makers, and advanted hobbyists. it offers a large build volume, high precision, and a range of features that make it ideal for prototyping, manufacturing, and creative projects.</figcaption>
+          </figure>
+          <figure>
+          <img src="images 2/t 2.png" alt="TTC-450 2" loading="lazy"/>
+          <figcaption>Cutting Tool / End Mill Information for TwoTrees TTC450 CNC Router
+
+The TwoTrees TTC450 uses an ER11 collet spindle, which can hold cutting tools (end mills) with diameters from 0.5 mm to 7 mm. The newer TTC450 Ultra comes with a 500 W spindle that can run between 8,000 and 30,000 RPM.
+Standard Tools Included with TTC450
 
 Many TTC450 kits include:
 
 ER11 collets (3.175 mm and 6 mm)
-10 × V-shaped engraving cutters (30°)</p>
-<img src="images 2/t 3.png" alt="."width="600"></br>
-
-<p>The Two Trees TTC450 uses stepper motors to move the machine accurately along the X, Y, and Z axes. These motors convert electrical pulses into precise mechanical movement, allowing the CNC machine to engrave and cut accurately.</p>
+10 × V-shaped engraving cutters (30°).</figcaption>
+          </figure>
+          <figure>
+          <img src="images 2/t 3.png" alt="TTC-450 3" loading="lazy"/>
+         <figcaption><p>The Two Trees TTC450 uses stepper motors to move the machine accurately along the X, Y, and Z axes. These motors convert electrical pulses into precise mechanical movement, allowing the CNC machine to engrave and cut accurately.</p>
 <ul>
 <p><li>Stepper Motor Specifications</li></p>
 <p><li>Motor Model: 17HS8401S</li></p>
@@ -539,13 +1418,17 @@ ER11 collets (3.175 mm and 6 mm)
 <p><li>Driver: A4988 Stepper Driver</li></p>
 <p><li>Rated Current: 1.3 A</li></p>
 <p><li>Torque: Approximately 20 mN·m (as listed by manufacturer specifications)</li></p>
-</ul>
-<img src="images 2/t 4.png" alt="."width="600"></br>
-<p>X-Axis Assembly in Two Trees TTC450
+</ul></figcaption>
+</figure>
+<figure>
+          <img src="images 2/t 4.png" alt="TTC-450 4" loading="lazy"/>
+         <figcaption><p>X-Axis Assembly in Two Trees TTC450
 
-The X-axis assembly is the horizontal movement system of the TTC450 CNC machine. It carries the Z-axis and spindle assembly from left to right across the machine.</p>
-<img src="images 2/t 5.png" alt="."width="600"></br>
-<p>Standard Spindle (Stock Version)</p>
+The X-axis assembly is the horizontal movement system of the TTC450 CNC machine. It carries the Z-axis and spindle assembly from left to right across the machine.</p></figcaption>
+</figure>
+<figure>
+          <img src="images 2/t 5.png" alt="TTC-450 5" loading="lazy"/>
+          <figcaption><p>Standard Spindle (Stock Version)</p>
 Power: 80 W
 Speed: 8,000 RPM
 Type: 775 DC Motor
@@ -560,26 +1443,244 @@ Type: 775 DC Motor
 <li>Plastic</li>
 <li>PCB engraving</li>
 <li>Not ideal for heavy aluminum cutting.</li>
-</ul>
+</ul></figcaption>
+</figure>
+        </div>
+        <div class="video-label">▶ W2 Day 5A — TTC-450 Setup Video</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/KZJQfhE_S9g?si=FW6fjq0dnTtC_KLV" title="W2D5A CNC" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-label">▶ W2 Day 5B — TTC-450 Operation Video</div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/kYIx5KS8Jyk?si=BFgAtgUhpAXRsaED" title="W2D5B CNC" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div><!-- /w2 -->
 
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/KZJQfhE_S9g?si=FW6fjq0dnTtC_KLV"
-    title="[Day 5A Video Title]"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
-<iframe
-    width="700"
-    height="400"
-    src="https://www.youtube.com/embed/kYIx5KS8Jyk?si=BFgAtgUhpAXRsaED"
-    title="[Day 5A Video Title]"
-    frameborder="0"
-    allowfullscreen>
-</iframe>
+  <!-- ════ WEEK THREE ════ -->
+  <div class="week-panel" id="w3">
+    <div class="week-header reveal">
+      <div class="week-num">03</div>
+      <div>
+        <div class="week-info-title">Week Three — Electronics &amp; Beyond</div>
+        <div class="week-info-sub">Electronics fundamentals · More days coming soon</div>
+      </div>
+    </div>
 
+    <!-- W3 D3 -->
+    <div class="day-section open">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-num-badge">W3 · DAY 3</div>
+        <div class="day-icon-big">⚡</div>
+        <div class="day-title-text">Electronics — Important Fundamentals</div>
+        <div class="day-chevron">▼</div>
+      </div>
+      <div class="day-body">
+        <p class="day-desc-text">Exploring <strong>electronics fundamentals</strong> — circuits, components, sensors, and their applications in mechatronics engineering projects. This section will be updated as training progresses.</p>
+        <p class="day-desc-text" style="border:1px dashed var(--border);padding:18px;border-radius:10px;text-align:center;color:var(--text-dim);">
+          📸 Images and notes will be added here as training continues each day.<br/>
+          <span style="color:var(--cyan);font-family:var(--fm);font-size:0.75rem;letter-spacing:2px;">— JOURNAL IN PROGRESS —</span>
+        </p>
+      </div>
+    </div>
 
-<p style="font-size:24px;"><strong>week three</strong></p>
-<p><b>electronics(important)</b></p>
-<p style ="font-size:24px;"><strong>week three day 3</strong>
+    <!-- Placeholder for upcoming days -->
+    <div class="day-section" style="opacity:0.5;border-style:dashed;">
+      <div class="day-header">
+        <div class="day-num-badge" style="background:var(--purple)">COMING SOON</div>
+        <div class="day-icon-big">🔮</div>
+        <div class="day-title-text">More Days — Week Three &amp; Beyond</div>
+        <div class="day-chevron" style="color:var(--purple)">▼</div>
+      </div>
+    </div>
+  </div><!-- /w3 -->
+
+</section><!-- /journal -->
+
+<!--══════════════════════════════════════════
+  AIMS
+══════════════════════════════════════════-->
+<section id="aims">
+  <div class="sec-label">// 05 — Looking Ahead</div>
+  <h2 class="sec-title">My <span>Aims</span></h2>
+  <div class="sec-div"></div>
+  <div class="aims-grid">
+    <div class="aim-card reveal">
+      <div class="aim-emoji">🎯</div>
+      <div class="aim-title">Successful Mechatronics Engineer</div>
+      <div class="aim-desc">Master mechatronics and contribute to innovative engineering solutions that make a real difference in the world.</div>
+    </div>
+    <div class="aim-card reveal" style="transition-delay:.1s">
+      <div class="aim-emoji">🤖</div>
+      <div class="aim-title">Advance in Robotics &amp; Automation</div>
+      <div class="aim-desc">Deepen expertise in robotics, automation systems, and AI-driven engineering to build smart machines of the future.</div>
+    </div>
+    <div class="aim-card reveal" style="transition-delay:.2s">
+      <div class="aim-emoji">💡</div>
+      <div class="aim-title">Innovate in Medical Engineering</div>
+      <div class="aim-desc">Building on the haemodialysis project — contribute engineering innovations that improve patient lives in healthcare.</div>
+    </div>
+    <div class="aim-card reveal" style="transition-delay:.3s">
+      <div class="aim-emoji">🌍</div>
+      <div class="aim-title">Lead &amp; Inspire</div>
+      <div class="aim-desc">Use leadership and teamwork skills to guide future engineers and drive impactful collaborative projects worldwide.</div>
+    </div>
+  </div>
+</section>
+
+<!--══════════════════════════════════════════
+  CONTACT
+══════════════════════════════════════════-->
+<section id="contact">
+  <div class="sec-label">// 06 — Get In Touch</div>
+  <h2 class="sec-title" style="text-align:center">Let's Work <span>Together</span></h2>
+  <div class="sec-div" style="margin:0 auto 56px;"></div>
+  <div class="contact-box reveal">
+    <p>Eager to collaborate, learn and grow in engineering. Reach out to connect, work together, or discuss exciting ideas in mechatronics and robotics.</p>
+    <div class="contact-row">
+      <a href="mailto:shalu@example.com" class="glow-btn">Send Email</a>
+      <a href="https://github.com" target="_blank" class="glow-btn purple">GitHub Profile</a>
+    </div>
+    <div class="contact-info">
+      <div class="ci-item"><span>University</span><p>Sanjivani University</p></div>
+      <div class="ci-item"><span>Program</span><p>Mechatronics Engineering</p></div>
+      <div class="ci-item"><span>Location</span><p>Maharashtra, India</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>SHALU SHAH</span> &nbsp;·&nbsp; Mechatronics Engineering &nbsp;·&nbsp; Sanjivani University &nbsp;·&nbsp; 2026
+</footer>
+
+<!--══════════════════════════════════════════
+  JAVASCRIPT
+══════════════════════════════════════════-->
+<script>
+/* ── STARS ── */
+const starsEl = document.getElementById('stars');
+for(let i=0;i<120;i++){
+  const s = document.createElement('div');
+  s.className = 'star';
+  const sz = Math.random()*2+0.5;
+  s.style.cssText = `
+    width:${sz}px;height:${sz}px;
+    top:${Math.random()*100}%;left:${Math.random()*100}%;
+    --dur:${Math.random()*4+2}s;
+    --del:${Math.random()*4}s;
+    --op:${Math.random()*0.5+0.3};
+  `;
+  starsEl.appendChild(s);
+}
+
+/* ── CURSOR ── */
+const cur = document.getElementById('cursor');
+const dot = document.getElementById('cursorDot');
+let mx=0,my=0,cx=0,cy=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX; my=e.clientY;
+  dot.style.left=mx+'px'; dot.style.top=my+'px';
+});
+(function animCur(){
+  cx+=(mx-cx)*0.12; cy+=(my-cy)*0.12;
+  cur.style.left=cx+'px'; cur.style.top=cy+'px';
+  requestAnimationFrame(animCur);
+})();
+document.querySelectorAll('a,button,.day-card,.aim-card,.skill-card,.day-header').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{
+    cur.style.transform='translate(-50%,-50%) scale(2.2)';
+    cur.style.background='rgba(0,240,255,0.08)';
+    cur.style.borderColor='var(--purple)';
+  });
+  el.addEventListener('mouseleave',()=>{
+    cur.style.transform='translate(-50%,-50%) scale(1)';
+    cur.style.background='transparent';
+    cur.style.borderColor='var(--cyan)';
+  });
+});
+
+/* ── NAV SHRINK ── */
+window.addEventListener('scroll',()=>{
+  document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>60);
+});
+
+/* ── TYPING EFFECT ── */
+const roles = ['Mechatronics Engineer','Robotics Enthusiast','Innovation Builder','Medical Tech Pioneer','Future Tech Leader'];
+let ri=0,ci=0,del=false;
+const tEl=document.getElementById('typedRole');
+function type(){
+  const w=roles[ri];
+  if(!del){ tEl.textContent=w.slice(0,++ci); if(ci===w.length){del=true;setTimeout(type,1900);return;} }
+  else{ tEl.textContent=w.slice(0,--ci); if(ci===0){del=false;ri=(ri+1)%roles.length;} }
+  setTimeout(type,del?55:105);
+}
+setTimeout(type,1400);
+
+/* ── SCROLL REVEAL ── */
+const revObs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      e.target.querySelectorAll('.skill-bar').forEach(b=>b.style.width=b.dataset.pct+'%');
+    }
+  });
+},{threshold:0.13});
+document.querySelectorAll('.reveal,.tl-item').forEach(el=>revObs.observe(el));
+
+/* skill bars on section entry */
+const sgObs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting)
+      e.target.querySelectorAll('.skill-bar').forEach(b=>setTimeout(()=>b.style.width=b.dataset.pct+'%',200));
+  });
+},{threshold:0.25});
+const sg=document.getElementById('skillsGrid');
+if(sg) sgObs.observe(sg);
+
+/* ── WEEK TABS ── */
+document.querySelectorAll('.week-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.week-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.week-panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.week).classList.add('active');
+    document.getElementById('journal').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+
+/* ── DAY ACCORDION ── */
+function toggleDay(header){
+  const section = header.parentElement;
+  const isOpen = section.classList.contains('open');
+  // close all in same week panel
+  header.closest('.week-panel').querySelectorAll('.day-section').forEach(s=>{
+    s.classList.remove('open');
+  });
+  if(!isOpen) section.classList.add('open');
+}
+
+/* ── LIGHTBOX ── */
+const lb=document.getElementById('lightbox');
+const lbImg=document.getElementById('lbImg');
+document.addEventListener('click',e=>{
+  if(e.target.matches('.img-gallery img')){
+    lbImg.src=e.target.src;
+    lb.classList.add('open');
+  }
+});
+document.getElementById('lbClose').addEventListener('click',()=>lb.classList.remove('open'));
+lb.addEventListener('click',e=>{ if(e.target===lb) lb.classList.remove('open'); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') lb.classList.remove('open'); });
+
+/* ── HERO PARALLAX ── */
+document.addEventListener('mousemove',e=>{
+  const orb=document.querySelector('.hero-orb');
+  if(!orb) return;
+  const rx=(e.clientX/window.innerWidth-0.5)*28;
+  const ry=(e.clientY/window.innerHeight-0.5)*28;
+  orb.style.transform=`translate(calc(-50% + ${rx}px),calc(-50% + ${ry}px))`;
+});
+</script>
+</body>
+</html>
