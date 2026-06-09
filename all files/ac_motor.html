@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Single-Phase AC Motor — Interactive Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--accent:#00ccff;--accent2:#0099dd;--accent3:#66eeff;--bg:#000d1a;--surface:#000d1a;--border:rgba(0,204,255,0.13);--glow:rgba(0,204,255,0.3);}
+  html,body{height:100%;overflow:hidden;}
+  body{background:var(--bg);font-family:'Share Tech Mono',monospace;height:100vh;display:flex;flex-direction:column;padding:10px 14px 8px;overflow:hidden;}
+  body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);pointer-events:none;z-index:1000;}
+  .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .title-main{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--accent);letter-spacing:4px;text-transform:uppercase;text-shadow:0 0 20px rgba(0,204,255,0.5);}
+  .title-sub{font-family:'Rajdhani',sans-serif;font-size:11px;color:rgba(0,204,255,0.4);letter-spacing:3px;margin-top:2px;}
+  .hdr-right{display:flex;align-items:center;gap:10px;}
+  .status-badge{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--accent3);background:rgba(102,238,255,0.07);border:1px solid rgba(102,238,255,0.25);border-radius:4px;padding:4px 10px;}
+  .controls{display:flex;gap:8px;margin-bottom:8px;align-items:center;flex-shrink:0;}
+  .btn-assemble{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:#000;background:var(--accent);border:none;border-radius:6px;padding:9px 22px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;box-shadow:0 0 20px rgba(0,204,255,0.4);}
+  .btn-assemble:hover{box-shadow:0 0 35px rgba(0,204,255,0.7);transform:translateY(-1px);}
+  .btn-assemble:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+  .btn-reset,.btn-highlight{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:1px;background:transparent;border-radius:6px;padding:9px 14px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;}
+  .btn-reset{color:rgba(0,204,255,0.5);border:1px solid rgba(0,204,255,0.2);}
+  .btn-reset:hover{color:var(--accent);border-color:rgba(0,204,255,0.5);}
+  .btn-highlight{color:rgba(0,153,221,0.6);border:1px solid rgba(0,153,221,0.2);}
+  .btn-highlight:hover{color:var(--accent2);border-color:rgba(0,153,221,0.5);}
+  .progress-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-shrink:0;}
+  .progress-label{font-size:9px;color:rgba(0,204,255,0.35);letter-spacing:2px;min-width:44px;}
+  .progress-track{flex:1;height:2px;background:rgba(0,204,255,0.08);border-radius:2px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,#002233,var(--accent));border-radius:2px;width:0%;transition:width 0.3s ease;box-shadow:0 0 8px var(--accent);}
+  .progress-pct{font-size:10px;color:var(--accent);min-width:36px;text-align:right;font-family:'Orbitron',monospace;}
+  .main-layout{display:flex;gap:12px;flex:1;min-height:0;}
+  .stage-wrap{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:relative;box-shadow:0 0 40px rgba(0,10,20,0.8),inset 0 0 30px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;}
+  .stage-wrap::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,204,255,0.012) 0px,rgba(0,204,255,0.012) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,rgba(0,204,255,0.012) 0px,rgba(0,204,255,0.012) 1px,transparent 1px,transparent 40px);pointer-events:none;border-radius:12px;z-index:0;}
+  .stage{position:relative;width:580px;height:500px;z-index:1;flex-shrink:0;}
+  .part{position:absolute;cursor:pointer;transition:transform 0.8s cubic-bezier(.34,1.5,.64,1),opacity 0.5s ease,filter 0.15s;opacity:0;transform:translateX(var(--ox)) translateY(var(--oy)) scale(0.55);filter:drop-shadow(0 0 4px rgba(0,204,255,0.25));z-index:2;}
+  .part.arrived{opacity:1;transform:translateX(0) translateY(0) scale(1);}
+  .part:hover{filter:drop-shadow(0 0 14px rgba(0,204,255,0.9)) brightness(1.35) !important;transform:translateX(0) translateY(0) scale(1.08) !important;z-index:50 !important;}
+  .part.selected{filter:drop-shadow(0 0 22px rgba(0,204,255,1)) brightness(1.6) !important;z-index:49 !important;}
+  .part.dimmed{filter:drop-shadow(0 0 2px rgba(0,204,255,0.05)) brightness(0.25) !important;}
+  .part svg{display:block;pointer-events:none;}
+  .side-panel{width:260px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;min-height:0;}
+  .info-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;flex:1;min-height:0;overflow-y:auto;transition:border-color 0.3s;}
+  .info-card.active{border-color:rgba(0,204,255,0.35);}
+  .info-name{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid rgba(0,204,255,0.12);line-height:1.4;}
+  .info-desc{font-size:10px;color:rgba(160,230,255,0.6);line-height:1.8;margin-bottom:10px;}
+  .info-stats{display:flex;gap:5px;flex-wrap:wrap;}
+  .stat-chip{font-size:8px;color:rgba(0,204,255,0.8);background:rgba(0,204,255,0.06);border:1px solid rgba(0,204,255,0.18);border-radius:4px;padding:3px 7px;letter-spacing:0.5px;}
+  .parts-grid-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;flex-shrink:0;}
+  .parts-grid-title{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:rgba(0,204,255,0.35);margin-bottom:8px;}
+  .parts-grid{display:flex;flex-wrap:wrap;gap:4px;}
+  .pdot{width:9px;height:9px;border-radius:50%;background:rgba(0,204,255,0.06);border:1px solid rgba(0,204,255,0.18);transition:all 0.3s;cursor:pointer;position:relative;}
+  .pdot:hover::after{content:attr(title);position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#001122;border:1px solid rgba(0,204,255,0.3);border-radius:4px;padding:3px 7px;font-size:9px;color:var(--accent);white-space:nowrap;z-index:100;pointer-events:none;}
+  .pdot.done{background:var(--accent);border-color:var(--accent);box-shadow:0 0 4px rgba(0,204,255,0.5);}
+  .pdot.done.cat-stator{background:#00ccff;}
+  .pdot.done.cat-rotor{background:#ff6b00;box-shadow:0 0 4px rgba(255,107,0,0.5);}
+  .pdot.done.cat-starting{background:#a8ff3e;box-shadow:0 0 4px rgba(168,255,62,0.5);}
+  .pdot.done.cat-mechanical{background:#ffaa33;box-shadow:0 0 4px rgba(255,170,51,0.5);}
+  .pdot.done.cat-housing{background:#888;}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;}
+  .leg-item{display:flex;align-items:center;gap:3px;font-size:8px;color:rgba(0,204,255,0.4);}
+  .leg-dot{width:7px;height:7px;border-radius:50%;}
+  .hint{font-size:9px;color:rgba(0,204,255,0.25);letter-spacing:1px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <div class="title-main">Single-Phase AC Motor</div>
+    <div class="title-sub">INTERACTIVE ASSEMBLY — CAPACITOR-START / CAPACITOR-RUN / SPLIT-PHASE</div>
+  </div>
+  <div class="hdr-right">
+    <div class="status-badge" id="status">AWAITING ASSEMBLY</div>
+    <div style="font-size:9px;color:rgba(0,204,255,0.35);letter-spacing:1px;" id="partCounter">0 / 0 PARTS</div>
+  </div>
+</div>
+<div class="controls">
+  <button class="btn-assemble" id="btnAssemble" onclick="assemble()">⚡ Assemble Motor</button>
+  <button class="btn-reset" onclick="doReset()">↺ Reset</button>
+  <button class="btn-highlight" onclick="highlightAll()">◈ Highlight All</button>
+</div>
+<div class="progress-row">
+  <span class="progress-label">BUILD</span>
+  <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+  <span class="progress-pct" id="progPct">0%</span>
+</div>
+<div class="main-layout">
+  <div class="stage-wrap"><div class="stage" id="stage"></div></div>
+  <div class="side-panel">
+    <div class="info-card" id="infoCard">
+      <div class="info-name" id="infoName">— SELECT A PART —</div>
+      <div class="info-desc" id="infoDesc">Assemble the motor first, then click any component to inspect it. Windings, capacitors, centrifugal switch, bearings, and housing all detailed.</div>
+      <div class="info-stats" id="infoStats"></div>
+    </div>
+    <div class="parts-grid-card">
+      <div class="parts-grid-title">COMPONENT MAP — <span id="doneCount">0</span> ARRIVED</div>
+      <div class="parts-grid" id="partsGrid"></div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#00ccff"></div>Stator</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ff6b00"></div>Rotor</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#a8ff3e"></div>Starting</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ffaa33"></div>Mech.</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#888"></div>Housing</div>
+      </div>
+    </div>
+    <div class="hint" id="hint">▶ Click ASSEMBLE to begin</div>
+  </div>
+</div>
+<script>
+const parts=[
+  {
+    id:'frame',name:'Motor Frame (TEFC Enclosure)',cat:'housing',
+    ox:'0px',oy:'300px',x:80,y:90,w:420,h:320,delay:0,
+    desc:'The Totally Enclosed Fan-Cooled (TEFC) frame is the industry standard for single-phase AC motors. Cast aluminium or cast iron construction provides mechanical rigidity and serves as the heat sink for winding losses. External fins run longitudinally along the frame body. TEFC design prevents moisture and dust ingress (IP44 or IP55), making these motors suitable for outdoor and dusty industrial environments. Frame size follows NEMA or IEC standards (e.g. NEMA 56 frame = 3.5" shaft height).',
+    stats:['Enclosure: TEFC (IP44/IP55)','Material: Cast Al or Cast Iron','Fins: Longitudinal heat dissipation','Standard: NEMA or IEC frame sizes','Grounded: safety earth connection','Mounting: foot/flange/C-face'],
+    svg:`<svg width="420" height="320" viewBox="0 0 420 320"><defs><linearGradient id="fG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#222"/><stop offset="100%" style="stop-color:#111"/></linearGradient></defs><rect x="2" y="36" width="416" height="248" rx="8" fill="url(#fG)" stroke="#444" stroke-width="2"/>${[...Array(14)].map((_,i)=>`<rect x="${12+i*29}" y="0" width="15" height="40" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="0.6"/>`).join('')}${[...Array(14)].map((_,i)=>`<rect x="${12+i*29}" y="280" width="15" height="40" rx="3" fill="#2a2a2a" stroke="#444" stroke-width="0.6"/>`).join('')}<circle cx="210" cy="160" r="92" fill="#111" stroke="#333" stroke-width="1.5"/><rect x="150" y="260" width="50" height="18" rx="3" fill="#1a1a1a" stroke="#444" stroke-width="0.8"/><rect x="220" y="260" width="50" height="18" rx="3" fill="#1a1a1a" stroke="#444" stroke-width="0.8"/><text x="210" y="308" fill="rgba(0,200,255,0.18)" font-size="8" text-anchor="middle" font-family="'Share Tech Mono',monospace">SINGLE-PHASE AC MOTOR</text></svg>`
+  },
+  {
+    id:'main_winding',name:'Main Winding (Running Winding)',cat:'stator',
+    ox:'-300px',oy:'0px',x:130,y:100,w:160,h:260,delay:200,
+    desc:'The main (running) winding is wound in the stator slots with heavy-gauge enamelled copper wire. It carries the full AC line current during normal operation and produces the main magnetic field. In a single-phase motor, this field pulsates rather than rotates — it is equivalent to two counter-rotating fields of half magnitude. Alone, a pulsating field cannot produce starting torque, which is why an auxiliary starting circuit is essential. The main winding has lower resistance and more turns than the auxiliary winding.',
+    stats:['Conductor: Heavy-gauge Cu enamelled','Location: Majority of stator slots','Current: Full line current (run)','Field: Pulsating (single-phase)','Resistance: Low (high current)','Alone: Cannot start — needs aux'],
+    svg:`<svg width="160" height="260" viewBox="0 0 160 260"><defs><linearGradient id="mwG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#001a33"/><stop offset="100%" style="stop-color:#000d1a"/></linearGradient></defs><ellipse cx="80" cy="130" rx="75" ry="122" fill="url(#mwG)" stroke="#0088cc" stroke-width="1.5"/>${[...Array(24)].map((_,i)=>{const a=i*15*Math.PI/180,r1=30,r2=65;return `<line x1="${80+r1*Math.cos(a)}" y1="${130+r1*Math.sin(a)}" x2="${80+r2*Math.cos(a)}" y2="${130+r2*Math.sin(a)}" stroke="rgba(0,204,255,0.2)" stroke-width="1.2"/>`}).join('')}<ellipse cx="80" cy="130" rx="30" ry="30" fill="#000d1a" stroke="#005588" stroke-width="1"/><text x="80" y="126" fill="rgba(0,204,255,0.35)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">MAIN</text><text x="80" y="137" fill="rgba(0,204,255,0.3)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">WINDING</text></svg>`
+  },
+  {
+    id:'aux_winding',name:'Auxiliary Winding (Start Winding)',cat:'stator',
+    ox:'300px',oy:'0px',x:270,y:100,w:160,h:260,delay:350,
+    desc:'The auxiliary (start) winding is physically displaced 90° from the main winding in the stator. It is wound with finer gauge wire and fewer turns, giving it higher resistance than the main winding. This resistance-reactance difference causes the current in the aux winding to be more nearly in phase with the supply voltage, while the main winding current lags — creating a phase difference that produces a weak rotating magnetic field sufficient to start the rotor spinning. Once running speed is reached, the aux winding is disconnected by the centrifugal switch.',
+    stats:['Displaced: 90° from main winding','Wire: Finer gauge, fewer turns','Resistance: Higher than main','Phase split: 20–30° (resistance type)','Disconnected: by centrifugal switch','Role: Starting only (not run)'],
+    svg:`<svg width="160" height="260" viewBox="0 0 160 260"><defs><linearGradient id="awG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#001a00"/><stop offset="100%" style="stop-color:#000d00"/></linearGradient></defs><ellipse cx="80" cy="130" rx="75" ry="122" fill="url(#awG)" stroke="#00aa44" stroke-width="1.5"/>${[...Array(24)].map((_,i)=>{const a=i*15*Math.PI/180+Math.PI/2,r1=30,r2=65;return `<line x1="${80+r1*Math.cos(a)}" y1="${130+r1*Math.sin(a)}" x2="${80+r2*Math.cos(a)}" y2="${130+r2*Math.sin(a)}" stroke="rgba(0,200,80,0.2)" stroke-width="1.2"/>`}).join('')}<ellipse cx="80" cy="130" rx="30" ry="30" fill="#000d00" stroke="#005522" stroke-width="1"/><text x="80" y="126" fill="rgba(0,200,80,0.35)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">AUX</text><text x="80" y="137" fill="rgba(0,200,80,0.3)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">WINDING</text></svg>`
+  },
+  {
+    id:'start_capacitor',name:'Starting Capacitor (Electrolytic)',cat:'starting',
+    ox:'-300px',oy:'-200px',x:160,y:62,w:80,h:55, delay:500,
+    desc:'The starting capacitor (typically 100–400µF) is wired in series with the auxiliary winding to create a much larger phase angle between the two winding currents (approaching 90°), producing a strong rotating field and high starting torque — up to 3× full-load torque. It is an electrolytic capacitor rated for intermittent AC duty only, usually 125V or 250V AC. It is only in circuit during starting and is disconnected once the motor reaches ~75% of synchronous speed by the centrifugal switch. Leaving it energised continuously will destroy it rapidly.',
+    stats:['Value: 100–400µF typical','Rating: 125V or 250V AC','Type: Electrolytic, AC duty','Phase advance: ~90° ideal','Starting torque: up to 300%','Duty: INTERMITTENT ONLY'],
+    svg:`<svg width="80" height="55" viewBox="0 0 80 55"><rect x="2" y="2" width="76" height="51" rx="8" fill="#1a0a00" stroke="#884400" stroke-width="1.3"/><rect x="8" y="8" width="64" height="39" rx="6" fill="#2a1a00" stroke="#cc6600" stroke-width="0.8"/><text x="40" y="23" fill="rgba(255,140,0,0.75)" font-size="8" text-anchor="middle" font-family="'Share Tech Mono',monospace">START</text><text x="40" y="33" fill="rgba(255,140,0,0.6)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">CAP</text><rect x="24" y="47" width="8" height="8" rx="1" fill="#555"/><rect x="48" y="47" width="8" height="8" rx="1" fill="#555"/><text x="40" y="52" fill="rgba(255,100,0,0.4)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">250µF</text></svg>`
+  },
+  {
+    id:'run_capacitor',name:'Run Capacitor (Oil-Filled)',cat:'starting',
+    ox:'300px',oy:'-200px',x:300,y:62,w:80,h:55,delay:550,
+    desc:'The run capacitor (typically 4–30µF) remains permanently in circuit with the auxiliary winding during normal operation. Unlike the start capacitor, it is an oil-filled polypropylene film capacitor rated for continuous AC duty (often 370V or 440V AC). It improves the running power factor, increases efficiency, and makes the motor quieter. In a Capacitor-Start Capacitor-Run (CSCR) motor, both capacitors are used at start; the starting cap is then switched out, leaving only the run cap in circuit.',
+    stats:['Value: 4–30µF typical','Rating: 370V or 440V AC','Type: Oil-filled film (PP)','Duty: CONTINUOUS run','Improves: Power factor + efficiency','CSCR motor: both caps at start'],
+    svg:`<svg width="80" height="55" viewBox="0 0 80 55"><rect x="2" y="2" width="76" height="51" rx="8" fill="#001a1a" stroke="#006688" stroke-width="1.3"/><rect x="8" y="8" width="64" height="39" rx="6" fill="#002233" stroke="#0099bb" stroke-width="0.8"/><text x="40" y="23" fill="rgba(0,180,220,0.75)" font-size="8" text-anchor="middle" font-family="'Share Tech Mono',monospace">RUN</text><text x="40" y="33" fill="rgba(0,180,220,0.6)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">CAP</text><rect x="24" y="47" width="8" height="8" rx="1" fill="#555"/><rect x="48" y="47" width="8" height="8" rx="1" fill="#555"/><text x="40" y="52" fill="rgba(0,150,200,0.4)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">10µF</text></svg>`
+  },
+  {
+    id:'centrifugal_switch',name:'Centrifugal Switch',cat:'starting',
+    ox:'0px',oy:'-300px',x:180,y:195,w:200,h:60,delay:700,
+    desc:'The centrifugal switch automatically disconnects the starting capacitor and auxiliary winding from the circuit once the rotor accelerates to approximately 75–80% of synchronous speed. It consists of a rotating mechanism on the shaft with spring-loaded weights: at low speed, spring force keeps the switch contacts closed; as speed rises, centrifugal force overcomes the spring and opens the contacts. A failed centrifugal switch (stuck closed) will burn out the start capacitor; stuck open will prevent starting.',
+    stats:['Trips at: ~75–80% sync speed','Mechanism: Spring vs centrifugal force','Failure (closed): burns start cap','Failure (open): motor won\'t start','Location: Inside motor, on shaft','Connection: Series with aux winding'],
+    svg:`<svg width="200" height="60" viewBox="0 0 200 60"><rect x="2" y="10" width="196" height="40" rx="5" fill="#1a1a00" stroke="#888800" stroke-width="1.2"/><rect x="20" y="20" width="40" height="20" rx="3" fill="#2a2a00" stroke="#aaaa00" stroke-width="0.8"/><rect x="80" y="15" width="40" height="10" rx="2" fill="#333" stroke="#777" stroke-width="0.6"/><line x1="120" y1="20" x2="140" y2="20" stroke="#888" stroke-width="1.5"/><line x1="140" y1="20" x2="165" y2="35" stroke="#888" stroke-width="1.5"/><circle cx="165" cy="35" r="6" fill="#444" stroke="#999" stroke-width="0.8"/><circle cx="100" cy="35" r="8" fill="#2a2200" stroke="#aaaa00" stroke-width="0.8"/><circle cx="130" cy="35" r="8" fill="#2a2200" stroke="#aaaa00" stroke-width="0.8"/><text x="100" y="55" fill="rgba(200,200,0,0.35)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">CENTRIFUGAL SWITCH</text></svg>`
+  },
+  {
+    id:'rotor_ac',name:'Squirrel Cage Rotor',cat:'rotor',
+    ox:'0px',oy:'-300px',x:162,y:105,w:236,h:230,delay:850,
+    desc:'Single-phase AC motors use the same squirrel cage rotor as 3-phase induction motors. Aluminium bars are die-cast into laminated silicon-steel slots and short-circuited at both ends by aluminium end rings. No brushes or external connections are required. The rotor responds to the rotating magnetic field created by the stator windings (with capacitor phase shift), running slightly behind the field (slip) to sustain induced currents and torque. Starting a single-phase motor requires the auxiliary circuit to create the initial rotating field.',
+    stats:['Type: Squirrel cage (same as 3-ph)','Bars: Aluminium die-cast','End rings: Short-circuit bars','Slip: 3–8% at full load','No external connections','Starting: needs auxiliary circuit'],
+    svg:`<svg width="236" height="230" viewBox="0 0 236 230"><defs><linearGradient id="racG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#1a0800"/><stop offset="100%" style="stop-color:#0d0400"/></linearGradient></defs><ellipse cx="118" cy="115" rx="108" ry="108" fill="url(#racG)" stroke="#883300" stroke-width="1.5"/>${[...Array(24)].map((_,i)=>{const a=i*15*Math.PI/180;return `<rect x="${118+45*Math.cos(a)-3}" y="${115+45*Math.sin(a)-8}" width="6" height="50" rx="2" fill="#551100" stroke="rgba(255,107,0,0.4)" stroke-width="0.5" transform="rotate(${i*15} 118 115)"/>`}).join('')}<ellipse cx="118" cy="115" rx="42" ry="42" fill="#0d0400" stroke="#551100" stroke-width="1.2"/><ellipse cx="118" cy="115" rx="16" ry="16" fill="#1a0800" stroke="rgba(255,107,0,0.3)" stroke-width="1"/><text x="118" y="111" fill="rgba(255,107,0,0.3)" font-size="6" text-anchor="middle" font-family="'Share Tech Mono',monospace">SQUIRREL</text><text x="118" y="121" fill="rgba(255,107,0,0.25)" font-size="6" text-anchor="middle" font-family="'Share Tech Mono',monospace">CAGE</text></svg>`
+  },
+  {
+    id:'shaft_ac',name:'Rotor Shaft',cat:'mechanical',
+    ox:'0px',oy:'300px',x:62,y:160,w:456,h:30,delay:950,
+    desc:'The machined steel shaft transmits mechanical power from the rotor to the connected load. Single-phase motor shafts are typically 1/2" to 1" diameter depending on frame size. The shaft has a machined flat or keyway at the drive end for coupling attachment. A precision-ground surface minimises bearing wear. Shaft runout is held to under 0.001" TIR (total indicator reading) to ensure smooth, vibration-free operation at rated speed.',
+    stats:['Material: Medium-carbon steel','Diameter: 1/2"–1" typical','Drive end: Keyway or flat','Runout: <0.001" TIR','Speed: up to 3600 RPM (2-pole)','Coupling: direct, belt, or gear'],
+    svg:`<svg width="456" height="30" viewBox="0 0 456 30"><defs><linearGradient id="shacG" x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="0%" style="stop-color:#777"/><stop offset="30%" style="stop-color:#ccc"/><stop offset="70%" style="stop-color:#bbb"/><stop offset="100%" style="stop-color:#555"/></linearGradient></defs><rect x="2" y="8" width="452" height="14" rx="3" fill="url(#shacG)" stroke="#999" stroke-width="1"/><rect x="2" y="9" width="36" height="12" rx="2" fill="#aaa" stroke="#bbb" stroke-width="0.4"/><rect x="6" y="11" width="26" height="4" rx="1" fill="#777"/></svg>`
+  },
+  {
+    id:'bearings_ac',name:'Ball Bearings (Front & Rear)',cat:'mechanical',
+    ox:'280px',oy:'200px',x:72,y:148,w:420,h:60,delay:1050,
+    desc:'Two sealed ball bearings, one at each end shield, support the rotor shaft. Pre-lubricated with grease and sealed (2RS or ZZ type), they are maintenance-free for the life of the motor under normal conditions. Bearing noise (growling, squealing) is a reliable indicator of impending failure. Most single-phase motors use 6200 or 6300 series bearings. Bearing life is strongly influenced by belt tension, shaft alignment, and ambient temperature.',
+    stats:['Type: Deep groove ball, sealed','Series: 6200 or 6300','Seal: 2RS (rubber) or ZZ (metal)','Lube: Sealed, maintenance-free','Failure sign: growling/noise','Life: 20,000+ hrs normal load'],
+    svg:`<svg width="420" height="60" viewBox="0 0 420 60">${[62,348].map(cx=>`<circle cx="${cx}" cy="30" r="28" fill="#1a1a1a" stroke="#555" stroke-width="1.3"/><circle cx="${cx}" cy="30" r="20" fill="none" stroke="#888" stroke-width="3.5"/><circle cx="${cx}" cy="30" r="13" fill="#222" stroke="#666" stroke-width="1"/>${[...Array(7)].map((_,i)=>{const a=i*360/7*Math.PI/180;return `<circle cx="${cx+17*Math.cos(a)}" cy="${30+17*Math.sin(a)}" r="3.5" fill="#444" stroke="#999" stroke-width="0.5"/>`}).join('')}<circle cx="${cx}" cy="30" r="7" fill="#1a1a1a" stroke="#555" stroke-width="0.8"/>`).join('')}<rect x="90" y="27" width="240" height="6" rx="2" fill="#555" stroke="#777" stroke-width="0.5"/></svg>`
+  },
+  {
+    id:'end_shields_ac',name:'End Shields (Front & Rear)',cat:'housing',
+    ox:'0px',oy:'-300px',x:62,y:105,w:416,h:130,delay:1150,
+    desc:'Two die-cast aluminium end shields (also called end bells or brackets) close both ends of the motor frame. Each shield houses a bearing bore and incorporates the centrifugal switch mounting in the rear shield. End shields are located by rabbeted fits on the frame and secured with through-bolts. Proper alignment during reassembly is critical — misaligned end shields cause the shaft to bind and dramatically shorten bearing life.',
+    stats:['Material: Die-cast aluminium','Rear: houses centrifugal switch','Located: rabbeted fits on frame','Secured: through-bolts','Alignment: critical for shaft free-run','Seal: lip seal at shaft entry'],
+    svg:`<svg width="416" height="130" viewBox="0 0 416 130"><rect x="2" y="2" width="70" height="126" rx="10" fill="#252525" stroke="#555" stroke-width="1.3"/><ellipse cx="37" cy="65" rx="22" ry="22" fill="#111" stroke="#444" stroke-width="1"/><circle cx="37" cy="65" r="11" fill="#1a1a1a" stroke="#555" stroke-width="0.8"/><rect x="344" y="2" width="70" height="126" rx="10" fill="#252525" stroke="#555" stroke-width="1.3"/><ellipse cx="379" cy="65" rx="22" ry="22" fill="#111" stroke="#444" stroke-width="1"/><circle cx="379" cy="65" r="11" fill="#1a1a1a" stroke="#555" stroke-width="0.8"/><text x="208" y="70" fill="rgba(0,200,255,0.15)" font-size="8" text-anchor="middle" font-family="'Share Tech Mono',monospace">END SHIELDS</text></svg>`
+  },
+  {
+    id:'thermal_protector',name:'Thermal Overload Protector',cat:'starting',
+    ox:'0px',oy:'300px',x:200,y:270,w:80,h:30,delay:1250,
+    desc:'A bimetallic thermal protector is embedded in or mounted on the stator windings. It opens the circuit if winding temperature exceeds a safe threshold (typically 130°C for Class B insulation). This protects against locked-rotor conditions, sustained overloads, failed starting circuits, and ventilation blockages. Automatic-reset versions restore power once the motor cools; manual-reset types require the operator to press a button, preventing automatic restart after a fault — required in some safety applications.',
+    stats:['Type: Bimetallic disc','Trip temp: ~130°C (Class B)','Location: Embedded in windings','Resets: Auto or manual reset','Protects: Overload/locked rotor','UL requirement: most single-phase'],
+    svg:`<svg width="80" height="30" viewBox="0 0 80 30"><rect x="1" y="1" width="78" height="28" rx="4" fill="#1a0000" stroke="#aa0000" stroke-width="1.2"/><rect x="6" y="6" width="68" height="18" rx="3" fill="#2a0000" stroke="#cc2200" stroke-width="0.7"/><ellipse cx="20" cy="15" rx="8" ry="5" fill="#440000" stroke="#ff4422" stroke-width="0.6"/><text x="50" y="18" fill="rgba(255,60,0,0.5)" font-size="6.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">THERMAL</text></svg>`
+  },
+  {
+    id:'nameplate_ac',name:'Motor Nameplate',cat:'mechanical',
+    ox:'300px',oy:'300px',x:275,y:270,w:90,h:50,delay:1350,
+    desc:'The nameplate lists all critical parameters: voltage (120V or 240V single-phase), frequency, full-load amperes, power (HP and kW), speed (RPM), power factor, capacitor values, insulation class, service factor, and NEMA frame designation. The service factor (typically 1.15) indicates how much overload the motor can sustain continuously without damage. Always check nameplate data before selecting a motor starter, capacitor replacement, or overload relay setting.',
+    stats:['Voltage: 115/230V 1-ph','Frequency: 60Hz (North America)','Power: HP and kW','Speed: 1725 or 3450 RPM','Service factor: 1.15 typical','Capacitor µF: listed on plate'],
+    svg:`<svg width="90" height="50" viewBox="0 0 90 50"><rect x="1" y="1" width="88" height="48" rx="3" fill="#c8a000" stroke="#ffcc00" stroke-width="1"/><rect x="4" y="4" width="82" height="42" rx="2" fill="#aa8800" stroke="#ddaa00" stroke-width="0.5"/><text x="45" y="13" fill="rgba(0,0,0,0.7)" font-size="5.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">SINGLE-PHASE AC</text><text x="45" y="22" fill="rgba(0,0,0,0.55)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">115/230V 60Hz 1-Ph</text><text x="45" y="30" fill="rgba(0,0,0,0.55)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">1725 RPM  1/2 HP</text><text x="45" y="38" fill="rgba(0,0,0,0.5)" font-size="4" text-anchor="middle" font-family="'Share Tech Mono',monospace">SF:1.15  CL.B  NEMA 56</text></svg>`
+  },
+];
+let assembled=false,arrivedCount=0,selectedId=null,highlightMode=false;
+function init(){const stage=document.getElementById('stage');const grid=document.getElementById('partsGrid');document.getElementById('partCounter').textContent=`0 / ${parts.length} PARTS`;parts.forEach(p=>{const el=document.createElement('div');el.className='part';el.id='part_'+p.id;el.style.setProperty('--ox',p.ox);el.style.setProperty('--oy',p.oy);el.style.left=p.x+'px';el.style.top=p.y+'px';el.innerHTML=p.svg;el.addEventListener('click',()=>selectPart(p.id));stage.appendChild(el);const dot=document.createElement('div');dot.className='pdot cat-'+p.cat;dot.id='dot_'+p.id;dot.title=p.name;dot.addEventListener('click',()=>selectPart(p.id));grid.appendChild(dot);});}
+function assemble(){if(assembled)return;assembled=true;document.getElementById('btnAssemble').disabled=true;document.getElementById('status').textContent='ASSEMBLING…';document.getElementById('hint').textContent='▶ Click any component to inspect';let done=0;parts.forEach(p=>{setTimeout(()=>{document.getElementById('part_'+p.id).classList.add('arrived');document.getElementById('dot_'+p.id).classList.add('done');done++;arrivedCount=done;updateProgress(done,parts.length);},p.delay);});setTimeout(()=>{document.getElementById('status').textContent='ASSEMBLY COMPLETE';document.getElementById('hint').textContent='✓ Click any component to inspect';},Math.max(...parts.map(p=>p.delay))+900);}
+function doReset(){assembled=false;arrivedCount=0;selectedId=null;highlightMode=false;document.getElementById('btnAssemble').disabled=false;document.getElementById('status').textContent='AWAITING ASSEMBLY';document.getElementById('hint').textContent='▶ Click ASSEMBLE to begin';document.getElementById('partCounter').textContent=`0 / ${parts.length} PARTS`;updateProgress(0,parts.length);document.getElementById('infoCard').classList.remove('active');document.getElementById('infoName').textContent='— SELECT A PART —';document.getElementById('infoDesc').textContent='Assemble the motor first, then click any component to inspect it.';document.getElementById('infoStats').innerHTML='';document.getElementById('doneCount').textContent='0';parts.forEach(p=>{document.getElementById('part_'+p.id).className='part';document.getElementById('dot_'+p.id).classList.remove('done');});}
+function highlightAll(){if(!assembled)return;highlightMode=!highlightMode;selectedId=null;parts.forEach(p=>{const el=document.getElementById('part_'+p.id);el.classList.remove('dimmed','selected');if(highlightMode)el.classList.add('selected');});}
+function selectPart(id){if(!assembled)return;highlightMode=false;const p=parts.find(x=>x.id===id);if(!p)return;selectedId=id;parts.forEach(q=>{const el=document.getElementById('part_'+q.id);el.classList.remove('dimmed','selected');if(q.id!==id)el.classList.add('dimmed');else el.classList.add('selected');});document.getElementById('infoCard').classList.add('active');document.getElementById('infoName').textContent=p.name.toUpperCase();document.getElementById('infoDesc').textContent=p.desc;const statsEl=document.getElementById('infoStats');statsEl.innerHTML='';(p.stats||[]).forEach(s=>{const chip=document.createElement('div');chip.className='stat-chip';chip.textContent=s;statsEl.appendChild(chip);});}
+function updateProgress(done,total){const pct=Math.round(done/total*100);document.getElementById('prog').style.width=pct+'%';document.getElementById('progPct').textContent=pct+'%';document.getElementById('partCounter').textContent=`${done} / ${total} PARTS`;document.getElementById('doneCount').textContent=done;}
+document.addEventListener('DOMContentLoaded',()=>{init();document.getElementById('stage').addEventListener('click',e=>{if(!e.target.closest('.part')&&selectedId){selectedId=null;parts.forEach(q=>{const el=document.getElementById('part_'+q.id);el.classList.remove('dimmed','selected');});document.getElementById('infoCard').classList.remove('active');document.getElementById('infoName').textContent='— SELECT A PART —';document.getElementById('infoDesc').textContent='Click any glowing component to inspect it.';document.getElementById('infoStats').innerHTML='';}});});
+</script>
+</body>
+</html>

@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Stepper Motor — Interactive Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #ff9500;
+    --accent2: #ff5533;
+    --accent3: #ffe066;
+    --bg: #0d0800;
+    --surface: #140d00;
+    --border: rgba(255,149,0,0.13);
+    --glow: rgba(255,149,0,0.32);
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 14px 8px;
+    overflow: hidden;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  .hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .title-main {
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(255,149,0,0.55);
+  }
+  .title-sub {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    color: rgba(255,149,0,0.42);
+    letter-spacing: 3px;
+    margin-top: 2px;
+  }
+  .hdr-right { display: flex; align-items: center; gap: 10px; }
+  .status-badge {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--accent3);
+    background: rgba(255,224,102,0.07);
+    border: 1px solid rgba(255,224,102,0.25);
+    border-radius: 4px;
+    padding: 4px 10px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .btn-assemble {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #000;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    padding: 9px 22px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    box-shadow: 0 0 20px rgba(255,149,0,0.42);
+  }
+  .btn-assemble:hover { box-shadow: 0 0 35px rgba(255,149,0,0.72); transform: translateY(-1px); }
+  .btn-assemble:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-reset, .btn-highlight {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    background: transparent;
+    border-radius: 6px;
+    padding: 9px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-reset { color: rgba(255,149,0,0.5); border: 1px solid rgba(255,149,0,0.2); }
+  .btn-reset:hover { color: var(--accent); border-color: rgba(255,149,0,0.5); }
+  .btn-highlight { color: rgba(255,85,51,0.6); border: 1px solid rgba(255,85,51,0.2); }
+  .btn-highlight:hover { color: var(--accent2); border-color: rgba(255,85,51,0.5); }
+
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .progress-label { font-size: 9px; color: rgba(255,149,0,0.36); letter-spacing: 2px; min-width: 44px; }
+  .progress-track { flex: 1; height: 2px; background: rgba(255,149,0,0.08); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #5a2a00, var(--accent)); border-radius: 2px; width: 0%; transition: width 0.3s ease; box-shadow: 0 0 8px var(--accent); }
+  .progress-pct { font-size: 10px; color: var(--accent); min-width: 36px; text-align: right; font-family: 'Orbitron', monospace; }
+
+  .main-layout {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .stage-wrap {
+    flex: 1;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 40px rgba(40,15,0,0.9), inset 0 0 30px rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .stage-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,149,0,0.012) 0px, rgba(255,149,0,0.012) 1px, transparent 1px, transparent 40px),
+      repeating-linear-gradient(90deg, rgba(255,149,0,0.012) 0px, rgba(255,149,0,0.012) 1px, transparent 1px, transparent 40px);
+    pointer-events: none;
+    border-radius: 12px;
+    z-index: 0;
+  }
+  .stage {
+    position: relative;
+    width: 560px;
+    height: 520px;
+    z-index: 1;
+    flex-shrink: 0;
+  }
+
+  .part {
+    position: absolute;
+    cursor: pointer;
+    transition: transform 0.8s cubic-bezier(.34,1.5,.64,1), opacity 0.5s ease, filter 0.15s;
+    opacity: 0;
+    transform: translateX(var(--ox)) translateY(var(--oy)) scale(0.55);
+    filter: drop-shadow(0 0 4px rgba(255,149,0,0.25));
+    z-index: 2;
+  }
+  .part.arrived {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  .part:hover {
+    filter: drop-shadow(0 0 14px rgba(255,149,0,0.9)) brightness(1.35) !important;
+    transform: translateX(0) translateY(0) scale(1.1) !important;
+    z-index: 50 !important;
+  }
+  .part.selected {
+    filter: drop-shadow(0 0 22px rgba(255,149,0,1)) brightness(1.6) !important;
+    z-index: 49 !important;
+  }
+  .part.dimmed {
+    filter: drop-shadow(0 0 2px rgba(255,149,0,0.04)) brightness(0.2) !important;
+  }
+  .part svg { display: block; pointer-events: none; }
+
+  .side-panel {
+    width: 260px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+  }
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    transition: border-color 0.3s;
+  }
+  .info-card.active { border-color: rgba(255,149,0,0.38); }
+  .info-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid rgba(255,149,0,0.12);
+    line-height: 1.4;
+  }
+  .info-desc {
+    font-size: 10px;
+    color: rgba(255,210,140,0.6);
+    line-height: 1.8;
+    margin-bottom: 10px;
+  }
+  .info-stats { display: flex; gap: 5px; flex-wrap: wrap; }
+  .stat-chip {
+    font-size: 8px;
+    color: rgba(255,149,0,0.75);
+    background: rgba(255,149,0,0.06);
+    border: 1px solid rgba(255,149,0,0.18);
+    border-radius: 4px;
+    padding: 3px 7px;
+    letter-spacing: 0.5px;
+  }
+
+  .parts-grid-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    flex-shrink: 0;
+  }
+  .parts-grid-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: rgba(255,149,0,0.36);
+    margin-bottom: 8px;
+  }
+  .parts-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pdot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: rgba(255,149,0,0.06);
+    border: 1px solid rgba(255,149,0,0.2);
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+  }
+  .pdot:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 130%; left: 50%;
+    transform: translateX(-50%);
+    background: #1a0d00;
+    border: 1px solid rgba(255,149,0,0.35);
+    border-radius: 4px;
+    padding: 3px 7px;
+    font-size: 9px;
+    color: var(--accent);
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .pdot.done { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 4px rgba(255,149,0,0.55); }
+  .pdot.done.cat-body { background: #cc7700; border-color: #cc7700; }
+  .pdot.done.cat-winding { background: #ff5533; border-color: #ff5533; box-shadow: 0 0 4px rgba(255,85,51,0.55); }
+  .pdot.done.cat-mech { background: #aaaaaa; border-color: #aaaaaa; box-shadow: 0 0 4px rgba(200,200,200,0.4); }
+  .pdot.done.cat-connector { background: #ffe066; border-color: #ffe066; box-shadow: 0 0 4px rgba(255,224,102,0.55); }
+  .pdot.done.cat-driver { background: #ff9500; border-color: #ff9500; }
+
+  .legend {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 7px;
+  }
+  .leg-item { display: flex; align-items: center; gap: 3px; font-size: 8px; color: rgba(255,149,0,0.42); }
+  .leg-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .hint { font-size: 9px; color: rgba(255,149,0,0.26); letter-spacing: 1px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="title-main">Stepper Motor</div>
+    <div class="title-sub">INTERACTIVE ASSEMBLY — NEMA17 / BIPOLAR / 1.8° STEP / 4-WIRE</div>
+  </div>
+  <div class="hdr-right">
+    <div class="status-badge" id="status">AWAITING ASSEMBLY</div>
+    <div style="font-size:9px;color:rgba(255,149,0,0.36);letter-spacing:1px;" id="partCounter">0 / 0 PARTS</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn-assemble" id="btnAssemble" onclick="assemble()">⚙ Assemble Motor</button>
+  <button class="btn-reset" onclick="doReset()">↺ Reset</button>
+  <button class="btn-highlight" onclick="highlightAll()">◈ Highlight All</button>
+</div>
+
+<div class="progress-row">
+  <span class="progress-label">BUILD</span>
+  <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+  <span class="progress-pct" id="progPct">0%</span>
+</div>
+
+<div class="main-layout">
+  <div class="stage-wrap">
+    <div class="stage" id="stage"></div>
+  </div>
+  <div class="side-panel">
+    <div class="info-card" id="infoCard">
+      <div class="info-name" id="infoName">— SELECT A PART —</div>
+      <div class="info-desc" id="infoDesc">Assemble the motor first, then click any component to inspect it. Every coil, bearing, shaft, and connector is individually clickable with full specs.</div>
+      <div class="info-stats" id="infoStats"></div>
+    </div>
+    <div class="parts-grid-card">
+      <div class="parts-grid-title">COMPONENT MAP — <span id="doneCount">0</span> ARRIVED</div>
+      <div class="parts-grid" id="partsGrid"></div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#cc7700"></div>Body</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ff5533"></div>Windings</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#aaa"></div>Mech</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ffe066"></div>Connectors</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ff9500"></div>Driver</div>
+      </div>
+    </div>
+    <div class="hint" id="hint">▶ Click ASSEMBLE to begin</div>
+  </div>
+</div>
+
+<script>
+const parts = [
+
+  /* ══ Motor Housing ══ */
+  {
+    id:'housing', name:'Motor Housing — NEMA17 Steel Body',
+    cat:'body',
+    ox:'0px', oy:'320px', x:145, y:55, w:270, h:270, delay:0,
+    desc:'The NEMA17 motor housing is a precision-formed steel enclosure measuring exactly 42 × 42mm — the NEMA17 standard flange size. The stamped steel body is coated with a black oxide finish for corrosion resistance. Four M3 threaded mounting holes at the corners are spaced 31mm apart, compatible with all standard NEMA17 mounts used in 3D printers, CNC machines, and robotic actuators. The housing acts as the magnetic return path for the internal stator.',
+    stats:['Standard: NEMA 17','Size: 42 × 42 mm flange','Length: 40mm (typical)','Material: Stamped steel','Finish: Black oxide','Mounting: 4× M3 holes 31mm'],
+    svg:`<svg width="270" height="270" viewBox="0 0 270 270">
+      <defs>
+        <linearGradient id="hsgG" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#2a1a00"/>
+          <stop offset="100%" style="stop-color:#1a0d00"/>
+        </linearGradient>
+        <radialGradient id="hsgR" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style="stop-color:#3a2000"/>
+          <stop offset="100%" style="stop-color:#100800"/>
+        </radialGradient>
+      </defs>
+      <!-- outer housing -->
+      <rect x="5" y="5" width="260" height="260" rx="12" fill="url(#hsgG)" stroke="#886622" stroke-width="2"/>
+      <rect x="10" y="10" width="250" height="250" rx="10" fill="url(#hsgR)" stroke="rgba(180,100,0,0.2)" stroke-width="0.8"/>
+      <!-- mounting holes -->
+      <circle cx="35" cy="35" r="8" fill="none" stroke="rgba(255,149,0,0.25)" stroke-width="1.5"/>
+      <circle cx="35" cy="35" r="4" fill="#0a0500"/>
+      <circle cx="235" cy="35" r="8" fill="none" stroke="rgba(255,149,0,0.25)" stroke-width="1.5"/>
+      <circle cx="235" cy="35" r="4" fill="#0a0500"/>
+      <circle cx="35" cy="235" r="8" fill="none" stroke="rgba(255,149,0,0.25)" stroke-width="1.5"/>
+      <circle cx="35" cy="235" r="4" fill="#0a0500"/>
+      <circle cx="235" cy="235" r="8" fill="none" stroke="rgba(255,149,0,0.25)" stroke-width="1.5"/>
+      <circle cx="235" cy="235" r="4" fill="#0a0500"/>
+      <!-- stator circle cutout -->
+      <circle cx="135" cy="135" r="90" fill="#0d0800" stroke="rgba(180,80,0,0.3)" stroke-width="1.2"/>
+      <circle cx="135" cy="135" r="85" fill="#080400" stroke="rgba(120,60,0,0.15)" stroke-width="0.5"/>
+      <!-- panel lines -->
+      ${[0,1,2,3].map(i=>`<line x1="${50+i*55}" y1="5" x2="${50+i*55}" y2="10" stroke="rgba(255,149,0,0.12)" stroke-width="0.6"/>`).join('')}
+      <text x="135" y="262" fill="rgba(180,90,0,0.25)" font-size="9" text-anchor="middle" font-family="'Share Tech Mono',monospace">NEMA17  42×42mm</text>
+    </svg>`
+  },
+
+  /* ══ Stator Core ══ */
+  {
+    id:'stator', name:'Stator Core — Silicon Steel Laminations',
+    cat:'body',
+    ox:'-320px', oy:'0px', x:178, y:88, w:204, h:204, delay:180,
+    desc:'The stator is the stationary electromagnetic core of the stepper motor. It is constructed from stacks of thin silicon steel laminations (0.35–0.5mm thick) to minimise eddy current losses at switching frequencies. The NEMA17 stator has 8 main poles, each wound with copper coils, creating 4 separate coil pairs (phases). The silicon steel\'s high magnetic permeability concentrates the flux produced by the coils, providing strong holding torque even at standstill.',
+    stats:['Material: Silicon steel laminate','Lamination: 0.35–0.5mm thick','Poles: 8 (4 coil pairs)','Permeability: high µr','Eddy losses: minimised','Holds rotor: even at rest'],
+    svg:`<svg width="204" height="204" viewBox="0 0 204 204">
+      <defs>
+        <radialGradient id="stG" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style="stop-color:#3a2800"/>
+          <stop offset="100%" style="stop-color:#1a1000"/>
+        </radialGradient>
+      </defs>
+      <circle cx="102" cy="102" r="100" fill="url(#stG)" stroke="#664400" stroke-width="1.2"/>
+      <!-- 8 stator poles -->
+      ${[...Array(8)].map((_,i)=>{
+        const a = i*45*(Math.PI/180);
+        const x1=102+55*Math.cos(a), y1=102+55*Math.sin(a);
+        const x2=102+96*Math.cos(a-0.18), y2=102+96*Math.sin(a-0.18);
+        const x3=102+96*Math.cos(a+0.18), y3=102+96*Math.sin(a+0.18);
+        return `<polygon points="${x1},${y1} ${x2},${y2} ${x3},${y3}" fill="#2a1800" stroke="rgba(200,100,0,0.4)" stroke-width="0.8"/>`;
+      }).join('')}
+      <circle cx="102" cy="102" r="52" fill="#0d0600" stroke="rgba(150,70,0,0.3)" stroke-width="1"/>
+      <circle cx="102" cy="102" r="22" fill="#080400" stroke="rgba(120,60,0,0.5)" stroke-width="1.2"/>
+      <text x="102" y="107" fill="rgba(200,100,0,0.3)" font-size="9" text-anchor="middle" font-family="'Share Tech Mono',monospace">STATOR</text>
+    </svg>`
+  },
+
+  /* ══ Rotor ══ */
+  {
+    id:'rotor', name:'Rotor — Permanent Magnet 50-Tooth',
+    cat:'mech',
+    ox:'320px', oy:'0px', x:186, y:96, w:188, h:188, delay:300,
+    desc:'The rotor is a permanent magnet drum with precisely 50 teeth machined into its circumference. The rotor\'s permanent magnets alternate North-South around its circumference, and it aligns itself with the energised stator poles. With 50 rotor teeth and a 4-phase stator, the motor achieves 200 full steps per revolution (1.8° per step). In microstepping mode, a driver like the A4988 can deliver up to 3200 steps/rev at 1/16 microstepping for ultra-smooth motion.',
+    stats:['Type: Permanent magnet','Teeth: 50','Full steps/rev: 200','Step angle: 1.8°','Microstepping: up to 1/16','Material: NdFeB rare-earth magnets'],
+    svg:`<svg width="188" height="188" viewBox="0 0 188 188">
+      <defs>
+        <radialGradient id="rtG" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style="stop-color:#4a3000"/>
+          <stop offset="100%" style="stop-color:#1e1200"/>
+        </radialGradient>
+      </defs>
+      <circle cx="94" cy="94" r="92" fill="url(#rtG)" stroke="#886633" stroke-width="1.2"/>
+      <!-- 50 teeth approximated as 25 visible segments -->
+      ${[...Array(25)].map((_,i)=>{
+        const a=i*(2*Math.PI/25);
+        const r1=72, r2=88;
+        const x1=94+r1*Math.cos(a), y1=94+r1*Math.sin(a);
+        const x2=94+r2*Math.cos(a-0.1), y2=94+r2*Math.sin(a-0.1);
+        const x3=94+r2*Math.cos(a+0.1), y3=94+r2*Math.sin(a+0.1);
+        return `<polygon points="${x1},${y1} ${x2},${y2} ${x3},${y3}" fill="${i%2===0?'#cc7700':'#332200'}" stroke="rgba(255,140,0,0.3)" stroke-width="0.4"/>`;
+      }).join('')}
+      <circle cx="94" cy="94" r="68" fill="#1a0e00" stroke="rgba(180,90,0,0.3)" stroke-width="0.8"/>
+      <circle cx="94" cy="94" r="20" fill="#0d0600" stroke="rgba(150,80,0,0.5)" stroke-width="1.2"/>
+      <text x="94" y="99" fill="rgba(200,110,0,0.35)" font-size="9" text-anchor="middle" font-family="'Share Tech Mono',monospace">ROTOR</text>
+    </svg>`
+  },
+
+  /* ══ Shaft ══ */
+  {
+    id:'shaft', name:'Output Shaft — 5mm Hardened Steel',
+    cat:'mech',
+    ox:'0px', oy:'-340px', x:121, y:45, w:24, h:290, delay:400,
+    desc:'The output shaft is a precision-ground 5mm diameter hardened steel rod extending from the front bearing. Standard NEMA17 shafts are 24mm long and 5mm in diameter, fitting directly into GT2 pulleys, flexible couplers, and timing-belt sprockets used in 3D printers. The shaft passes through both front and rear bearings and is press-fitted into the rotor assembly. A flat section (D-cut) on some variants prevents pulley slipping.',
+    stats:['Diameter: 5mm (standard)','Length: 24mm exposed','Material: Hardened steel','Finish: Polished/ground','Fit: press into rotor','Compatible: GT2, D-cut pulleys'],
+    svg:`<svg width="24" height="290" viewBox="0 0 24 290">
+      <defs>
+        <linearGradient id="shG" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#555"/>
+          <stop offset="40%" style="stop-color:#ddd"/>
+          <stop offset="60%" style="stop-color:#fff"/>
+          <stop offset="100%" style="stop-color:#888"/>
+        </linearGradient>
+      </defs>
+      <!-- shaft body -->
+      <rect x="8" y="2" width="8" height="286" rx="4" fill="url(#shG)" stroke="#aaa" stroke-width="0.6"/>
+      <!-- tip chamfer -->
+      <ellipse cx="12" cy="4" rx="4" ry="2.5" fill="#fff" opacity="0.4"/>
+      <!-- d-cut flat indicator -->
+      <rect x="8" y="40" width="3" height="80" rx="1" fill="rgba(80,60,20,0.5)"/>
+      <!-- bearing rings -->
+      <rect x="4" y="180" width="16" height="12" rx="2" fill="#333" stroke="#777" stroke-width="0.6"/>
+      <rect x="4" y="240" width="16" height="12" rx="2" fill="#333" stroke="#777" stroke-width="0.6"/>
+    </svg>`
+  },
+
+  /* ══ Front Bearing ══ */
+  {
+    id:'bearing_f', name:'Front Bearing — 625ZZ Ball Bearing',
+    cat:'mech',
+    ox:'-320px', oy:'-320px', x:112, y:178, w:46, h:46, delay:500,
+    desc:'The 625ZZ double-shielded ball bearing supports the front end of the output shaft with minimal friction. Ball bearings rated at 625ZZ are 5mm bore × 16mm outer diameter × 5mm wide — an industry standard fitting in NEMA17 front end bells. The ZZ suffix means double metal shielded to retain grease and exclude contamination. Radial load rating is 1.7kN, far exceeding the axial loads typical in 3D printing and CNC use.',
+    stats:['Type: 625ZZ deep groove','Bore: 5mm','OD: 16mm','Width: 5mm','Load: 1.7kN radial','Shielding: ZZ double metal'],
+    svg:`<svg width="46" height="46" viewBox="0 0 46 46">
+      <circle cx="23" cy="23" r="22" fill="#1e1e1e" stroke="#888" stroke-width="1.5"/>
+      <circle cx="23" cy="23" r="16" fill="#2a2a2a" stroke="#666" stroke-width="0.8"/>
+      <!-- ball race -->
+      ${[...Array(8)].map((_,i)=>{
+        const a=i*45*(Math.PI/180);
+        const x=23+12*Math.cos(a), y=23+12*Math.sin(a);
+        return `<circle cx="${x}" cy="${y}" r="3" fill="#555" stroke="#888" stroke-width="0.5"/>`;
+      }).join('')}
+      <circle cx="23" cy="23" r="8" fill="#1a1a1a" stroke="#777" stroke-width="0.8"/>
+      <circle cx="23" cy="23" r="4" fill="#111" stroke="#666" stroke-width="0.5"/>
+    </svg>`
+  },
+
+  /* ══ Rear Bearing ══ */
+  {
+    id:'bearing_r', name:'Rear Bearing — 625ZZ Ball Bearing',
+    cat:'mech',
+    ox:'320px', oy:'-320px', x:112, y:236, w:46, h:46, delay:540,
+    desc:'An identical 625ZZ bearing supports the rear of the shaft opposite the output end. The rear bearing takes predominantly axial thrust loads when the motor is used in lead-screw or direct-drive extruder applications. Both bearings are pre-loaded at the factory to eliminate shaft play. Their alignment is critical: any misalignment between front and rear bearings causes vibration, noise, and premature wear.',
+    stats:['Type: 625ZZ deep groove','Bore: 5mm','OD: 16mm','Purpose: rear shaft support','Pre-load: factory set','Replaces: simple bushings'],
+    svg:`<svg width="46" height="46" viewBox="0 0 46 46">
+      <circle cx="23" cy="23" r="22" fill="#1e1e1e" stroke="#777" stroke-width="1.5"/>
+      <circle cx="23" cy="23" r="16" fill="#282828" stroke="#555" stroke-width="0.8"/>
+      ${[...Array(8)].map((_,i)=>{
+        const a=i*45*(Math.PI/180);
+        const x=23+12*Math.cos(a), y=23+12*Math.sin(a);
+        return `<circle cx="${x}" cy="${y}" r="3" fill="#444" stroke="#777" stroke-width="0.5"/>`;
+      }).join('')}
+      <circle cx="23" cy="23" r="8" fill="#1a1a1a" stroke="#666" stroke-width="0.8"/>
+      <circle cx="23" cy="23" r="4" fill="#111" stroke="#555" stroke-width="0.5"/>
+    </svg>`
+  },
+
+  /* ══ Phase A Coil ══ */
+  {
+    id:'coil_a', name:'Phase A Winding — Copper Coil (2A)',
+    cat:'winding',
+    ox:'-320px', oy:'320px', x:191, y:103, w:90, h:50, delay:620,
+    desc:'Phase A is one of the two independent coil sets in this bipolar stepper motor. Each phase winding consists of hundreds of turns of enamelled copper wire wound around two opposite stator poles. When energised, the coil creates a strong magnetic field that pulls rotor teeth into alignment. The A4988 driver delivers up to 2A peak per phase. Resistance is typically 1.5–3.2Ω and inductance is 1.5–4.5mH per phase.',
+    stats:['Phase: A (coil pair 1)','Current: 2A peak','Resistance: ~2.4Ω','Inductance: ~1.8mH','Wire: enamelled copper','Poles wound: 2 opposite'],
+    svg:`<svg width="90" height="50" viewBox="0 0 90 50">
+      <defs>
+        <linearGradient id="caG" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#aa3300"/>
+          <stop offset="100%" style="stop-color:#ff6600"/>
+        </linearGradient>
+      </defs>
+      <rect x="2" y="6" width="86" height="38" rx="5" fill="#1a0800" stroke="#cc4400" stroke-width="1.2"/>
+      <!-- coil windings visual -->
+      ${[...Array(10)].map((_,i)=>`
+        <rect x="${7+i*8}" y="10" width="6" height="30" rx="2" fill="none" stroke="rgba(255,100,0,${0.4+i*0.04})" stroke-width="1.1"/>
+      `).join('')}
+      <rect x="5" y="18" width="80" height="14" rx="3" fill="rgba(200,60,0,0.12)"/>
+      <text x="45" y="46" fill="rgba(255,100,0,0.4)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">PHASE A</text>
+    </svg>`
+  },
+
+  /* ══ Phase B Coil ══ */
+  {
+    id:'coil_b', name:'Phase B Winding — Copper Coil (2A)',
+    cat:'winding',
+    ox:'320px', oy:'320px', x:191, y:177, w:90, h:50, delay:660,
+    desc:'Phase B is the second independent winding, offset 90 electrical degrees from Phase A. By energising A and B in a specific sequence (full step: AB → /AB → A/B → /A/B), the controller rotates the rotor in precise increments. The direction of current flow through each phase determines step direction. Modern drivers reverse phase current electronically using an H-bridge — no mechanical brushes needed, giving the stepper its reliability advantage.',
+    stats:['Phase: B (coil pair 2)','Current: 2A peak','Resistance: ~2.4Ω','Inductance: ~1.8mH','Offset: 90° from Phase A','Direction: current reversal'],
+    svg:`<svg width="90" height="50" viewBox="0 0 90 50">
+      <defs>
+        <linearGradient id="cbG" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#886600"/>
+          <stop offset="100%" style="stop-color:#ffaa00"/>
+        </linearGradient>
+      </defs>
+      <rect x="2" y="6" width="86" height="38" rx="5" fill="#1a1000" stroke="#cc8800" stroke-width="1.2"/>
+      ${[...Array(10)].map((_,i)=>`
+        <rect x="${7+i*8}" y="10" width="6" height="30" rx="2" fill="none" stroke="rgba(255,170,0,${0.4+i*0.04})" stroke-width="1.1"/>
+      `).join('')}
+      <rect x="5" y="18" width="80" height="14" rx="3" fill="rgba(200,140,0,0.12)"/>
+      <text x="45" y="46" fill="rgba(255,170,0,0.4)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">PHASE B</text>
+    </svg>`
+  },
+
+  /* ══ 4-Wire Cable ══ */
+  {
+    id:'cable', name:'4-Wire Motor Cable (2A Rated)',
+    cat:'connector',
+    ox:'0px', oy:'340px', x:127, y:340, w:206, h:30, delay:760,
+    desc:'The bipolar stepper motor connects to its driver via 4 wires — two for each phase. The colour coding is: A+ (red), A− (green), B+ (yellow), B− (blue). Swapping A+ and A− reverses phase A direction. Identifying the wire pairs with a multimeter is essential: resistance between wires in the same phase is ~2–4Ω, while cross-phase readings show open circuit. The cable must handle 2A continuous current with minimal resistance.',
+    stats:['Wires: 4 (2 per phase)','A phase: Red + Green','B phase: Yellow + Blue','Rating: 2A continuous','Identify pairs: ~2–4Ω same phase','Swap pair: reverses direction'],
+    svg:`<svg width="206" height="30" viewBox="0 0 206 30">
+      <!-- red -->
+      <rect x="2" y="9" width="50" height="6" rx="2" fill="#cc1100" stroke="#ff3300" stroke-width="0.6"/>
+      <!-- green -->
+      <rect x="54" y="9" width="50" height="6" rx="2" fill="#116600" stroke="#22aa00" stroke-width="0.6"/>
+      <!-- yellow -->
+      <rect x="106" y="9" width="50" height="6" rx="2" fill="#aa8800" stroke="#ffcc00" stroke-width="0.6"/>
+      <!-- blue -->
+      <rect x="158" y="9" width="46" height="6" rx="2" fill="#002288" stroke="#0044ff" stroke-width="0.6"/>
+      <!-- connector end left -->
+      <rect x="0" y="4" width="8" height="22" rx="2" fill="#222" stroke="#666" stroke-width="0.8"/>
+      <!-- connector end right -->
+      <rect x="198" y="4" width="8" height="22" rx="2" fill="#222" stroke="#666" stroke-width="0.8"/>
+      <text x="103" y="26" fill="rgba(255,200,100,0.3)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">A+ A- B+ B-</text>
+    </svg>`
+  },
+
+  /* ══ JST Connector ══ */
+  {
+    id:'jst', name:'JST-XH 4-Pin Connector',
+    cat:'connector',
+    ox:'320px', oy:'0px', x:340, y:290, w:80, h:34, delay:820,
+    desc:'A JST-XH 2.54mm pitch 4-pin connector is the standard interface for NEMA17 stepper motors used in 3D printers (RepRap, Prusa, Creality). The connector is keyed and polarised — it can only insert one way. Each pin carries one of the four motor wires: A+, A−, B+, B−. The XH series handles up to 3A per contact with a retention force of 1.2N. Always disconnect power before re-wiring, as back-EMF from unplugging a running stepper can damage driver chips.',
+    stats:['Type: JST-XH 2.54mm pitch','Pins: 4','Current: 3A per pin','Retention: 1.2N pull-off','Keyed: polarised single insert','Used in: 3D printers, CNC'],
+    svg:`<svg width="80" height="34" viewBox="0 0 80 34">
+      <rect x="1" y="3" width="78" height="28" rx="4" fill="#111" stroke="#555" stroke-width="1.2"/>
+      <rect x="5" y="7" width="70" height="20" rx="3" fill="#1a1a1a" stroke="#333" stroke-width="0.6"/>
+      ${[0,1,2,3].map(i=>`
+        <rect x="${11+i*16}" y="9" width="10" height="16" rx="1.5" fill="#222" stroke="#888" stroke-width="0.6"/>
+        <rect x="${13+i*16}" y="11" width="6" height="12" rx="1" fill="#555"/>
+      `).join('')}
+      <text x="40" y="31" fill="rgba(200,150,50,0.35)" font-size="6.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">JST-XH 4P</text>
+    </svg>`
+  },
+
+  /* ══ A4988 Stepper Driver ══ */
+  {
+    id:'driver', name:'A4988 Stepper Motor Driver IC',
+    cat:'driver',
+    ox:'-320px', oy:'0px', x:340, y:145, w:130, h:100, delay:900,
+    desc:'The A4988 by Allegro MicroSystems is the most popular stepper driver for NEMA17 motors. It integrates two full H-bridges that independently control Phase A and Phase B with programmable current limiting via a potentiometer and sense resistors. The STEP/DIR interface is simple: one pulse on STEP moves one microstep, and DIR sets direction. MS1/MS2/MS3 pins select microstepping: Full, 1/2, 1/4, 1/8, or 1/16. A thermal shutdown and over-current protection guard both the driver and motor.',
+    stats:['IC: A4988 (Allegro)','Vm: 8–35V motor supply','Iout: 1A cont / 2A peak','Microstep: up to 1/16','Interface: STEP / DIR','Protection: thermal + OCP'],
+    svg:`<svg width="130" height="100" viewBox="0 0 130 100">
+      <rect x="2" y="2" width="126" height="96" rx="6" fill="#181210" stroke="#886633" stroke-width="1.4"/>
+      <!-- PCB board outline -->
+      <rect x="6" y="6" width="118" height="88" rx="5" fill="#0e0a06" stroke="#553300" stroke-width="0.6"/>
+      <!-- A4988 IC chip -->
+      <rect x="28" y="28" width="74" height="44" rx="3" fill="#1a1a1a" stroke="#666" stroke-width="1.2"/>
+      <circle cx="33" cy="33" r="4" fill="#333"/>
+      <!-- left pins -->
+      ${[0,1,2,3].map(i=>`<rect x="14" y="${32+i*10}" width="16" height="7" rx="1" fill="#777" stroke="#aaa" stroke-width="0.3"/>`).join('')}
+      <!-- right pins -->
+      ${[0,1,2,3].map(i=>`<rect x="100" y="${32+i*10}" width="16" height="7" rx="1" fill="#777" stroke="#aaa" stroke-width="0.3"/>`).join('')}
+      <!-- potentiometer -->
+      <circle cx="65" cy="18" r="8" fill="#222" stroke="#888" stroke-width="0.8"/>
+      <circle cx="65" cy="18" r="4" fill="#555"/>
+      <line x1="65" y1="12" x2="65" y2="16" stroke="#aaa" stroke-width="1.2"/>
+      <text x="65" y="58" fill="rgba(220,180,80,0.8)" font-size="10" text-anchor="middle" font-weight="bold" font-family="'Share Tech Mono',monospace">A4988</text>
+      <text x="65" y="70" fill="rgba(180,130,50,0.45)" font-size="7.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">ALLEGRO</text>
+      <text x="65" y="93" fill="rgba(180,100,0,0.3)" font-size="6.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">STEP / DIR / 1-16</text>
+    </svg>`
+  },
+
+  /* ══ Mounting Screws ══ */
+  {
+    id:'screws', name:'M3×8mm Mounting Screws (×4)',
+    cat:'mech',
+    ox:'0px', oy:'-340px', x:338, y:55, w:80, h:80, delay:980,
+    desc:'Four M3×8mm pan-head screws secure the motor to its mount. The NEMA17 pattern uses M3 fasteners at 31mm diagonal spacing. Black oxide steel screws are standard in 3D printers to resist corrosion. Always tighten to ~0.6 Nm — over-tightening the thin motor housing can distort the end-bell and affect bearing alignment, causing vibration. Stainless variants are used in humid environments (laser cutters, food equipment).',
+    stats:['Thread: M3','Length: 8mm','Head: Pan / Socket cap','Pattern: NEMA17 (31mm)','Torque: 0.6 Nm','Material: Black oxide steel'],
+    svg:`<svg width="80" height="80" viewBox="0 0 80 80">
+      ${[[18,18],[62,18],[18,62],[62,62]].map(([x,y])=>`
+        <circle cx="${x}" cy="${y}" r="10" fill="#1a1a1a" stroke="#777" stroke-width="1.2"/>
+        <circle cx="${x}" cy="${y}" r="6" fill="#333" stroke="#aaa" stroke-width="0.7"/>
+        <line x1="${x-4}" y1="${y}" x2="${x+4}" y2="${y}" stroke="#666" stroke-width="1.2"/>
+        <line x1="${x}" y1="${y-4}" x2="${x}" y2="${y+4}" stroke="#666" stroke-width="1.2"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══ End Bell ══ */
+  {
+    id:'endbell', name:'End Bell — Rear Cap (Aluminium)',
+    cat:'body',
+    ox:'320px', oy:'320px', x:145, y:325, w:270, h:30, delay:1050,
+    desc:'The end bell is an aluminium die-cast rear cap that closes the motor housing, holds the rear bearing, and provides a secondary mounting surface. Its flat face is precision machined to ensure the shaft axis is perpendicular to the mounting flange — critical for precision gantry systems. The end bell is secured to the housing with four M3 screws. Many NEMA17s allow shaft access from the rear for dual-shaft configurations used in optical encoders.',
+    stats:['Material: Die-cast aluminium','Function: rear bearing seat','Closes: motor housing','Tolerance: shaft perpendicularity','Dual-shaft: some variants','Secured: 4× M3 housing screws'],
+    svg:`<svg width="270" height="30" viewBox="0 0 270 30">
+      <defs>
+        <linearGradient id="ebG" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#4a4a4a"/>
+          <stop offset="100%" style="stop-color:#1a1a1a"/>
+        </linearGradient>
+      </defs>
+      <rect x="2" y="2" width="266" height="26" rx="5" fill="url(#ebG)" stroke="#888" stroke-width="1.2"/>
+      <rect x="6" y="5" width="258" height="20" rx="4" fill="#2a2a2a" stroke="#555" stroke-width="0.5"/>
+      <!-- 4 fixing holes -->
+      <circle cx="24" cy="15" r="5" fill="#111" stroke="#666" stroke-width="0.8"/>
+      <circle cx="246" cy="15" r="5" fill="#111" stroke="#666" stroke-width="0.8"/>
+      <!-- shaft hole -->
+      <circle cx="135" cy="15" r="6" fill="#111" stroke="#999" stroke-width="0.8"/>
+      <text x="135" y="18" fill="rgba(180,180,180,0.25)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">END BELL</text>
+    </svg>`
+  },
+
+];
+
+let assembled=false, arrivedCount=0, selectedId=null, highlightMode=false;
+
+function init(){
+  const stage=document.getElementById('stage');
+  const grid=document.getElementById('partsGrid');
+  document.getElementById('partCounter').textContent=`0 / ${parts.length} PARTS`;
+  parts.forEach(p=>{
+    const el=document.createElement('div');
+    el.className='part'; el.id='part_'+p.id;
+    el.style.setProperty('--ox',p.ox); el.style.setProperty('--oy',p.oy);
+    el.style.left=p.x+'px'; el.style.top=p.y+'px';
+    el.innerHTML=p.svg;
+    el.addEventListener('click',()=>selectPart(p.id));
+    stage.appendChild(el);
+    const dot=document.createElement('div');
+    dot.className='pdot cat-'+p.cat; dot.id='dot_'+p.id; dot.title=p.name;
+    dot.addEventListener('click',()=>selectPart(p.id));
+    grid.appendChild(dot);
+  });
+}
+
+function assemble(){
+  if(assembled)return;
+  assembled=true;
+  document.getElementById('btnAssemble').disabled=true;
+  document.getElementById('status').textContent='ASSEMBLING…';
+  document.getElementById('hint').textContent='▶ Click any component to inspect';
+  let done=0;
+  parts.forEach(p=>{
+    setTimeout(()=>{
+      document.getElementById('part_'+p.id).classList.add('arrived');
+      document.getElementById('dot_'+p.id).classList.add('done');
+      done++; arrivedCount=done;
+      updateProgress(done,parts.length);
+    },p.delay);
+  });
+  const totalDelay=Math.max(...parts.map(p=>p.delay))+900;
+  setTimeout(()=>{
+    document.getElementById('status').textContent='ASSEMBLY COMPLETE';
+    document.getElementById('hint').textContent='✓ Click any component to inspect';
+  },totalDelay);
+}
+
+function doReset(){
+  assembled=false; arrivedCount=0; selectedId=null; highlightMode=false;
+  document.getElementById('btnAssemble').disabled=false;
+  document.getElementById('status').textContent='AWAITING ASSEMBLY';
+  document.getElementById('hint').textContent='▶ Click ASSEMBLE to begin';
+  document.getElementById('partCounter').textContent=`0 / ${parts.length} PARTS`;
+  updateProgress(0,parts.length);
+  document.getElementById('infoCard').classList.remove('active');
+  document.getElementById('infoName').textContent='— SELECT A PART —';
+  document.getElementById('infoDesc').textContent='Assemble the motor first, then click any component to inspect it.';
+  document.getElementById('infoStats').innerHTML='';
+  document.getElementById('doneCount').textContent='0';
+  parts.forEach(p=>{
+    document.getElementById('part_'+p.id).className='part';
+    document.getElementById('dot_'+p.id).classList.remove('done');
+  });
+}
+
+function highlightAll(){
+  if(!assembled)return;
+  highlightMode=!highlightMode; selectedId=null;
+  parts.forEach(p=>{
+    const el=document.getElementById('part_'+p.id);
+    el.classList.remove('dimmed','selected');
+    if(highlightMode&&p.cat!=='body') el.classList.add('selected');
+  });
+}
+
+function selectPart(id){
+  if(!assembled)return;
+  highlightMode=false;
+  const p=parts.find(x=>x.id===id); if(!p)return;
+  selectedId=id;
+  parts.forEach(q=>{
+    const el=document.getElementById('part_'+q.id);
+    el.classList.remove('dimmed','selected');
+    if(q.id!==id) el.classList.add('dimmed');
+    else el.classList.add('selected');
+  });
+  document.getElementById('infoCard').classList.add('active');
+  document.getElementById('infoName').textContent=p.name.toUpperCase();
+  document.getElementById('infoDesc').textContent=p.desc;
+  const statsEl=document.getElementById('infoStats');
+  statsEl.innerHTML='';
+  (p.stats||[]).forEach(s=>{
+    const chip=document.createElement('div');
+    chip.className='stat-chip'; chip.textContent=s;
+    statsEl.appendChild(chip);
+  });
+}
+
+function updateProgress(done,total){
+  const pct=Math.round(done/total*100);
+  document.getElementById('prog').style.width=pct+'%';
+  document.getElementById('progPct').textContent=pct+'%';
+  document.getElementById('partCounter').textContent=`${done} / ${total} PARTS`;
+  document.getElementById('doneCount').textContent=done;
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  init();
+  document.getElementById('stage').addEventListener('click',e=>{
+    if(!e.target.closest('.part')&&selectedId){
+      selectedId=null;
+      parts.forEach(q=>{
+        const el=document.getElementById('part_'+q.id);
+        el.classList.remove('dimmed','selected');
+      });
+      document.getElementById('infoCard').classList.remove('active');
+      document.getElementById('infoName').textContent='— SELECT A PART —';
+      document.getElementById('infoDesc').textContent='Click any glowing component to inspect it.';
+      document.getElementById('infoStats').innerHTML='';
+    }
+  });
+});
+</script>
+</body>
+</html>

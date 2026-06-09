@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temperature Sensor – How It Works</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0e14; color: #e0e0e0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+h1 { font-size: 22px; font-weight: 600; color: #fff; text-align: center; margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: #666; text-align: center; margin-bottom: 16px; }
+.steps { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; justify-content: center; }
+.step { background: #131520; border: 1px solid #1e2030; border-radius: 10px; padding: 10px 14px; text-align: center; min-width: 130px; flex: 1; max-width: 170px; }
+.step.red { border-color: #7a1a1a; }
+.step.amber { border-color: #7a5500; }
+.step.teal { border-color: #0a4a3a; }
+.step.blue { border-color: #1a4a7a; }
+.step-num { font-size: 18px; font-weight: 700; margin-bottom: 3px; }
+.step.red .step-num { color: #E24B4A; }
+.step.amber .step-num { color: #EF9F27; }
+.step.teal .step-num { color: #1D9E75; }
+.step.blue .step-num { color: #378ADD; }
+.step-title { font-size: 12px; font-weight: 600; color: #ddd; margin-bottom: 3px; }
+.step-desc { font-size: 10px; color: #777; line-height: 1.4; }
+.formula { background: #131520; border: 1px solid #7a1a1a; border-radius: 8px; padding: 9px 18px; text-align: center; font-size: 13px; font-weight: 600; color: #E24B4A; margin-bottom: 16px; }
+canvas { border-radius: 12px; background: #09090f; display: block; max-width: 720px; width: 100%; }
+.legend { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #888; }
+.dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body>
+<h1>🌡️ Temperature Sensor (NTC Thermistor / RTD)</h1>
+<p class="subtitle">Resistance changes with temperature — converting heat into electrical signal</p>
+<div class="steps">
+  <div class="step red"><div class="step-num">①</div><div class="step-title">Heat excites atoms</div><div class="step-desc">Thermal energy causes lattice vibrations in the material</div></div>
+  <div class="step amber"><div class="step-num">②</div><div class="step-title">Resistance changes</div><div class="step-desc">More heat = more collisions = resistance rises (PTC) or falls (NTC)</div></div>
+  <div class="step teal"><div class="step-num">③</div><div class="step-title">Voltage divider</div><div class="step-desc">Changing resistance shifts output voltage proportionally</div></div>
+  <div class="step blue"><div class="step-num">④</div><div class="step-title">ADC reads °C</div><div class="step-desc">Microcontroller converts voltage to temperature via Steinhart equation</div></div>
+</div>
+<div class="formula">NTC Thermistor: Resistance ↓ as Temp ↑ &nbsp;|&nbsp; RTD (PT100): Resistance ↑ as Temp ↑ &nbsp;|&nbsp; T = f(R)</div>
+<canvas id="c" width="720" height="450"></canvas>
+<div class="legend">
+  <div class="legend-item"><span class="dot" style="background:#E24B4A"></span> Heat / thermal energy</div>
+  <div class="legend-item"><span class="dot" style="background:#EF9F27"></span> Atom vibrations</div>
+  <div class="legend-item"><span class="dot" style="background:#1D9E75"></span> Electron drift</div>
+  <div class="legend-item"><span class="dot" style="background:#378ADD"></span> Voltage output</div>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = 720, H = 450;
+let frame = 0;
+
+function resize() {
+  const w = Math.min(720, window.innerWidth - 40);
+  canvas.style.width = w + 'px';
+  canvas.style.height = (w * 450/720) + 'px';
+}
+resize(); window.addEventListener('resize', resize);
+
+// Heat particles rising from bulb
+const heatParticles = [];
+for (let i = 0; i < 28; i++) {
+  heatParticles.push(newHeatParticle(i * 7));
+}
+function newHeatParticle(delay) {
+  return {
+    x: 100 + (Math.random()-0.5)*50,
+    y: 290 + Math.random()*20,
+    vy: -(0.6 + Math.random()*0.8),
+    vx: (Math.random()-0.5)*0.4,
+    life: 1,
+    r: 3+Math.random()*4,
+    phase: delay,
+    color: Math.random() < 0.5 ? '#E24B4A' : '#EF9F27'
+  };
+}
+
+// Atom vibration nodes in crystal lattice
+const atoms = [];
+const ROWS = 5, COLS = 7;
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    atoms.push({
+      bx: 55 + c * 28, by: 145 + r * 26,
+      ox: 0, oy: 0,
+      phase: Math.random()*Math.PI*2
+    });
+  }
+}
+
+// Electron drift
+const electrons = [];
+let eTimer = 0;
+function spawnElectron() {
+  electrons.push({ x: 60, y: 145+Math.random()*105, vx: 1.5+Math.random(), vy: (Math.random()-0.5)*0.5, life: 1 });
+}
+
+// Current pulses
+const pulses = [];
+let pulseTimer = 0;
+
+function roundRect(x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  if(fill) ctx.fill(); if(stroke) ctx.stroke();
+}
+
+function drawThermometer(t, temp) {
+  const cx = 100;
+
+  // Bulb
+  const bulbGrad = ctx.createRadialGradient(cx, 300, 2, cx, 300, 28);
+  bulbGrad.addColorStop(0, `rgba(255,100,80,${0.5+temp*0.5})`);
+  bulbGrad.addColorStop(1, `rgba(180,30,20,${0.3+temp*0.4})`);
+  ctx.fillStyle = bulbGrad;
+  ctx.beginPath();
+  ctx.arc(cx, 300, 28, 0, Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle = '#5a2020';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Stem
+  ctx.fillStyle = '#1a0e0e';
+  ctx.strokeStyle = '#5a2020';
+  ctx.lineWidth = 1;
+  roundRect(cx-10, 140, 20, 165, 8, true, true);
+
+  // Mercury column
+  const mercH = 20 + temp * 130;
+  ctx.fillStyle = `rgba(220,60,50,${0.6+temp*0.4})`;
+  roundRect(cx-5, 305-mercH, 10, mercH+5, 3, true, false);
+
+  // Tick marks
+  for (let i = 0; i <= 5; i++) {
+    const ty = 268 - i*26;
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(cx+10, ty); ctx.lineTo(cx+16, ty);
+    ctx.stroke();
+    ctx.fillStyle = '#666';
+    ctx.font = '8px Segoe UI';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${i*25}°`, cx+18, ty+3);
+  }
+
+  // Label
+  ctx.fillStyle = '#E24B4A';
+  ctx.font = 'bold 11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('NTC Thermistor', cx, 348);
+  ctx.fillStyle = '#7a1a1a';
+  ctx.font = '9px Segoe UI';
+  ctx.fillText('Bead type, 10kΩ @ 25°C', cx, 360);
+
+  // Current temp label
+  const tempC = (temp * 100).toFixed(0);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 14px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${tempC}°C`, cx, 308);
+}
+
+function drawCrystalLattice(t, temp) {
+  const vib = 1 + temp * 5;
+
+  // Panel
+  ctx.fillStyle = '#0e1520';
+  ctx.strokeStyle = '#1e2a3a';
+  ctx.lineWidth = 1;
+  roundRect(40, 120, 220, 155, 8, true, true);
+  ctx.fillStyle = '#378ADD';
+  ctx.font = 'bold 11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Crystal lattice cross-section', 150, 137);
+
+  // Bond lines
+  atoms.forEach((a, i) => {
+    const dx = Math.sin(t*0.08 + a.phase) * vib;
+    const dy = Math.cos(t*0.07 + a.phase+1) * vib;
+    a.ox = dx; a.oy = dy;
+  });
+
+  // Draw bonds
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const idx = r*COLS+c;
+      const a = atoms[idx];
+      if (c < COLS-1) {
+        const b = atoms[idx+1];
+        ctx.beginPath();
+        ctx.moveTo(a.bx+a.ox, a.by+a.oy);
+        ctx.lineTo(b.bx+b.ox, b.by+b.oy);
+        ctx.strokeStyle = `rgba(60,80,120,0.6)`;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+      if (r < ROWS-1) {
+        const b = atoms[idx+COLS];
+        ctx.beginPath();
+        ctx.moveTo(a.bx+a.ox, a.by+a.oy);
+        ctx.lineTo(b.bx+b.ox, b.by+b.oy);
+        ctx.strokeStyle = `rgba(60,80,120,0.6)`;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Draw atoms
+  atoms.forEach((a) => {
+    const heat = Math.hypot(a.ox, a.oy) / (vib+0.1);
+    ctx.beginPath();
+    ctx.arc(a.bx+a.ox, a.by+a.oy, 5, 0, Math.PI*2);
+    const col = temp > 0.5 ? `rgba(${Math.floor(180+heat*60)},${Math.floor(80-heat*40)},${Math.floor(50-heat*30)},0.9)` : `rgba(100,140,200,0.8)`;
+    ctx.fillStyle = col;
+    ctx.fill();
+  });
+
+  // Vibration intensity label
+  ctx.fillStyle = '#EF9F27';
+  ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText(`Vibration amplitude: ${(vib).toFixed(1)}×`, 150, 265);
+}
+
+function drawHeatParticles(t, temp) {
+  const count = Math.floor(temp * heatParticles.length);
+  heatParticles.forEach((p, i) => {
+    if (i >= count) return;
+    p.y += p.vy;
+    p.x += p.vx;
+    p.life -= 0.008;
+    if (p.life <= 0 || p.y < 115) {
+      Object.assign(p, newHeatParticle(0));
+    }
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI*2);
+    ctx.fillStyle = p.color.replace(')', `,${p.life*0.5})`).replace('rgb','rgba');
+    ctx.fill();
+    // Wavy trail
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.bezierCurveTo(p.x+Math.sin(t*0.1+p.phase)*8, p.y+15, p.x-Math.sin(t*0.1+p.phase)*8, p.y+30, p.x, p.y+35);
+    ctx.strokeStyle = `rgba(220,80,60,${p.life*0.15})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+}
+
+function drawElectrons(t) {
+  eTimer++;
+  if (eTimer > 18) { spawnElectron(); eTimer = 0; }
+  electrons.forEach((e, i) => {
+    e.x += e.vx;
+    e.y += e.vy + Math.sin(frame*0.12+i)*0.3;
+    e.life -= 0.012;
+    if (e.life <= 0 || e.x > 262) { electrons.splice(i, 1); return; }
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, 3.5, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(30,158,117,${e.life*0.8})`;
+    ctx.fill();
+    ctx.fillStyle = `rgba(150,230,200,${e.life})`;
+    ctx.font = '7px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('e⁻', e.x, e.y+2.5);
+  });
+}
+
+function drawWiring(t, temp) {
+  ctx.strokeStyle = '#7F77DD';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(148, 230); ctx.lineTo(270, 230); ctx.lineTo(270, 320); ctx.lineTo(400, 320);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(148, 250); ctx.lineTo(290, 250); ctx.lineTo(290, 340); ctx.lineTo(400, 340);
+  ctx.stroke();
+
+  pulseTimer++;
+  const rate = Math.floor(35 / (0.3 + temp * 0.7));
+  if (pulseTimer > rate) {
+    pulses.push({ t: 0 });
+    pulseTimer = 0;
+  }
+  pulses.forEach((p, i) => {
+    p.t += 0.025;
+    let px, py;
+    if (p.t < 0.3) { px = 148 + (122*(p.t/0.3)); py = 230; }
+    else if (p.t < 0.6) { px = 270; py = 230 + (90*(p.t-0.3)/0.3); }
+    else { px = 270 + (130*(p.t-0.6)/0.4); py = 320; }
+    ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI*2);
+    ctx.fillStyle = '#7F77DD'; ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(127,119,221,0.25)'; ctx.fill();
+    if (p.t >= 1) pulses.splice(i, 1);
+  });
+
+  ctx.fillStyle = '#534AB7';
+  ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText('Signal output', 195, 224);
+}
+
+function drawResistanceCurve(t, temp) {
+  const px = 400, py = 95, pw = 300, ph = 175;
+  ctx.fillStyle = '#0e1420';
+  ctx.strokeStyle = '#3a2a00';
+  ctx.lineWidth = 1;
+  roundRect(px, py, pw, ph, 10, true, true);
+
+  ctx.fillStyle = '#EF9F27';
+  ctx.font = 'bold 11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('NTC resistance–temperature curve', px+pw/2, py+18);
+
+  // Axes
+  const ax = px+30, ay = py+155, aw = pw-50, ah = 110;
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax+aw, ay); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax, ay-ah); ctx.stroke();
+
+  ctx.fillStyle = '#555';
+  ctx.font = '9px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Temperature (°C)', ax+aw/2, ay+16);
+  ctx.save();
+  ctx.translate(ax-18, ay-ah/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('Resistance (kΩ)', 0, 0);
+  ctx.restore();
+
+  // NTC curve (exponential decay)
+  ctx.beginPath();
+  for (let i = 0; i <= aw; i++) {
+    const tx = i/aw;
+    const ry = Math.exp(-tx*3.5) * ah * 0.95;
+    if (i===0) ctx.moveTo(ax+i, ay-ry);
+    else ctx.lineTo(ax+i, ay-ry);
+  }
+  ctx.strokeStyle = '#E24B4A';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Current position dot
+  const curRx = Math.exp(-temp*3.5)*ah*0.95;
+  const curX = ax + temp*aw;
+  ctx.beginPath();
+  ctx.arc(curX, ay-curRx, 6, 0, Math.PI*2);
+  ctx.fillStyle = '#EF9F27'; ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+
+  // Dashed reference lines
+  ctx.setLineDash([3,3]);
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(curX, ay); ctx.lineTo(curX, ay-curRx); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ax, ay-curRx); ctx.lineTo(curX, ay-curRx); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Axis tick labels
+  ctx.fillStyle = '#444'; ctx.font = '8px Segoe UI'; ctx.textAlign = 'center';
+  ['0','25','50','75','100'].forEach((lbl,i) => ctx.fillText(lbl, ax+i*(aw/4), ay+10));
+  ctx.textAlign = 'right';
+  ['100','50','10','1'].forEach((lbl,i) => ctx.fillText(lbl, ax-4, ay-i*(ah/3.5)));
+}
+
+function drawVoltageDivider(t, temp) {
+  // NTC resistance (exponential)
+  const rNTC = (Math.exp(-temp*3.5)*98 + 0.5).toFixed(1);
+  const vout = (temp * 3.3).toFixed(2);
+
+  ctx.fillStyle = '#101820';
+  ctx.strokeStyle = '#185FA5';
+  ctx.lineWidth = 1;
+  roundRect(400, 280, 300, 155, 10, true, true);
+
+  ctx.fillStyle = '#378ADD';
+  ctx.font = 'bold 11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Voltage divider circuit', 550, 298);
+
+  ctx.fillStyle = '#c0392b'; ctx.font = 'bold 12px Segoe UI';
+  ctx.fillText('VCC (3.3V)', 550, 318);
+
+  ctx.fillStyle = '#2a2a2a'; ctx.strokeStyle = '#555'; ctx.lineWidth = 1;
+  roundRect(510, 324, 80, 28, 4, true, true);
+  ctx.fillStyle = '#aaa'; ctx.font = '10px Segoe UI';
+  ctx.fillText('R_fixed (10kΩ)', 550, 342);
+
+  ctx.strokeStyle = '#555'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(550, 352); ctx.lineTo(550, 382); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(550, 382); ctx.lineTo(620, 382); ctx.stroke();
+  ctx.fillStyle = '#1D9E75'; ctx.font = 'bold 11px Segoe UI';
+  ctx.fillText(`Vout = ${vout}V`, 665, 386);
+
+  ctx.strokeStyle = '#E24B4A'; ctx.lineWidth = 1.5;
+  ctx.fillStyle = '#1a0808';
+  roundRect(510, 382, 80, 28, 4, true, true);
+  ctx.fillStyle = '#E24B4A'; ctx.font = '10px Segoe UI';
+  ctx.fillText(`NTC (${rNTC}kΩ)`, 550, 400);
+
+  ctx.beginPath(); ctx.moveTo(550, 410); ctx.lineTo(550, 428); ctx.stroke();
+  ctx.fillStyle = '#555'; ctx.font = 'bold 11px Segoe UI';
+  ctx.fillText('GND', 550, 427);
+
+  ctx.fillStyle = '#2a5070'; ctx.font = '9px Segoe UI';
+  ctx.fillText('Vout = VCC × R_ntc / (R_fixed + R_ntc)', 550, 424);
+}
+
+function drawReadout(t, temp) {
+  const tempC = (temp * 100).toFixed(1);
+  const rNTC = (Math.exp(-temp*3.5)*9800 + 200).toFixed(0);
+  const voltage = (temp * 3.3).toFixed(2);
+  const adc = Math.floor(temp * 1023);
+
+  ctx.fillStyle = '#0e1620';
+  ctx.strokeStyle = '#1D9E75';
+  ctx.lineWidth = 1;
+  roundRect(400, 60, 300, 220, 10, true, true);
+
+  ctx.fillStyle = '#1D9E75';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Live sensor output', 550, 78);
+
+  // Big temp display
+  const tempColor = temp < 0.3 ? '#378ADD' : temp < 0.6 ? '#EF9F27' : '#E24B4A';
+  ctx.fillStyle = tempColor;
+  ctx.font = `bold ${28 + temp*8}px Segoe UI`;
+  ctx.fillText(`${tempC}°C`, 550, 130);
+
+  // Thermometer bar
+  const barW = 220, barH = 10;
+  const bx = 440, by = 145;
+  ctx.fillStyle = '#1a1a2a';
+  roundRect(bx, by, barW, barH, 5, true, false);
+  const barGrad = ctx.createLinearGradient(bx, by, bx+barW, by);
+  barGrad.addColorStop(0, '#378ADD');
+  barGrad.addColorStop(0.5, '#EF9F27');
+  barGrad.addColorStop(1, '#E24B4A');
+  ctx.fillStyle = barGrad;
+  roundRect(bx, by, barW*temp, barH, 5, true, false);
+
+  const rows = [
+    { label: 'Temperature', val: `${tempC} °C`, color: tempColor },
+    { label: 'NTC Resistance', val: `${Number(rNTC).toLocaleString()} Ω`, color: '#EF9F27' },
+    { label: 'Output Voltage', val: `${voltage} V`, color: '#378ADD' },
+    { label: 'ADC Value (0–1023)', val: `${adc}`, color: '#7F77DD' },
+  ];
+  rows.forEach((r, i) => {
+    ctx.fillStyle = '#333';
+    ctx.font = '10px Segoe UI';
+    ctx.textAlign = 'left';
+    ctx.fillText(r.label, 415, 175 + i*22);
+    ctx.fillStyle = r.color;
+    ctx.font = 'bold 11px Segoe UI';
+    ctx.textAlign = 'right';
+    ctx.fillText(r.val, 690, 175 + i*22);
+  });
+
+  // Steinhart equation
+  ctx.fillStyle = '#333'; ctx.font = '8px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('T⁻¹ = A + B·ln(R) + C·ln(R)³  (Steinhart–Hart)', 550, 266);
+}
+
+function drawBackground() {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#0a0c18');
+  g.addColorStop(1, '#0d1225');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 315, H);
+
+  ctx.fillStyle = '#0e121e';
+  ctx.fillRect(0, 0, 315, 120);
+  ctx.strokeStyle = '#1a2035';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0,120); ctx.lineTo(315,120); ctx.stroke();
+
+  ctx.fillStyle = '#1a2240';
+  ctx.fillRect(0, 390, 315, 60);
+  ctx.fillStyle = '#222c50';
+  ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('PCB substrate', 157, 418);
+}
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#09090f';
+  ctx.fillRect(0, 0, W, H);
+
+  drawBackground();
+  const temp = 0.15 + 0.75 * Math.abs(Math.sin(frame * 0.008));
+
+  drawCrystalLattice(frame, temp);
+  drawHeatParticles(frame, temp);
+  drawThermometer(frame, temp);
+  drawElectrons(frame);
+  drawWiring(frame, temp);
+  drawResistanceCurve(frame, temp);
+  drawVoltageDivider(frame, temp);
+  drawReadout(frame, temp);
+
+  frame++;
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>

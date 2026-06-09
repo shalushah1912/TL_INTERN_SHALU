@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Arduino Mega 2560 — Interactive Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --accent3: #a8ff3e;
+    --bg: #030912;
+    --surface: #070f1e;
+    --border: rgba(0,229,255,0.12);
+    --glow: rgba(0,229,255,0.3);
+  }
+
+  body {
+    background: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    padding: 16px;
+    overflow-x: hidden;
+  }
+
+  /* scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  .app {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* HEADER */
+  .hdr {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .title-block {}
+  .title-main {
+    font-family: 'Orbitron', monospace;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(0,229,255,0.5);
+  }
+  .title-sub {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    color: rgba(0,229,255,0.4);
+    letter-spacing: 3px;
+    margin-top: 3px;
+  }
+  .hdr-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .status-badge {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--accent3);
+    background: rgba(168,255,62,0.07);
+    border: 1px solid rgba(168,255,62,0.25);
+    border-radius: 4px;
+    padding: 4px 10px;
+  }
+  .part-counter {
+    font-size: 10px;
+    color: rgba(0,229,255,0.35);
+    letter-spacing: 1px;
+  }
+
+  /* CONTROLS */
+  .controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn-assemble {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #000;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    padding: 11px 26px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    box-shadow: 0 0 20px rgba(0,229,255,0.4);
+  }
+  .btn-assemble:hover { box-shadow: 0 0 35px rgba(0,229,255,0.7); transform: translateY(-1px); }
+  .btn-assemble:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-reset {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgba(0,229,255,0.5);
+    background: transparent;
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 6px;
+    padding: 11px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-reset:hover { color: var(--accent); border-color: rgba(0,229,255,0.5); }
+  .btn-highlight {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgba(255,107,53,0.6);
+    background: transparent;
+    border: 1px solid rgba(255,107,53,0.2);
+    border-radius: 6px;
+    padding: 11px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-highlight:hover { color: var(--accent2); border-color: rgba(255,107,53,0.5); }
+
+  /* PROGRESS */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .progress-label {
+    font-size: 10px;
+    color: rgba(0,229,255,0.35);
+    letter-spacing: 2px;
+    min-width: 50px;
+  }
+  .progress-track {
+    flex: 1;
+    height: 2px;
+    background: rgba(0,229,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #003d55, var(--accent));
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .progress-pct {
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 42px;
+    text-align: right;
+    font-family: 'Orbitron', monospace;
+  }
+
+  /* LAYOUT: board + info side by side */
+  .main-layout {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  /* STAGE */
+  .stage-wrap {
+    flex: 1;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: auto;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0,20,40,0.8), inset 0 0 30px rgba(0,0,0,0.5);
+  }
+  .stage-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,229,255,0.012) 0px, rgba(0,229,255,0.012) 1px, transparent 1px, transparent 50px),
+      repeating-linear-gradient(90deg, rgba(0,229,255,0.012) 0px, rgba(0,229,255,0.012) 1px, transparent 1px, transparent 50px);
+    pointer-events: none;
+    border-radius: 14px;
+    z-index: 0;
+  }
+  .stage {
+    position: relative;
+    width: 900px;
+    height: 520px;
+    z-index: 1;
+  }
+
+  /* PARTS */
+  .part {
+    position: absolute;
+    cursor: pointer;
+    transition: transform 0.8s cubic-bezier(.34,1.5,.64,1), opacity 0.5s ease, filter 0.15s;
+    opacity: 0;
+    transform: translateX(var(--ox)) translateY(var(--oy)) scale(0.55);
+    filter: drop-shadow(0 0 5px rgba(0,229,255,0.3));
+    z-index: 2;
+  }
+  .part.arrived {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  .part:hover {
+    filter: drop-shadow(0 0 16px rgba(0,229,255,0.9)) brightness(1.35) !important;
+    transform: translateX(0) translateY(0) scale(1.08) !important;
+    z-index: 50 !important;
+  }
+  .part.selected {
+    filter: drop-shadow(0 0 24px rgba(0,229,255,1)) brightness(1.6) !important;
+    z-index: 49 !important;
+  }
+  .part.dimmed {
+    filter: drop-shadow(0 0 2px rgba(0,229,255,0.05)) brightness(0.3) !important;
+  }
+  .part svg { display: block; pointer-events: none; }
+
+  /* SIDE PANEL */
+  .side-panel {
+    width: 280px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    min-height: 200px;
+    transition: border-color 0.3s;
+  }
+  .info-card.active { border-color: rgba(0,229,255,0.35); }
+  .info-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(0,229,255,0.12);
+    line-height: 1.4;
+  }
+  .info-desc {
+    font-size: 11px;
+    color: rgba(180,230,255,0.65);
+    line-height: 1.8;
+    margin-bottom: 12px;
+  }
+  .info-stats {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .stat-chip {
+    font-size: 9px;
+    color: rgba(0,229,255,0.7);
+    background: rgba(0,229,255,0.05);
+    border: 1px solid rgba(0,229,255,0.15);
+    border-radius: 4px;
+    padding: 3px 8px;
+    letter-spacing: 0.5px;
+  }
+  .stat-chip.red { color: rgba(255,100,60,0.8); background: rgba(255,100,60,0.05); border-color: rgba(255,100,60,0.2); }
+  .stat-chip.green { color: rgba(100,255,150,0.8); background: rgba(100,255,150,0.05); border-color: rgba(100,255,150,0.2); }
+
+  /* PART LIST GRID */
+  .parts-grid-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .parts-grid-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: rgba(0,229,255,0.35);
+    margin-bottom: 10px;
+  }
+  .parts-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .pdot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(0,229,255,0.06);
+    border: 1px solid rgba(0,229,255,0.18);
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+  }
+  .pdot:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0a1a2a;
+    border: 1px solid rgba(0,229,255,0.3);
+    border-radius: 4px;
+    padding: 3px 7px;
+    font-size: 9px;
+    color: var(--accent);
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .pdot.done {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 5px rgba(0,229,255,0.5);
+  }
+  .pdot.done.cat-power { background: #ff4422; border-color: #ff4422; box-shadow: 0 0 5px rgba(255,68,34,0.5); }
+  .pdot.done.cat-ic { background: #a8ff3e; border-color: #a8ff3e; box-shadow: 0 0 5px rgba(168,255,62,0.5); }
+  .pdot.done.cat-header { background: #00e5ff; border-color: #00e5ff; }
+  .pdot.done.cat-passive { background: #ffaa00; border-color: #ffaa00; box-shadow: 0 0 5px rgba(255,170,0,0.5); }
+  .pdot.done.cat-led { background: #ff6bff; border-color: #ff6bff; box-shadow: 0 0 5px rgba(255,107,255,0.5); }
+
+  .legend {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .leg-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
+    color: rgba(0,229,255,0.4);
+    letter-spacing: 0.5px;
+  }
+  .leg-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  .hint {
+    font-size: 10px;
+    color: rgba(0,229,255,0.25);
+    letter-spacing: 1px;
+    margin-top: 6px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <div class="title-block">
+      <div class="title-main">Arduino Mega 2560</div>
+      <div class="title-sub">INTERACTIVE ASSEMBLY — REV3 / 54 DIGITAL + 16 ANALOG I/O</div>
+    </div>
+    <div class="hdr-right">
+      <div class="status-badge" id="status">AWAITING ASSEMBLY</div>
+      <div class="part-counter" id="partCounter">0 / 0 PARTS</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-assemble" id="btnAssemble" onclick="assemble()">⚡ Assemble Mega 2560</button>
+    <button class="btn-reset" onclick="doReset()">↺ Reset</button>
+    <button class="btn-highlight" onclick="highlightAll()">◈ Highlight All</button>
+  </div>
+
+  <div class="progress-row">
+    <span class="progress-label">BUILD</span>
+    <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+    <span class="progress-pct" id="progPct">0%</span>
+  </div>
+
+  <div class="main-layout">
+    <!-- Board Stage -->
+    <div class="stage-wrap">
+      <div class="stage" id="stage"></div>
+    </div>
+
+    <!-- Side Panel -->
+    <div class="side-panel">
+      <div class="info-card" id="infoCard">
+        <div class="info-name" id="infoName">— SELECT A PART —</div>
+        <div class="info-desc" id="infoDesc">Assemble the board first, then click any glowing component to inspect it. Every resistor, capacitor, LED, header pin, and IC is individually clickable.</div>
+        <div class="info-stats" id="infoStats"></div>
+      </div>
+
+      <div class="parts-grid-card">
+        <div class="parts-grid-title">COMPONENT MAP — <span id="doneCount">0</span> ARRIVED</div>
+        <div class="parts-grid" id="partsGrid"></div>
+        <div class="legend">
+          <div class="leg-item"><div class="leg-dot" style="background:#a8ff3e"></div>ICs</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#00e5ff"></div>Headers</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#ff4422"></div>Power</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#ffaa00"></div>Passives</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#ff6bff"></div>LEDs</div>
+        </div>
+      </div>
+
+      <div class="hint" id="hint">▶ Click ASSEMBLE to begin</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────────────────
+   Arduino Mega 2560 — 900×520 stage
+   Board runs roughly x:60–840, y:20–490
+   Parts: PCB, ATmega2560, ATmega16U2, USB-B, DC jack, 5V reg, 3.3V reg,
+          16MHz crystal, reset button, ICSP×2, digital headers 0-53 (×4 strips),
+          analog header, power headers, comm header, SDA/SCL header,
+          ON LED, TX LED, RX LED, L LED, electrolytic caps, IOREF header,
+          decoupling caps, ferrite beads, various SMD resistors,
+          crystal caps, reset cap, TVS diode, barrel diode, PWR LED resistor,
+          TX/RX resistors, USB ESD diode, quartz caps, SCK resistor,
+          autoreset cap, ATmega16U2 crystal, 3.3V cap, 5V cap
+   ─────────────────────────────────────────────────────────────────────────── */
+
+const parts = [
+
+  /* ══════════════════ PCB ══════════════════ */
+  {
+    id:'pcb', name:'PCB Board — FR4 Two-Layer',
+    cat:'ic',
+    ox:'0px', oy:'400px', x:55, y:18, w:788, h:480, delay:0,
+    desc:'The Arduino Mega 2560 PCB is a two-layer FR4 fibreglass board measuring 101.6 × 53.3 mm — about 50% longer than the Uno. The signature dark blue soldermask carries every component. Both copper layers carry power planes and signal traces, with a dense ground plane on the bottom layer for noise immunity. Four M3 mounting holes allow enclosure mounting.',
+    stats:['Material: FR4 fiberglass','Layers: 2','Size: 101.6 × 53.3 mm','Color: Dark blue soldermask','Holes: 4 × M3 mounting'],
+    svg:`<svg width="788" height="480" viewBox="0 0 788 480">
+      <defs>
+        <linearGradient id="pcbGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#0a1832"/>
+          <stop offset="100%" style="stop-color:#071024"/>
+        </linearGradient>
+      </defs>
+      <!-- PCB shape with notch top-left -->
+      <path d="M44,2 L786,2 L786,478 L2,478 L2,65 L44,65 Z" fill="url(#pcbGrad)" stroke="#1a4a8a" stroke-width="2"/>
+      <!-- subtle trace grid -->
+      ${[...Array(11)].map((_,i)=>`<line x1="10" y1="${45+i*43}" x2="778" y2="${45+i*43}" stroke="rgba(30,100,200,0.055)" stroke-width="0.7"/>`).join('')}
+      ${[...Array(20)].map((_,i)=>`<line x1="${10+i*39}" y1="2" x2="${10+i*39}" y2="478" stroke="rgba(30,100,200,0.055)" stroke-width="0.7"/>`).join('')}
+      <!-- copper pads area hints -->
+      <rect x="80" y="390" width="680" height="12" rx="3" fill="rgba(180,120,0,0.06)" stroke="rgba(180,120,0,0.1)" stroke-width="0.5"/>
+      <rect x="80" y="460" width="480" height="12" rx="3" fill="rgba(180,120,0,0.06)" stroke="rgba(180,120,0,0.1)" stroke-width="0.5"/>
+      <!-- mounting holes -->
+      <circle cx="22" cy="22" r="6" fill="none" stroke="rgba(0,200,255,0.25)" stroke-width="1.5"/>
+      <circle cx="22" cy="22" r="3" fill="rgba(200,180,140,0.15)"/>
+      <circle cx="766" cy="22" r="6" fill="none" stroke="rgba(0,200,255,0.25)" stroke-width="1.5"/>
+      <circle cx="766" cy="22" r="3" fill="rgba(200,180,140,0.15)"/>
+      <circle cx="22" cy="458" r="6" fill="none" stroke="rgba(0,200,255,0.25)" stroke-width="1.5"/>
+      <circle cx="22" cy="458" r="3" fill="rgba(200,180,140,0.15)"/>
+      <circle cx="766" cy="458" r="6" fill="none" stroke="rgba(0,200,255,0.25)" stroke-width="1.5"/>
+      <circle cx="766" cy="458" r="3" fill="rgba(200,180,140,0.15)"/>
+      <!-- silkscreen -->
+      <text x="394" y="468" fill="rgba(100,180,255,0.28)" font-size="11" text-anchor="middle" font-family="'Share Tech Mono',monospace">ARDUINO  MEGA  2560  R3</text>
+      <text x="394" y="454" fill="rgba(100,180,255,0.15)" font-size="8" text-anchor="middle" font-family="'Share Tech Mono',monospace">www.arduino.cc</text>
+    </svg>`
+  },
+
+  /* ══════════════════ ATmega2560 ══════════════════ */
+  {
+    id:'mcu', name:'ATmega2560 Microcontroller',
+    cat:'ic',
+    ox:'0px', oy:'-350px', x:310, y:130, w:240, h:240, delay:200,
+    desc:'The ATmega2560 is the heart of the Mega board. This 8-bit AVR microcontroller runs at 16MHz and provides 256KB of Flash, 8KB of SRAM, and 4KB of EEPROM — 8× the flash of the Uno. It has 86 usable I/O pins, 4 hardware UARTs, 3 SPI interfaces, 1 I2C bus, 15 PWM channels, and a 16-channel 10-bit ADC. The TQFP-100 package has 100 pins arranged around the perimeter.',
+    stats:['CPU: AVR 8-bit 16MHz','Flash: 256KB','SRAM: 8KB','EEPROM: 4KB','I/O: 86 pins','UARTs: 4 hardware','PWM: 15 channels','Package: TQFP-100'],
+    svg:`<svg width="240" height="240" viewBox="0 0 240 240">
+      <defs>
+        <linearGradient id="mcuGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#222222"/>
+          <stop offset="100%" style="stop-color:#111111"/>
+        </linearGradient>
+      </defs>
+      <rect x="22" y="22" width="196" height="196" rx="4" fill="url(#mcuGrad)" stroke="#555" stroke-width="1.5"/>
+      <!-- pin 1 marker -->
+      <circle cx="28" cy="28" r="4" fill="rgba(255,255,255,0.1)" stroke="#777" stroke-width="0.5"/>
+      <!-- top pins (25 each side, tqfp-100) -->
+      ${[...Array(25)].map((_,i)=>`
+        <rect x="${30+i*7.4}" y="14" width="4" height="10" rx="1" fill="#888" stroke="#aaa" stroke-width="0.4"/>
+      `).join('')}
+      <!-- bottom pins -->
+      ${[...Array(25)].map((_,i)=>`
+        <rect x="${30+i*7.4}" y="216" width="4" height="10" rx="1" fill="#888" stroke="#aaa" stroke-width="0.4"/>
+      `).join('')}
+      <!-- left pins -->
+      ${[...Array(25)].map((_,i)=>`
+        <rect x="14" y="${30+i*7.4}" width="10" height="4" rx="1" fill="#888" stroke="#aaa" stroke-width="0.4"/>
+      `).join('')}
+      <!-- right pins -->
+      ${[...Array(25)].map((_,i)=>`
+        <rect x="216" y="${30+i*7.4}" width="10" height="4" rx="1" fill="#888" stroke="#aaa" stroke-width="0.4"/>
+      `).join('')}
+      <!-- chip label -->
+      <text x="120" y="100" fill="rgba(230,230,230,0.9)" font-size="14" text-anchor="middle" font-weight="bold" font-family="'Share Tech Mono',monospace">ATmega</text>
+      <text x="120" y="120" fill="rgba(230,230,230,0.9)" font-size="14" text-anchor="middle" font-weight="bold" font-family="'Share Tech Mono',monospace">2560</text>
+      <text x="120" y="140" fill="rgba(180,180,180,0.6)" font-size="9" text-anchor="middle" font-family="'Share Tech Mono',monospace">MICROCHIP / ATMEL</text>
+      <text x="120" y="155" fill="rgba(150,150,150,0.45)" font-size="8" text-anchor="middle" font-family="'Share Tech Mono',monospace">AVR  16MHz</text>
+      <text x="120" y="168" fill="rgba(130,130,130,0.35)" font-size="8" text-anchor="middle" font-family="'Share Tech Mono',monospace">256K FLASH  8K SRAM</text>
+      <!-- top silk marking -->
+      <rect x="80" y="60" width="80" height="30" rx="2" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+    </svg>`
+  },
+
+  /* ══════════════════ ATmega16U2 ══════════════════ */
+  {
+    id:'usb_ic', name:'ATmega16U2 USB-Serial Chip',
+    cat:'ic',
+    ox:'-380px', oy:'0px', x:102, y:170, w:80, h:62, delay:400,
+    desc:'The ATmega16U2 is a second microcontroller acting as the USB-to-serial bridge. It translates USB Full-Speed (12Mbps) from your computer into UART signals the ATmega2560 understands. This enables sketch uploading and Serial Monitor. Its firmware is open-source and can be updated via the ICSP2 header to support HID (keyboard/mouse emulation) or MIDI.',
+    stats:['IC: ATmega16U2-MU','USB: 2.0 Full-Speed 12Mbps','Interface: UART + USB','Baud: up to 1Mbps','Package: QFN-32','Firmware: open-source'],
+    svg:`<svg width="80" height="62" viewBox="0 0 80 62">
+      <rect x="3" y="3" width="74" height="56" rx="3" fill="#1a1a1a" stroke="#666" stroke-width="1.2"/>
+      ${[...Array(6)].map((_,i)=>`<rect x="${7+i*11}" y="0" width="7" height="5" rx="1" fill="#777" stroke="#999" stroke-width="0.4"/>`).join('')}
+      ${[...Array(6)].map((_,i)=>`<rect x="${7+i*11}" y="57" width="7" height="5" rx="1" fill="#777" stroke="#999" stroke-width="0.4"/>`).join('')}
+      ${[...Array(4)].map((_,i)=>`<rect x="0" y="${8+i*12}" width="5" height="7" rx="1" fill="#777" stroke="#999" stroke-width="0.4"/>`).join('')}
+      ${[...Array(4)].map((_,i)=>`<rect x="75" y="${8+i*12}" width="5" height="7" rx="1" fill="#777" stroke="#999" stroke-width="0.4"/>`).join('')}
+      <circle cx="9" cy="9" r="3" fill="#444"/>
+      <text x="40" y="30" fill="rgba(210,210,210,0.8)" font-size="8" text-anchor="middle" font-family="'Share Tech Mono',monospace">ATmega</text>
+      <text x="40" y="42" fill="rgba(210,210,210,0.8)" font-size="8" text-anchor="middle" font-family="'Share Tech Mono',monospace">16U2</text>
+    </svg>`
+  },
+
+  /* ══════════════════ 16MHz Crystal (main MCU) ══════════════════ */
+  {
+    id:'crystal', name:'16MHz Crystal Oscillator (Main)',
+    cat:'passive',
+    ox:'0px', oy:'350px', x:380, y:350, w:60, h:24, delay:600,
+    desc:'This HC-49 quartz crystal resonates at exactly 16.000MHz. Every machine instruction the ATmega2560 executes is clocked by this crystal — at 16MHz the CPU completes up to 16 million single-cycle instructions per second. Two 22pF load capacitors (nearby) are needed to ensure accurate frequency. The ±20ppm tolerance means at worst ±320Hz deviation.',
+    stats:['Frequency: 16.000MHz','Package: HC-49/S SMD','Tolerance: ±20ppm','Load cap: 22pF × 2','Temp: –20°C to +70°C'],
+    svg:`<svg width="60" height="24" viewBox="0 0 60 24">
+      <rect x="4" y="2" width="52" height="20" rx="7" fill="#b8b8b8" stroke="#888" stroke-width="1.3"/>
+      <rect x="9" y="5" width="42" height="14" rx="5" fill="#cccccc" stroke="#aaa" stroke-width="0.5"/>
+      <line x1="4" y1="12" x2="56" y2="12" stroke="rgba(90,90,90,0.35)" stroke-width="0.6"/>
+      <rect x="0" y="9" width="6" height="6" rx="1" fill="#999" stroke="#777" stroke-width="0.5"/>
+      <rect x="54" y="9" width="6" height="6" rx="1" fill="#999" stroke="#777" stroke-width="0.5"/>
+      <text x="30" y="15" fill="rgba(50,50,50,0.7)" font-size="6" text-anchor="middle" font-family="'Share Tech Mono',monospace">16.000</text>
+    </svg>`
+  },
+
+  /* ══════════════════ 16MHz Crystal (USB IC) ══════════════════ */
+  {
+    id:'crystal2', name:'16MHz Crystal (ATmega16U2)',
+    cat:'passive',
+    ox:'-380px', oy:'350px', x:110, y:250, w:44, h:18, delay:620,
+    desc:'A second 16MHz crystal provides the clock specifically for the ATmega16U2 USB bridge chip. USB Full-Speed operation (12Mbps) requires precise 16MHz timing — a dedicated crystal ensures the USB timing is not affected by any instability in the main MCU clock. It also has two associated 22pF load capacitors.',
+    stats:['Frequency: 16.000MHz','For: ATmega16U2 USB','Package: HC-49/S SMD','Tolerance: ±20ppm'],
+    svg:`<svg width="44" height="18" viewBox="0 0 44 18">
+      <rect x="3" y="2" width="38" height="14" rx="5" fill="#b0b0b0" stroke="#888" stroke-width="1"/>
+      <rect x="7" y="4" width="30" height="10" rx="3" fill="#cccccc" stroke="#aaa" stroke-width="0.4"/>
+      <rect x="0" y="6" width="5" height="6" rx="1" fill="#999" stroke="#777" stroke-width="0.4"/>
+      <rect x="39" y="6" width="5" height="6" rx="1" fill="#999" stroke="#777" stroke-width="0.4"/>
+      <text x="22" y="12" fill="rgba(50,50,50,0.65)" font-size="5.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">16MHz</text>
+    </svg>`
+  },
+
+  /* ══════════════════ USB-B Port ══════════════════ */
+  {
+    id:'usb_port', name:'USB Type-B Port',
+    cat:'power',
+    ox:'-400px', oy:'0px', x:60, y:88, w:56, h:58, delay:800,
+    desc:'The square USB Type-B socket connects the Mega to a computer. Unlike the smaller Micro-USB on modern boards, the robust Type-B connector was chosen for durability in workshop environments. It carries 5V DC (up to 500mA from a PC) and the USB differential pair (D+/D−) to the ATmega16U2 for serial communication and sketch uploading.',
+    stats:['Type: USB-B female','Power: 5V / 500mA max','Protocol: USB 2.0 FS','Cable: USB-A to USB-B','Durability: 1500+ cycles'],
+    svg:`<svg width="56" height="58" viewBox="0 0 56 58">
+      <rect x="2" y="2" width="52" height="54" rx="4" fill="#282828" stroke="#777" stroke-width="1.5"/>
+      <path d="M10,10 L46,10 L46,38 L34,48 L22,48 L10,38 Z" fill="#111" stroke="#555" stroke-width="1"/>
+      <rect x="14" y="14" width="6" height="13" rx="1" fill="#aaa"/>
+      <rect x="23" y="14" width="6" height="13" rx="1" fill="#aaa"/>
+      <rect x="32" y="14" width="6" height="13" rx="1" fill="#aaa"/>
+      <!-- shield tabs -->
+      <rect x="0" y="6" width="4" height="9" rx="1" fill="#1a1a1a" stroke="#666" stroke-width="0.8"/>
+      <rect x="52" y="6" width="4" height="9" rx="1" fill="#1a1a1a" stroke="#666" stroke-width="0.8"/>
+      <rect x="0" y="44" width="4" height="9" rx="1" fill="#1a1a1a" stroke="#666" stroke-width="0.8"/>
+      <rect x="52" y="44" width="4" height="9" rx="1" fill="#1a1a1a" stroke="#666" stroke-width="0.8"/>
+    </svg>`
+  },
+
+  /* ══════════════════ DC Barrel Jack ══════════════════ */
+  {
+    id:'barrel', name:'DC Power Jack (7–12V In)',
+    cat:'power',
+    ox:'-400px', oy:'300px', x:60, y:260, w:58, h:48, delay:1000,
+    desc:'The 5.5mm outer / 2.1mm inner barrel jack accepts 7V–12V DC from a wall adapter. An on-board M7 Schottky diode provides reverse-polarity protection — plugging in a reversed polarity supply will not damage the board. For the Mega, 9V is the sweet spot: the 5V regulator runs cooler than at 12V. The raw input voltage is available on the Vin pin.',
+    stats:['Input: 7–12V DC','Centre pin: Positive','Diode: M7 Schottky','Recommended: 9V 1A','Vin pass-through on header'],
+    svg:`<svg width="58" height="48" viewBox="0 0 58 48">
+      <rect x="2" y="6" width="54" height="36" rx="5" fill="#303030" stroke="#666" stroke-width="1.5"/>
+      <circle cx="29" cy="24" r="13" fill="#111" stroke="#555" stroke-width="1.2"/>
+      <circle cx="29" cy="24" r="8" fill="#0a0a0a" stroke="#444" stroke-width="0.8"/>
+      <circle cx="29" cy="24" r="3.5" fill="#1e1e1e" stroke="#666" stroke-width="0.5"/>
+      <rect x="6" y="0" width="9" height="6" rx="1.5" fill="#1a1a1a" stroke="#666" stroke-width="0.7"/>
+      <rect x="43" y="0" width="9" height="6" rx="1.5" fill="#1a1a1a" stroke="#666" stroke-width="0.7"/>
+      <rect x="6" y="42" width="9" height="6" rx="1.5" fill="#1a1a1a" stroke="#666" stroke-width="0.7"/>
+      <rect x="43" y="42" width="9" height="6" rx="1.5" fill="#1a1a1a" stroke="#666" stroke-width="0.7"/>
+    </svg>`
+  },
+
+  /* ══════════════════ M7 Diode (reverse polarity) ══════════════════ */
+  {
+    id:'m7_diode', name:'M7 Schottky Diode (Reverse-Polarity)',
+    cat:'passive',
+    ox:'0px', oy:'350px', x:132, y:302, w:28, h:16, delay:1050,
+    desc:'The M7 (SMA package) Schottky diode protects the entire board from reverse-polarity damage. If you accidentally plug in a power supply with the polarity swapped, this diode blocks the current and prevents damage to the regulators and ICs. It is placed in series with the positive input from the barrel jack. The Schottky type is preferred because its forward voltage drop (~0.3V) wastes less energy than a standard silicon diode (~0.7V).',
+    stats:['Type: M7 Schottky SMD','Package: SMA (DO-214AC)','PIV: 1000V','If: 1A max','Vf: ~0.3V forward drop','Purpose: Reverse polarity'],
+    svg:`<svg width="28" height="16" viewBox="0 0 28 16">
+      <rect x="1" y="4" width="26" height="8" rx="2" fill="#333" stroke="#888" stroke-width="1"/>
+      <line x1="1" y1="8" x2="6" y2="8" stroke="#aaa" stroke-width="1.5"/>
+      <line x1="22" y1="8" x2="27" y2="8" stroke="#aaa" stroke-width="1.5"/>
+      <!-- diode symbol -->
+      <polygon points="8,4 16,8 8,12" fill="#cc6600" stroke="#ffaa00" stroke-width="0.5"/>
+      <line x1="16" y1="4" x2="16" y2="12" stroke="#ffaa00" stroke-width="1.2"/>
+      <text x="14" y="15" fill="rgba(200,150,0,0.6)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">M7</text>
+    </svg>`
+  },
+
+  /* ══════════════════ 5V Regulator ══════════════════ */
+  {
+    id:'vreg5', name:'5V Voltage Regulator (NCP1117-5.0)',
+    cat:'power',
+    ox:'380px', oy:'350px', x:170, y:304, w:60, h:44, delay:1100,
+    desc:'The NCP1117-5.0 (or LM7805 equivalent) linear voltage regulator converts 7–12V from the barrel jack to a clean, stable 5V. The large exposed metal tab is soldered to the PCB copper pour for thermal dissipation. It can supply up to 1A, but generates significant heat at higher barrel voltages — at 12V input and 1A load it dissipates 7W and gets very hot. Keep the Mega below 12V if you draw heavy current.',
+    stats:['IC: NCP1117-5.0 / LM7805','Vin: 7–12V','Vout: 5.0V regulated','Iout: 1A max','Package: TO-252 (DPAK)','Dropout: ~1.2V'],
+    svg:`<svg width="60" height="44" viewBox="0 0 60 44">
+      <rect x="4" y="2" width="52" height="28" rx="3" fill="#1a1a10" stroke="#aa8800" stroke-width="1.3"/>
+      <rect x="0" y="14" width="60" height="10" rx="2" fill="#2a2a18" stroke="#ccaa00" stroke-width="0.8"/>
+      <rect x="8" y="30" width="11" height="14" rx="1.5" fill="#887722" stroke="#ccaa00" stroke-width="0.8"/>
+      <rect x="24" y="30" width="11" height="14" rx="1.5" fill="#887722" stroke="#ccaa00" stroke-width="0.8"/>
+      <rect x="40" y="30" width="11" height="14" rx="1.5" fill="#887722" stroke="#ccaa00" stroke-width="0.8"/>
+      <text x="30" y="18" fill="rgba(200,160,0,0.85)" font-size="7.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">NCP1117-5V</text>
+    </svg>`
+  },
+
+  /* ══════════════════ 3.3V Regulator ══════════════════ */
+  {
+    id:'vreg33', name:'3.3V Voltage Regulator (LP2985)',
+    cat:'power',
+    ox:'380px', oy:'-350px', x:238, y:304, w:44, h:36, delay:1150,
+    desc:'The LP2985 is a low-dropout (LDO) regulator producing 3.3V from the 5V rail. It is limited to 150mA — enough for sensors, Bluetooth modules, or SD cards, but not for high-current devices. The 3.3V rail is exposed on the power header. Always check that your total 3.3V load stays below 150mA to avoid voltage drop or regulator shutdown.',
+    stats:['IC: LP2985-33','Vin: 5V rail','Vout: 3.3V','Iout: 150mA max','Package: SOT-23-5','LDO: very low dropout'],
+    svg:`<svg width="44" height="36" viewBox="0 0 44 36">
+      <rect x="2" y="2" width="40" height="22" rx="3" fill="#1a1a10" stroke="#886600" stroke-width="1.1"/>
+      <rect x="5" y="24" width="10" height="12" rx="1.5" fill="#665500" stroke="#aa8800" stroke-width="0.7"/>
+      <rect x="17" y="24" width="10" height="12" rx="1.5" fill="#665500" stroke="#aa8800" stroke-width="0.7"/>
+      <rect x="29" y="24" width="10" height="12" rx="1.5" fill="#665500" stroke="#aa8800" stroke-width="0.7"/>
+      <text x="22" y="16" fill="rgba(180,130,0,0.8)" font-size="6.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">LP2985</text>
+    </svg>`
+  },
+
+  /* ══════════════════ Reset Button ══════════════════ */
+  {
+    id:'reset_btn', name:'Reset Button (RESET)',
+    cat:'passive',
+    ox:'0px', oy:'-380px', x:694, y:80, w:38, h:38, delay:1200,
+    desc:'A tact switch connected to the ATmega2560 RESET pin. Pressing it pulls RESET low, immediately stopping execution and restarting the board from the beginning of your sketch. This is also used for the manual sync when uploading sketches: the IDE or bootloader sequence DTR/RTS the serial line, which auto-resets the board to enter the bootloader window.',
+    stats:['Type: SMD tact switch','Active: LOW (GND)','RESET pin: PC0','Auto-reset: DTR/RTS pulse','Bootloader window: 1–2s'],
+    svg:`<svg width="38" height="38" viewBox="0 0 38 38">
+      <rect x="2" y="2" width="34" height="34" rx="5" fill="#1a0505" stroke="#cc2200" stroke-width="1.5"/>
+      <rect x="6" y="6" width="26" height="26" rx="4" fill="#dd3300" stroke="#ff4422" stroke-width="1"/>
+      <circle cx="19" cy="19" r="8" fill="#ff5533" stroke="#ff7755" stroke-width="0.8"/>
+      <circle cx="16" cy="16" r="3" fill="rgba(255,200,180,0.3)"/>
+      <!-- corner legs -->
+      <rect x="0" y="4" width="3" height="6" rx="1" fill="#888"/>
+      <rect x="35" y="4" width="3" height="6" rx="1" fill="#888"/>
+      <rect x="0" y="28" width="3" height="6" rx="1" fill="#888"/>
+      <rect x="35" y="28" width="3" height="6" rx="1" fill="#888"/>
+    </svg>`
+  },
+
+  /* ══════════════════ ICSP Header (Main MCU) ══════════════════ */
+  {
+    id:'icsp', name:'ICSP Header (ATmega2560 — Main)',
+    cat:'header',
+    ox:'380px', oy:'0px', x:570, y:148, w:40, h:32, delay:1300,
+    desc:'The In-Circuit Serial Programming header gives direct SPI access to the ATmega2560. Using an ISP programmer (USBtinyISP, AVR-ISP mkII, or even another Arduino running ArduinoISP) you can burn a new bootloader or upload a sketch when the USB-serial path is unavailable. The 6-pin 2×3 header carries MISO, MOSI, SCK, RESET, VCC, and GND.',
+    stats:['Pins: 6 (2×3 2.54mm pitch)','Protocol: SPI','Signals: MISO/MOSI/SCK/RST/VCC/GND','Use: Bootloader burning','Pin 1: MISO (marked square)'],
+    svg:`<svg width="40" height="32" viewBox="0 0 40 32">
+      <rect x="1" y="1" width="38" height="30" rx="3" fill="#0a1a0a" stroke="#1a8a2a" stroke-width="1"/>
+      ${[0,1,2].map(i=>`
+        <circle cx="${8+i*12}" cy="9" r="4" fill="#143a14" stroke="rgba(0,220,100,0.5)" stroke-width="0.7"/>
+        <circle cx="${8+i*12}" cy="9" r="1.8" fill="rgba(0,255,100,0.2)"/>
+        <circle cx="${8+i*12}" cy="23" r="4" fill="#143a14" stroke="rgba(0,220,100,0.5)" stroke-width="0.7"/>
+        <circle cx="${8+i*12}" cy="23" r="1.8" fill="rgba(0,255,100,0.2)"/>
+      `).join('')}
+      <!-- pin 1 marker -->
+      <rect x="4" y="5" width="8" height="8" rx="1" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+    </svg>`
+  },
+
+  /* ══════════════════ ICSP2 Header (ATmega16U2) ══════════════════ */
+  {
+    id:'icsp2', name:'ICSP2 Header (ATmega16U2 — USB)',
+    cat:'header',
+    ox:'-380px', oy:'350px', x:160, y:90, w:40, h:32, delay:1350,
+    desc:'The second ICSP header directly connects to the ATmega16U2 USB chip. It lets you re-flash the USB bridge firmware — useful if you want to make the Mega appear as a USB HID device (keyboard, mouse, joystick), a MIDI device, or a custom CDC class. It\'s also essential for recovery if the firmware gets corrupted.',
+    stats:['Pins: 6 (2×3 2.54mm)','Target: ATmega16U2','Protocol: SPI','Use: USB firmware update','Unlocks: HID / MIDI modes'],
+    svg:`<svg width="40" height="32" viewBox="0 0 40 32">
+      <rect x="1" y="1" width="38" height="30" rx="3" fill="#0a1818" stroke="#1a6a5a" stroke-width="1"/>
+      ${[0,1,2].map(i=>`
+        <circle cx="${8+i*12}" cy="9" r="4" fill="#0a3028" stroke="rgba(0,180,150,0.5)" stroke-width="0.7"/>
+        <circle cx="${8+i*12}" cy="9" r="1.8" fill="rgba(0,220,170,0.18)"/>
+        <circle cx="${8+i*12}" cy="23" r="4" fill="#0a3028" stroke="rgba(0,180,150,0.5)" stroke-width="0.7"/>
+        <circle cx="${8+i*12}" cy="23" r="1.8" fill="rgba(0,220,170,0.18)"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ Digital Header 0-7 ══════════════════ */
+  {
+    id:'digi_0_7', name:'Digital Header D0–D7 (Serial0/PWM)',
+    cat:'header',
+    ox:'0px', oy:'-380px', x:100, y:390, w:218, h:26, delay:1500,
+    desc:'Pins D0(RX0) and D1(TX0) are the first hardware UART — shared with the USB-serial chip. Pins D2, D3 support external interrupts INT0/INT1. D3, D5, D6 are PWM-capable (Timer 2/3). These are the same pins as the Arduino Uno, making Mega sketches hardware-compatible with the Uno for pins D0–D13.',
+    stats:['D0: RX0 (UART0)','D1: TX0 (UART0)','D2–D3: INT0/INT1','D3,5,6: PWM','Logic: 5V','Max: 40mA per pin'],
+    svg:`<svg width="218" height="26" viewBox="0 0 218 26">
+      <rect x="1" y="1" width="216" height="24" rx="3" fill="#0a1a0a" stroke="#1a7a2a" stroke-width="1"/>
+      ${[...Array(8)].map((_,i)=>`
+        <circle cx="${14+i*26}" cy="13" r="6" fill="#143a14" stroke="rgba(0,220,100,0.4)" stroke-width="0.8"/>
+        <circle cx="${14+i*26}" cy="13" r="2.8" fill="rgba(0,255,100,0.12)"/>
+        <text x="${14+i*26}" y="17" fill="rgba(0,255,100,0.35)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">${i}</text>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ Digital Header 8-13 ══════════════════ */
+  {
+    id:'digi_8_13', name:'Digital Header D8–D13 (PWM/SPI)',
+    cat:'header',
+    ox:'0px', oy:'-380px', x:320, y:390, w:166, h:26, delay:1540,
+    desc:'Pins D8–D13 include heavy PWM coverage — D9, D10, D11 run at 490Hz via Timer2, while D10(SS), D11(MOSI), D12(MISO), D13(SCK) form the hardware SPI bus used to communicate with SD cards, displays, and wireless modules. D13 also drives the built-in L LED via a 1kΩ resistor.',
+    stats:['D8: Timer4','D9-D11: PWM 490Hz','D10: SPI SS','D11: SPI MOSI','D12: SPI MISO','D13: SPI SCK + L LED'],
+    svg:`<svg width="166" height="26" viewBox="0 0 166 26">
+      <rect x="1" y="1" width="164" height="24" rx="3" fill="#0a1a0a" stroke="#1a7a2a" stroke-width="1"/>
+      ${[...Array(6)].map((_,i)=>`
+        <circle cx="${14+i*26}" cy="13" r="6" fill="#143a14" stroke="rgba(0,220,100,0.4)" stroke-width="0.8"/>
+        <circle cx="${14+i*26}" cy="13" r="2.8" fill="rgba(0,255,100,0.12)"/>
+        <text x="${14+i*26}" y="17" fill="rgba(0,255,100,0.35)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">${8+i}</text>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ Digital Header 14-21 (UART 1/2) ══════════════════ */
+  {
+    id:'digi_14_21', name:'Digital Header D14–D21 (UART 1 & 2)',
+    cat:'header',
+    ox:'380px', oy:'-380px', x:494, y:390, w:218, h:26, delay:1580,
+    desc:'Pins D14–D21 are mostly UART-mapped: D14(TX3)/D15(RX3) = Serial3, D16(TX2)/D17(RX2) = Serial2, D18(TX1)/D19(RX1) = Serial1, D20(SDA)/D21(SCL) = I2C (Wire library). The Mega\'s 4 hardware UARTs allow simultaneous communication with GPS, GSM, Bluetooth, and the debug console without software serial overhead.',
+    stats:['D14-D15: UART3 (Serial3)','D16-D17: UART2 (Serial2)','D18-D19: UART1 (Serial1)','D20: SDA (I2C)','D21: SCL (I2C)','D18/D19: INT5/INT4'],
+    svg:`<svg width="218" height="26" viewBox="0 0 218 26">
+      <rect x="1" y="1" width="216" height="24" rx="3" fill="#0a1020" stroke="#2a4a9a" stroke-width="1"/>
+      ${[...Array(8)].map((_,i)=>`
+        <circle cx="${14+i*26}" cy="13" r="6" fill="#10204a" stroke="rgba(100,140,255,0.4)" stroke-width="0.8"/>
+        <circle cx="${14+i*26}" cy="13" r="2.8" fill="rgba(100,140,255,0.1)"/>
+        <text x="${14+i*26}" y="17" fill="rgba(100,160,255,0.35)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">${14+i}</text>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ Digital Header 22-37 ══════════════════ */
+  {
+    id:'digi_22_37', name:'Digital Header D22–D37 (GPIO Bank A/C)',
+    cat:'header',
+    ox:'380px', oy:'0px', x:716, y:390, w:26, h:420, delay:1600,
+    desc:'Pins D22–D37 form two complete 8-bit ports: PORT A (D22–D29) and PORT C (D30–D37). These are the Mega\'s extra-exclusive pins not present on the Uno. They are ideal for driving 8-bit parallel buses (LCD displays, memory chips), reading 8-bit input ports, or controlling multiple shift registers. PORTA and PORTC can be written in a single instruction for maximum speed.',
+    stats:['D22-D29: PORT A (8-bit bus)','D30-D37: PORT C (8-bit bus)','Speed: Single-cycle write','Common use: LCD D-bus','Logic: 5V TTL','Max: 40mA / pin'],
+    svg:`<svg width="26" height="420" viewBox="0 0 26 420">
+      <rect x="1" y="1" width="24" height="418" rx="3" fill="#0a1a10" stroke="#2a7a3a" stroke-width="1"/>
+      ${[...Array(16)].map((_,i)=>`
+        <circle cx="13" cy="${14+i*25}" r="5.5" fill="#0f3018" stroke="rgba(60,200,100,0.4)" stroke-width="0.7"/>
+        <circle cx="13" cy="${14+i*25}" r="2.5" fill="rgba(60,200,100,0.1)"/>
+        <text x="13" y="${18+i*25}" fill="rgba(60,200,100,0.3)" font-size="4" text-anchor="middle" font-family="'Share Tech Mono',monospace">${22+i}</text>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ Digital Header 38-53 ══════════════════ */
+  {
+    id:'digi_38_53', name:'Digital Header D38–D53 (GPIO Bank D/G)',
+    cat:'header',
+    ox:'-380px', oy:'0px', x:756, y:390, w:26, h:420, delay:1640,
+    desc:'Pins D38–D53 map to ATmega2560 PORT D (D38–D45) and PORT G/L (D46–D53). D46–D53 (PORT L) are especially useful — Timer 5 provides hardware PWM on D44, D45, and D46. D50(MISO), D51(MOSI), D52(SCK), D53(SS) are a secondary SPI bus commonly used with SD card shields. D53 must be kept as OUTPUT if the hardware SPI master is active.',
+    stats:['D44-D46: Timer5 PWM','D50: MISO (SPI2)','D51: MOSI (SPI2)','D52: SCK (SPI2)','D53: SS — keep OUTPUT','PORT L: D49-D42'],
+    svg:`<svg width="26" height="420" viewBox="0 0 26 420">
+      <rect x="1" y="1" width="24" height="418" rx="3" fill="#100a20" stroke="#5a2a9a" stroke-width="1"/>
+      ${[...Array(16)].map((_,i)=>`
+        <circle cx="13" cy="${14+i*25}" r="5.5" fill="#20105a" stroke="rgba(140,80,255,0.4)" stroke-width="0.7"/>
+        <circle cx="13" cy="${14+i*25}" r="2.5" fill="rgba(140,80,255,0.1)"/>
+        <text x="13" y="${18+i*25}" fill="rgba(160,100,255,0.3)" font-size="4" text-anchor="middle" font-family="'Share Tech Mono',monospace">${38+i}</text>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ Analog Header A0-A7 ══════════════════ */
+  {
+    id:'analog_0_7', name:'Analog Header A0–A7',
+    cat:'header',
+    ox:'0px', oy:'380px', x:100, y:460, w:218, h:26, delay:1700,
+    desc:'The first eight analog pins (A0–A7) are the same positions as the Uno. They connect to the ATmega2560\'s 10-bit ADC giving readings from 0–1023 for voltages 0–5V. They can also be used as digital I/O pins D54–D61. The ADC reference defaults to 5V but can be switched to 3.3V (AREF pin), internal 1.1V, or an external reference voltage.',
+    stats:['A0–A7 = D54–D61 digital','ADC: 10-bit (0–1023)','Voltage range: 0–5V','Ref: 5V default / AREF','Speed: ~10ksps at 10-bit','Can switch: 1.1V internal ref'],
+    svg:`<svg width="218" height="26" viewBox="0 0 218 26">
+      <rect x="1" y="1" width="216" height="24" rx="3" fill="#0a1a12" stroke="#1a7a4a" stroke-width="1"/>
+      ${[...Array(8)].map((_,i)=>`
+        <circle cx="${14+i*26}" cy="13" r="6" fill="#0a3020" stroke="rgba(0,200,140,0.4)" stroke-width="0.8"/>
+        <circle cx="${14+i*26}" cy="13" r="2.8" fill="rgba(0,200,140,0.12)"/>
+        <text x="${14+i*26}" y="17" fill="rgba(0,200,140,0.38)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">A${i}</text>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ Analog Header A8-A15 ══════════════════ */
+  {
+    id:'analog_8_15', name:'Analog Header A8–A15 (Mega Exclusive)',
+    cat:'header',
+    ox:'0px', oy:'380px', x:320, y:460, w:218, h:26, delay:1740,
+    desc:'Pins A8–A15 are unique to the Arduino Mega — not present on the Uno. These map to ATmega2560 PORT K and digital pins D62–D69. All 8 share the same 10-bit ADC via internal multiplexing. Having 16 total analog inputs is invaluable for data acquisition projects, multi-sensor arrays, or analogue joystick/slider panels.',
+    stats:['A8–A15 = D62–D69','Unique to Mega/Due','ADC: 10-bit shared MUX','Total ADC channels: 16','PORT K mapping','Max input: 5V (absolute max)'],
+    svg:`<svg width="218" height="26" viewBox="0 0 218 26">
+      <rect x="1" y="1" width="216" height="24" rx="3" fill="#0a1a12" stroke="#2a8a5a" stroke-width="1"/>
+      ${[...Array(8)].map((_,i)=>`
+        <circle cx="${14+i*26}" cy="13" r="6" fill="#0a3828" stroke="rgba(0,220,160,0.45)" stroke-width="0.8"/>
+        <circle cx="${14+i*26}" cy="13" r="2.8" fill="rgba(0,220,160,0.12)"/>
+        <text x="${14+i*26}" y="17" fill="rgba(0,220,160,0.4)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">A${8+i}</text>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ Power Header ══════════════════ */
+  {
+    id:'power_hdr', name:'Power Header (5V, 3.3V, GND, Vin)',
+    cat:'power',
+    ox:'-380px', oy:'380px', x:540, y:460, w:176, h:26, delay:1780,
+    desc:'The power header exposes the regulated voltages for shields and external modules. The 5V rail is sourced up to 1A. The 3.3V pin is limited to 150mA from the LP2985 LDO. The Vin pin passes the raw barrel-jack voltage (7–12V) directly, useful for powering motor drivers. Two GND pins provide common ground reference. The RESET pin resets the board when pulled LOW.',
+    stats:['5V: 1A (from NCP1117)','3.3V: 150mA (LP2985)','Vin: raw 7–12V','GND: common reference','RESET: active LOW','IOREF: 5V logic level ref'],
+    svg:`<svg width="176" height="26" viewBox="0 0 176 26">
+      <rect x="1" y="1" width="174" height="24" rx="3" fill="#1a0808" stroke="#7a1a1a" stroke-width="1"/>
+      ${['#cc2200','#cc2200','#0a2a0a','#0a2a0a','#0a0a2a','#0a2a0a','#cc6600'].map((col,i)=>`
+        <circle cx="${14+i*24}" cy="13" r="6" fill="${col}" stroke="rgba(200,80,80,0.25)" stroke-width="0.8"/>
+        <circle cx="${14+i*24}" cy="13" r="2.8" fill="rgba(255,80,60,0.1)"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ IOREF Header ══════════════════ */
+  {
+    id:'ioref_hdr', name:'IOREF Header (Logic Level Reference)',
+    cat:'header',
+    ox:'-380px', oy:'-380px', x:64, y:460, w:32, h:26, delay:1800,
+    desc:'The IOREF pin (added in Arduino R3 boards) allows shields to detect the board\'s operating voltage. Smart shields read IOREF and configure their level shifters accordingly. On the Mega 2560 R3 it reads 5V. A future 3.3V Arduino would read 3.3V here. Always use IOREF instead of hardcoding 5V in shield firmware for maximum compatibility.',
+    stats:['Voltage: 5V (= VCC)','Purpose: shield compatibility','Added: Arduino R3 spec','Use: auto-level-shifting shields'],
+    svg:`<svg width="32" height="26" viewBox="0 0 32 26">
+      <rect x="1" y="1" width="30" height="24" rx="3" fill="#1a1a0a" stroke="#5a5a1a" stroke-width="1"/>
+      <circle cx="9" cy="13" r="5" fill="#2a2a10" stroke="rgba(200,200,60,0.4)" stroke-width="0.7"/>
+      <circle cx="23" cy="13" r="5" fill="#2a2a10" stroke="rgba(200,200,60,0.4)" stroke-width="0.7"/>
+    </svg>`
+  },
+
+  /* ══════════════════ SDA/SCL Header ══════════════════ */
+  {
+    id:'i2c_hdr', name:'SDA/SCL Header (I2C Dedicated Pins)',
+    cat:'header',
+    ox:'380px', oy:'-380px', x:100, y:460, w:0, y:28, delay:1810,
+    desc:'Added in Arduino R3, these dedicated I2C header pins mirror D20(SDA) and D21(SCL). They sit near the power header for convenient I2C shield connection without long wiring. I2C supports up to 127 addressable devices on the same two wires — ideal for connecting multiple sensors, EEPROMs, RTCs, or LCD backpacks.',
+    stats:['Pins: SDA, SCL','Mirrors: D20/D21','Protocol: I2C (400kHz)','Voltage: 5V','Max devices: 127','Pull-up: 4.7kΩ on-board'],
+    svg:`<svg width="28" height="26" viewBox="0 0 28 26">
+      <rect x="1" y="1" width="26" height="24" rx="3" fill="#0a0a1a" stroke="#3a3a8a" stroke-width="1"/>
+      <circle cx="8" cy="13" r="5" fill="#10103a" stroke="rgba(100,100,220,0.4)" stroke-width="0.7"/>
+      <circle cx="20" cy="13" r="5" fill="#10103a" stroke="rgba(100,100,220,0.4)" stroke-width="0.7"/>
+      <text x="8" y="16.5" fill="rgba(100,120,255,0.4)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">S</text>
+      <text x="20" y="16.5" fill="rgba(100,120,255,0.4)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">C</text>
+    </svg>`
+  },
+
+  /* ══════════════════ ON LED ══════════════════ */
+  {
+    id:'led_on', name:'PWR LED (Power ON Indicator)',
+    cat:'led',
+    ox:'-380px', oy:'-380px', x:282, y:358, w:16, h:16, delay:1900,
+    desc:'A green SMD LED indicating the board has power. It is connected directly to the 5V rail through a 1kΩ current-limiting resistor. If this LED is off, no power is reaching the board — check USB connection, barrel jack, or the power switch if using an external supply. Its steady glow is your first sign that the board is alive.',
+    stats:['Color: Green','Vf: ~2.1V','Resistor: 1kΩ series','Current: ~2.9mA','Always lit when powered','Identifies: 5V rail presence'],
+    svg:`<svg width="16" height="16" viewBox="0 0 16 16">
+      <rect x="1" y="1" width="14" height="14" rx="2.5" fill="#001800" stroke="#00aa00" stroke-width="1.2"/>
+      <ellipse cx="8" cy="8" rx="5" ry="5" fill="#00dd00" opacity="0.9"/>
+      <ellipse cx="6" cy="6" rx="2" ry="1.2" fill="rgba(180,255,180,0.4)" transform="rotate(-20 6 6)"/>
+    </svg>`
+  },
+
+  /* ══════════════════ TX LED ══════════════════ */
+  {
+    id:'led_tx', name:'TX LED (UART Transmit Activity)',
+    cat:'led',
+    ox:'380px', oy:'-380px', x:118, y:290, w:16, h:16, delay:1950,
+    desc:'The TX LED flickers whenever data is transmitted from the ATmega2560 to the computer via the ATmega16U2 USB bridge. It blinks during Serial.print() calls or any UART0 transmission. When uploading a sketch, it will flash rapidly as code is transferred. A useful indicator that your Serial.println() commands are actually executing.',
+    stats:['Color: Yellow','Function: UART0 TX activity','Driven by: ATmega16U2','Flickers: Serial.print()','Also: sketch upload TX'],
+    svg:`<svg width="16" height="16" viewBox="0 0 16 16">
+      <rect x="1" y="1" width="14" height="14" rx="2.5" fill="#1a1a00" stroke="#aaaa00" stroke-width="1.2"/>
+      <ellipse cx="8" cy="8" rx="5" ry="5" fill="#dddd00" opacity="0.9"/>
+      <ellipse cx="6" cy="6" rx="2" ry="1.2" fill="rgba(255,255,180,0.4)" transform="rotate(-20 6 6)"/>
+    </svg>`
+  },
+
+  /* ══════════════════ RX LED ══════════════════ */
+  {
+    id:'led_rx', name:'RX LED (UART Receive Activity)',
+    cat:'led',
+    ox:'-380px', oy:'-380px', x:136, y:290, w:16, h:16, delay:1960,
+    desc:'The RX LED flickers when data arrives at the ATmega2560 from the computer — notably during sketch upload when the IDE sends the compiled HEX file. It also flickers when you type in the Serial Monitor and send data. The ATmega16U2 drives both TX and RX LEDs based on its USB-UART traffic.',
+    stats:['Color: Yellow (amber)','Function: UART0 RX activity','Driven by: ATmega16U2','Flickers: sketch upload','Also: Serial Monitor input'],
+    svg:`<svg width="16" height="16" viewBox="0 0 16 16">
+      <rect x="1" y="1" width="14" height="14" rx="2.5" fill="#1a1500" stroke="#ccaa00" stroke-width="1.2"/>
+      <ellipse cx="8" cy="8" rx="5" ry="5" fill="#ccaa00" opacity="0.9"/>
+      <ellipse cx="6" cy="6" rx="2" ry="1.2" fill="rgba(255,230,150,0.4)" transform="rotate(-20 6 6)"/>
+    </svg>`
+  },
+
+  /* ══════════════════ L LED (GPIO13) ══════════════════ */
+  {
+    id:'led_l', name:'L LED (Digital Pin 13 — Blink)',
+    cat:'led',
+    ox:'380px', oy:'-380px', x:155, y:290, w:16, h:16, delay:1970,
+    desc:'The iconic "L" LED is connected to digital pin 13 via a 1kΩ resistor. It is the LED you control in the famous Blink sketch — literally the first program every Arduino beginner runs. Use digitalWrite(13, HIGH) or digitalWrite(LED_BUILTIN, HIGH). Its presence is a gift to beginners: no external components needed to learn LED control.',
+    stats:['GPIO: D13','Color: Orange/Yellow','Constant: LED_BUILTIN','Sketch: Blink example','Resistor: 1kΩ on-board','Use: test output without wiring'],
+    svg:`<svg width="16" height="16" viewBox="0 0 16 16">
+      <rect x="1" y="1" width="14" height="14" rx="2.5" fill="#1a0800" stroke="#cc5500" stroke-width="1.2"/>
+      <ellipse cx="8" cy="8" rx="5" ry="5" fill="#ff7700" opacity="0.9"/>
+      <ellipse cx="6" cy="6" rx="2" ry="1.2" fill="rgba(255,220,150,0.4)" transform="rotate(-20 6 6)"/>
+    </svg>`
+  },
+
+  /* ══════════════════ Electrolytic Caps (100µF) ══════════════════ */
+  {
+    id:'ecap_100', name:'Electrolytic Capacitors (100µF, Bulk Decoupling)',
+    cat:'passive',
+    ox:'0px', oy:'380px', x:160, y:302, w:74, h:42, delay:2050,
+    desc:'Two 100µF electrolytic capacitors provide bulk energy storage near the voltage regulators. They absorb current spikes when the microcontroller switches multiple I/O pins simultaneously or when driving inductive loads. Without these, voltage droop could cause erratic behavior or resets. They also filter residual ripple from the DC input.',
+    stats:['Value: 100µF each','Voltage rating: 16V','Type: SMD Electrolytic','Function: Bulk supply decoupling','ESR: low for fast transient response'],
+    svg:`<svg width="74" height="42" viewBox="0 0 74 42">
+      <!-- cap 1 -->
+      <rect x="2" y="8" width="30" height="28" rx="14" fill="#1a1a3a" stroke="#4444aa" stroke-width="1.2"/>
+      <line x1="17" y1="8" x2="17" y2="36" stroke="rgba(150,150,220,0.25)" stroke-width="0.7"/>
+      <rect x="7" y="2" width="18" height="6" rx="2" fill="#2a2a4a" stroke="#5555bb" stroke-width="0.5"/>
+      <!-- polarity mark -->
+      <rect x="3" y="8" width="12" height="28" rx="14" fill="rgba(0,0,0,0.3)"/>
+      <!-- cap 2 -->
+      <rect x="42" y="8" width="30" height="28" rx="14" fill="#1a1a3a" stroke="#4444aa" stroke-width="1.2"/>
+      <line x1="57" y1="8" x2="57" y2="36" stroke="rgba(150,150,220,0.25)" stroke-width="0.7"/>
+      <rect x="47" y="2" width="18" height="6" rx="2" fill="#2a2a4a" stroke="#5555bb" stroke-width="0.5"/>
+      <rect x="43" y="8" width="12" height="28" rx="14" fill="rgba(0,0,0,0.3)"/>
+      <text x="37" y="41" fill="rgba(100,100,200,0.45)" font-size="6.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">100µF</text>
+    </svg>`
+  },
+
+  /* ══════════════════ SMD Decoupling Caps (100nF) ══════════════════ */
+  {
+    id:'decap', name:'SMD Decoupling Capacitors (100nF × 8)',
+    cat:'passive',
+    ox:'0px', oy:'-380px', x:268, y:228, w:120, h:60, delay:2100,
+    desc:'Eight 100nF (0.1µF) ceramic SMD capacitors are placed directly adjacent to every IC power pin on both the ATmega2560 and ATmega16U2. These are bypass / decoupling capacitors: they filter high-frequency switching noise that the larger electrolytics cannot suppress. Industry rule: every IC pin needs a 100nF ceramic within 2–3mm. Missing decoupling causes ghost resets, timing glitches, and EMC emissions.',
+    stats:['Value: 100nF (0.1µF) each','Type: Ceramic X7R 0402','Voltage: 10V','Count: 8 total','Placement: near IC power pins','Purpose: HF noise suppression'],
+    svg:`<svg width="120" height="60" viewBox="0 0 120 60">
+      ${[...Array(8)].map((_,i)=>`
+        <rect x="${(i%4)*28+4}" y="${Math.floor(i/4)*28+4}" width="22" height="14" rx="2" fill="#1a1a1a" stroke="#555" stroke-width="0.8"/>
+        <line x1="${(i%4)*28+13}" y1="${Math.floor(i/4)*28+4}" x2="${(i%4)*28+13}" y2="${Math.floor(i/4)*28+18}" stroke="rgba(150,150,150,0.3)" stroke-width="0.5"/>
+        <rect x="${(i%4)*28+4}" y="${Math.floor(i/4)*28+4}" width="4" height="14" rx="1" fill="#888"/>
+        <rect x="${(i%4)*28+22}" y="${Math.floor(i/4)*28+4}" width="4" height="14" rx="1" fill="#888"/>
+        <text x="${(i%4)*28+13}" y="${Math.floor(i/4)*28+14}" fill="rgba(180,180,180,0.35)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">104</text>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ Crystal Load Caps (22pF) ══════════════════ */
+  {
+    id:'xtal_caps', name:'Crystal Load Capacitors (22pF × 4)',
+    cat:'passive',
+    ox:'380px', oy:'380px', x:346, y:340, w:80, h:22, delay:2120,
+    desc:'Each crystal oscillator (main MCU and USB chip) requires two 22pF ceramic load capacitors to reach its rated frequency. These capacitors form a pi-filter network with the crystal\'s internal capacitance. Incorrect values shift the oscillation frequency — using 33pF instead of 22pF could make timers drift, baud rates become inaccurate, and USB fail enumeration. They are the smallest components on the board.',
+    stats:['Value: 22pF each','Count: 4 (2 per crystal)','Package: 0402 ceramic','Tolerance: ±5%','Critical for: clock accuracy','Affects: USB and serial timing'],
+    svg:`<svg width="80" height="22" viewBox="0 0 80 22">
+      ${[0,1,2,3].map(i=>`
+        <rect x="${4+i*19}" y="4" width="14" height="10" rx="2" fill="#1a1a1a" stroke="#555" stroke-width="0.7"/>
+        <rect x="${4+i*19}" y="4" width="3" height="10" rx="1" fill="#777"/>
+        <rect x="${15+i*19}" y="4" width="3" height="10" rx="1" fill="#777"/>
+        <text x="${11+i*19}" y="13" fill="rgba(180,180,180,0.3)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">22p</text>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ Reset Cap (100nF) ══════════════════ */
+  {
+    id:'reset_cap', name:'Auto-Reset Capacitor (100nF)',
+    cat:'passive',
+    ox:'-380px', oy:'380px', x:676, y:130, w:22, h:14, delay:2130,
+    desc:'A 100nF capacitor connects the DTR line from the ATmega16U2 to the ATmega2560\'s RESET pin. When the Arduino IDE opens the serial port, it toggles DTR, which pulses RESET via this capacitor, causing the auto-reset and bootloader entry. This is why uploading a sketch works without pressing the RESET button. Some users disable auto-reset by cutting the "RESET EN" trace on the PCB when they need stable serial connections.',
+    stats:['Value: 100nF ceramic','Connected: DTR → RESET','Purpose: auto-reset for upload','Disable: cut RESET-EN trace','Package: 0402'],
+    svg:`<svg width="22" height="14" viewBox="0 0 22 14">
+      <rect x="1" y="2" width="20" height="10" rx="2" fill="#1a1a1a" stroke="#555" stroke-width="0.7"/>
+      <rect x="1" y="2" width="4" height="10" rx="1" fill="#777"/>
+      <rect x="17" y="2" width="4" height="10" rx="1" fill="#777"/>
+      <text x="11" y="10" fill="rgba(200,180,180,0.35)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">100n</text>
+    </svg>`
+  },
+
+  /* ══════════════════ SMD Resistors (LED) ══════════════════ */
+  {
+    id:'led_resistors', name:'LED Current-Limiting Resistors (1kΩ × 4)',
+    cat:'passive',
+    ox:'380px', oy:'380px', x:270, y:268, w:90, h:14, delay:2150,
+    desc:'Four 1kΩ SMD resistors limit current to the four on-board LEDs (PWR, TX, RX, L). Without these resistors, the LEDs would draw excess current and could burn out or damage the GPIO pin. At 5V with 1kΩ and Vf~2V, each LED draws roughly 3mA — visible but not wasteful. They are 0402 package, the tiny rectangular components near the LEDs.',
+    stats:['Value: 1kΩ each','Count: 4 (one per LED)','Package: 0402 SMD','Power: 1/16W','Purpose: LED current limiting','Color code: Brown Black Red'],
+    svg:`<svg width="90" height="14" viewBox="0 0 90 14">
+      ${[0,1,2,3].map(i=>`
+        <rect x="${3+i*22}" y="2" width="16" height="10" rx="2" fill="#2a1a0a" stroke="#886633" stroke-width="0.7"/>
+        <rect x="${3+i*22}" y="2" width="3" height="10" rx="1" fill="#aa8844"/>
+        <rect x="${16+i*22}" y="2" width="3" height="10" rx="1" fill="#aa8844"/>
+        <!-- color bands -->
+        <rect x="${7+i*22}" y="3" width="2" height="8" fill="#8B4513"/>
+        <rect x="${10+i*22}" y="3" width="2" height="8" fill="#111"/>
+        <rect x="${13+i*22}" y="3" width="2" height="8" fill="#cc2200"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ 10kΩ Resistors (Pull-up/SPI) ══════════════════ */
+  {
+    id:'pullup_res', name:'Pull-up Resistors (10kΩ — RESET / I2C)',
+    cat:'passive',
+    ox:'-380px', oy:'-380px', x:616, y:110, w:66, h:14, delay:2160,
+    desc:'Three 10kΩ SMD resistors provide pull-ups for the RESET line, and weak pull-ups on the SDA and SCL I2C lines. The RESET pull-up ensures the pin stays HIGH (inactive) when no signal is applied. The I2C pull-ups define the idle state of the bus as logic HIGH, allowing any device to pull the line LOW to signal a "0". Without pull-ups, I2C communication fails.',
+    stats:['Value: 10kΩ each','Count: 3 total','RESET: 1 pull-up to 5V','I2C SDA/SCL: 2 pull-ups','Package: 0402 SMD','Color code: Brown Black Orange'],
+    svg:`<svg width="66" height="14" viewBox="0 0 66 14">
+      ${[0,1,2].map(i=>`
+        <rect x="${3+i*22}" y="2" width="16" height="10" rx="2" fill="#1a2a0a" stroke="#446633" stroke-width="0.7"/>
+        <rect x="${3+i*22}" y="2" width="3" height="10" rx="1" fill="#668844"/>
+        <rect x="${16+i*22}" y="2" width="3" height="10" rx="1" fill="#668844"/>
+        <rect x="${7+i*22}" y="3" width="2" height="8" fill="#8B4513"/>
+        <rect x="${10+i*22}" y="3" width="2" height="8" fill="#111"/>
+        <rect x="${13+i*22}" y="3" width="2" height="8" fill="#ff8800"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ 22Ω Resistors (USB D+/D−) ══════════════════ */
+  {
+    id:'usb_res', name:'22Ω USB Series Resistors (D+ / D−)',
+    cat:'passive',
+    ox:'-380px', oy:'0px', x:80, y:246, w:44, h:14, delay:2170,
+    desc:'Two 22Ω resistors in series with the USB D+ and D− differential lines suppress signal reflections caused by impedance mismatch on the PCB trace. USB 2.0 Full-Speed requires controlled 90Ω differential impedance — these series resistors help match the trace impedance to prevent signal integrity issues that could cause USB errors or failed enumeration at higher baud rates.',
+    stats:['Value: 22Ω each','Count: 2 (D+ and D−)','Purpose: USB impedance matching','Prevents: signal reflection','Required by: USB 2.0 spec','Package: 0402'],
+    svg:`<svg width="44" height="14" viewBox="0 0 44 14">
+      ${[0,1].map(i=>`
+        <rect x="${3+i*22}" y="2" width="16" height="10" rx="2" fill="#0a1a2a" stroke="#334466" stroke-width="0.7"/>
+        <rect x="${3+i*22}" y="2" width="3" height="10" rx="1" fill="#446688"/>
+        <rect x="${16+i*22}" y="2" width="3" height="10" rx="1" fill="#446688"/>
+        <rect x="${7+i*22}" y="3" width="2" height="8" fill="#cc2200"/>
+        <rect x="${10+i*22}" y="3" width="2" height="8" fill="#cc2200"/>
+        <rect x="${13+i*22}" y="3" width="2" height="8" fill="#111"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ Ferrite Bead ══════════════════ */
+  {
+    id:'ferrite', name:'Ferrite Bead (USB Power Filter)',
+    cat:'passive',
+    ox:'-380px', oy:'-380px', x:80, y:228, w:22, h:14, delay:2180,
+    desc:'A surface-mount ferrite bead is placed in series with the USB 5V power line before it reaches the board. Ferrite beads act as frequency-dependent resistors — they pass DC cleanly but attenuate high-frequency switching noise (above 1MHz) from the USB power rail. This prevents conducted EMI from a noisy computer USB port from affecting the analog measurements or causing unstable operation.',
+    stats:['Type: SMD ferrite bead','Impedance: 600Ω @ 100MHz','DC resistance: <0.1Ω','Current: 1A rated','Package: 0603','Filters: USB VBUS HF noise'],
+    svg:`<svg width="22" height="14" viewBox="0 0 22 14">
+      <rect x="1" y="2" width="20" height="10" rx="2" fill="#1a1a1a" stroke="#555" stroke-width="0.7"/>
+      <rect x="1" y="2" width="4" height="10" rx="1" fill="#888"/>
+      <rect x="17" y="2" width="4" height="10" rx="1" fill="#888"/>
+      <!-- ferrite pattern -->
+      <line x1="7" y1="4" x2="7" y2="10" stroke="rgba(150,150,150,0.4)" stroke-width="1"/>
+      <line x1="10" y1="4" x2="10" y2="10" stroke="rgba(150,150,150,0.4)" stroke-width="1"/>
+      <line x1="13" y1="4" x2="13" y2="10" stroke="rgba(150,150,150,0.4)" stroke-width="1"/>
+    </svg>`
+  },
+
+  /* ══════════════════ TVS Diode (USB ESD) ══════════════════ */
+  {
+    id:'tvs_diode', name:'TVS Diode (USB ESD Protection)',
+    cat:'passive',
+    ox:'-380px', oy:'0px', x:80, y:210, w:24, h:14, delay:2190,
+    desc:'A transient-voltage-suppressor (TVS) diode array protects the USB D+ and D− lines from electrostatic discharge (ESD). USB connectors can be touched by people carrying static charges up to several kV. Without TVS protection, a single ESD event could latch-up or destroy the ATmega16U2. The TVS clamps any spike above ~5V to a safe level within picoseconds.',
+    stats:['Type: TVS (bidirectional)','Lines protected: D+, D−, VCC','Clamping: ~5.5V','Response: <1 picosecond','Package: SOT-23','Standard: USB ESD IEC61000-4-2'],
+    svg:`<svg width="24" height="14" viewBox="0 0 24 14">
+      <rect x="1" y="2" width="22" height="10" rx="2" fill="#1a0a0a" stroke="#664444" stroke-width="0.7"/>
+      <rect x="1" y="2" width="4" height="10" rx="1" fill="#886666"/>
+      <rect x="19" y="2" width="4" height="10" rx="1" fill="#886666"/>
+      <!-- TVS symbol hint -->
+      <line x1="8" y1="7" x2="12" y2="7" stroke="#cc6666" stroke-width="1"/>
+      <polygon points="10,4 14,7 10,10" fill="#cc4444" stroke="#ee6666" stroke-width="0.4"/>
+      <line x1="14" y1="4" x2="14" y2="10" stroke="#ee6666" stroke-width="1"/>
+    </svg>`
+  },
+
+  /* ══════════════════ AREF Pin ══════════════════ */
+  {
+    id:'aref_pin', name:'AREF Pin (Analog Reference)',
+    cat:'header',
+    ox:'380px', oy:'-380px', x:720, y:460, w:30, h:26, delay:2200,
+    desc:'The AREF (Analog REFerence) pin allows you to supply an external reference voltage for the ADC. By default the Mega uses 5V as the reference, giving 0–5V range with 4.88mV per step. If you connect a precision 2.56V reference to AREF and call analogReference(EXTERNAL), the ADC range becomes 0–2.56V with 2.5mV per step — nearly doubling resolution. Never connect AREF while using the internal reference.',
+    stats:['Default: 5V (VCC reference)','External: 0 to 5V input','analogReference(EXTERNAL)','Resolution: Vref/1024 per step','Warning: never drive above 5V','Nearby: 100nF decoupling cap'],
+    svg:`<svg width="30" height="26" viewBox="0 0 30 26">
+      <rect x="1" y="1" width="28" height="24" rx="3" fill="#1a1010" stroke="#6a2a2a" stroke-width="1"/>
+      <circle cx="15" cy="13" r="6" fill="#3a1010" stroke="rgba(200,100,100,0.45)" stroke-width="0.8"/>
+      <circle cx="15" cy="13" r="2.8" fill="rgba(200,100,100,0.12)"/>
+      <text x="15" y="16.5" fill="rgba(200,100,100,0.4)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">AR</text>
+    </svg>`
+  },
+
+  /* ══════════════════ Communication Header ══════════════════ */
+  {
+    id:'comm_hdr', name:'Communication Header (SDA/SCL/RX1/TX1)',
+    cat:'header',
+    ox:'0px', oy:'-380px', x:664, y:390, w:48, h:26, delay:2210,
+    desc:'This additional header near the digital pins provides alternate access to I2C (SDA/SCL) and the first extra UART (Serial1: TX1/RX1). Having these signals available here makes it convenient for shields designed for these interfaces without running wires all the way to D14-D21 or D20/D21. Some shields specifically target this header for I2C.',
+    stats:['SDA: I2C data','SCL: I2C clock','TX1: Serial1 transmit','RX1: Serial1 receive','Pitch: 2.54mm','Connector: 1×4 header'],
+    svg:`<svg width="48" height="26" viewBox="0 0 48 26">
+      <rect x="1" y="1" width="46" height="24" rx="3" fill="#0a0a1a" stroke="#3a3a8a" stroke-width="1"/>
+      ${[0,1,2,3].map(i=>`
+        <circle cx="${7+i*11}" cy="13" r="5" fill="#10103a" stroke="rgba(100,100,220,0.4)" stroke-width="0.7"/>
+        <circle cx="${7+i*11}" cy="13" r="2.2" fill="rgba(100,100,220,0.1)"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ SCK / MISO Header (extra) ══════════════════ */
+  {
+    id:'spi_hdr', name:'SPI Header (SCK/MOSI/MISO/SS)',
+    cat:'header',
+    ox:'380px', oy:'-380px', x:750, y:390, w:28, h:26, delay:2220,
+    desc:'An additional SPI-access header adjacent to the board edge. It mirrors the hardware SPI signals (SCK, MOSI, MISO, SS) on D50–D53, making it easier to connect SPI devices without reaching the far end of the digital header strip. Some shields designed for the Mega use this header for SD cards, ethernet chips, or display controllers.',
+    stats:['Signals: SCK/MOSI/MISO/SS','Mirrors: D50-D53','Protocol: SPI mode 0,1,2,3','Max speed: ~8MHz','Voltage: 5V','Pitch: 2.54mm'],
+    svg:`<svg width="28" height="26" viewBox="0 0 28 26">
+      <rect x="1" y="1" width="26" height="24" rx="3" fill="#100a1a" stroke="#5a2a7a" stroke-width="1"/>
+      ${[0,1].map(i=>`
+        <circle cx="${7+i*14}" cy="8" r="4" fill="#20104a" stroke="rgba(140,80,200,0.4)" stroke-width="0.7"/>
+        <circle cx="${7+i*14}" cy="20" r="4" fill="#20104a" stroke="rgba(140,80,200,0.4)" stroke-width="0.7"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ Silkscreen Labels (visual) ══════════════════ */
+  {
+    id:'silkscreen', name:'Silkscreen Labels & Pin Numbers',
+    cat:'ic',
+    ox:'0px', oy:'-380px', x:80, y:372, w:600, h:18, delay:2300,
+    desc:'The white silkscreen layer printed on the PCB surface labels every pin, component reference (U1, C1, R1...), polarity marks, and the board name. The Arduino Mega silkscreen labels all 70+ I/O pins by number, all UART assignments, SPI and I2C pin labels, power rail labels, and the "RESET EN" trace nearby. Reading silkscreen labels is an essential skill for circuit debugging.',
+    stats:['Material: Epoxy ink','Color: White on blue','Info: pin numbers, refs','Includes: polarity marks','Use: debugging and wiring','UART labels: TX0-TX3/RX0-RX3'],
+    svg:`<svg width="600" height="18" viewBox="0 0 600 18">
+      <!-- silkscreen strip visual -->
+      <rect x="1" y="4" width="598" height="10" rx="2" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+      ${[...Array(20)].map((_,i)=>`
+        <text x="${15+i*30}" y="13" fill="rgba(255,255,255,0.18)" font-size="6" text-anchor="middle" font-family="'Share Tech Mono',monospace">${['D0','D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13','TX3','RX3','TX2','RX2','SCL','SDA'][i]}</text>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══════════════════ Board Edge Connector Area ══════════════════ */
+  {
+    id:'edge', name:'PCB Edge — Right-Angle Shield Alignment',
+    cat:'ic',
+    ox:'380px', oy:'0px', x:62, y:18, w:14, h:480, delay:2350,
+    desc:'The left edge of the Mega PCB has a specific shape to align with Arduino-compatible shields. The notch at the top-left corner prevents incorrect orientation when stacking shields. The board dimensions (101.6×53.3mm) follow the original Arduino Mega mechanical specification. All header positions are standardized so any "Arduino Mega shield" will fit mechanically, even from different manufacturers.',
+    stats:['PCB width: 101.6mm','PCB height: 53.3mm','Notch: top-left corner','Shield pitch: 2.54mm','Standard: Arduino Mega R3 spec','Compatible: hundreds of shields'],
+    svg:`<svg width="14" height="480" viewBox="0 0 14 480">
+      <path d="M2,2 L12,2 L12,62 L2,62 Z" fill="rgba(26,74,138,0.4)" stroke="rgba(0,229,255,0.15)" stroke-width="0.8"/>
+      <rect x="2" y="62" width="10" height="416" fill="rgba(26,74,138,0.15)" stroke="rgba(0,229,255,0.1)" stroke-width="0.8"/>
+      <!-- mounting hole -->
+      <circle cx="7" cy="22" r="5" fill="none" stroke="rgba(0,229,255,0.2)" stroke-width="1"/>
+      <circle cx="7" cy="22" r="2" fill="rgba(200,180,140,0.1)"/>
+      <circle cx="7" cy="458" r="5" fill="none" stroke="rgba(0,229,255,0.2)" stroke-width="1"/>
+      <circle cx="7" cy="458" r="2" fill="rgba(200,180,140,0.1)"/>
+    </svg>`
+  },
+
+  /* ══════════════════ 3.3V Output Cap ══════════════════ */
+  {
+    id:'cap_33', name:'3.3V Output Capacitor (10µF)',
+    cat:'passive',
+    ox:'380px', oy:'380px', x:290, y:304, w:18, h:14, delay:2400,
+    desc:'A 10µF ceramic output capacitor stabilizes the LP2985 3.3V LDO regulator output. LDO regulators require a minimum output capacitance to remain stable — without it, the output can oscillate at high frequency, causing ripple on the 3.3V rail. This cap also provides a local charge reservoir for sudden current demands from 3.3V devices.',
+    stats:['Value: 10µF ceramic','Voltage: 6.3V','Package: 0603 SMD','Purpose: LDO output stability','Required by: LP2985 datasheet'],
+    svg:`<svg width="18" height="14" viewBox="0 0 18 14">
+      <rect x="1" y="2" width="16" height="10" rx="2" fill="#1a1a2a" stroke="#444488" stroke-width="0.7"/>
+      <rect x="1" y="2" width="4" height="10" rx="1" fill="#666699"/>
+      <rect x="13" y="2" width="4" height="10" rx="1" fill="#666699"/>
+      <text x="9" y="10" fill="rgba(150,150,220,0.35)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">10µ</text>
+    </svg>`
+  },
+
+  /* ══════════════════ 5V Output Cap ══════════════════ */
+  {
+    id:'cap_5v', name:'5V Output Capacitor (10µF)',
+    cat:'passive',
+    ox:'380px', oy:'380px', x:234, y:304, w:18, h:14, delay:2410,
+    desc:'A 10µF ceramic capacitor on the NCP1117-5V regulator output pin stabilizes the 5V rail. Linear regulators can oscillate if their output capacitance is too low or has the wrong ESR (equivalent series resistance). This cap, alongside the 100nF decoupling caps per IC, ensures the 5V rail remains steady within ±2% across varying load conditions.',
+    stats:['Value: 10µF ceramic','Voltage: 10V rated','Package: 0603 SMD','Purpose: 5V regulator stability','ESR: very low (ceramic)'],
+    svg:`<svg width="18" height="14" viewBox="0 0 18 14">
+      <rect x="1" y="2" width="16" height="10" rx="2" fill="#1a1a10" stroke="#447744" stroke-width="0.7"/>
+      <rect x="1" y="2" width="4" height="10" rx="1" fill="#669966"/>
+      <rect x="13" y="2" width="4" height="10" rx="1" fill="#669966"/>
+      <text x="9" y="10" fill="rgba(150,200,150,0.35)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">10µ</text>
+    </svg>`
+  },
+
+];
+
+/* ─────────────────────────────────────────────────────── */
+/* Fix the i2c_hdr entry — corrects the broken y override  */
+const i2cPart = parts.find(p => p.id === 'i2c_hdr');
+if(i2cPart){ i2cPart.x = 100; i2cPart.y = 28; delete i2cPart['y']; }
+// just override properly
+parts.forEach(p => {
+  if(p.id === 'i2c_hdr'){ p.x = 100; p.y = 28; }
+});
+
+let assembled = false, arrivedCount = 0, selectedId = null;
+
+function buildStage() {
+  const stage = document.getElementById('stage');
+  stage.innerHTML = '';
+  parts.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'part';
+    div.id = 'part-' + p.id;
+    // safety: cap positions to board
+    const px = Math.max(0, Math.min(p.x, 870));
+    const py = Math.max(0, Math.min(p.y, 494));
+    div.style.cssText = `left:${px}px;top:${py}px;width:${p.w}px;height:${p.h||30}px;--ox:${p.ox};--oy:${p.oy};`;
+    div.innerHTML = p.svg;
+    div.addEventListener('click', () => selectPart(p));
+    stage.appendChild(div);
+  });
+  buildGrid();
+  document.getElementById('partCounter').textContent = `0 / ${parts.length} PARTS`;
+}
+
+function buildGrid() {
+  document.getElementById('partsGrid').innerHTML = parts.map(p =>
+    `<div class="pdot cat-${p.cat}" id="dot-${p.id}" title="${p.name}" onclick="jumpTo('${p.id}')"></div>`
+  ).join('');
+}
+
+function jumpTo(id) {
+  if (!assembled) return;
+  const p = parts.find(x => x.id === id);
+  if (p) selectPart(p);
+}
+
+function assemble() {
+  if (assembled) return;
+  assembled = true;
+  arrivedCount = 0;
+  document.getElementById('btnAssemble').disabled = true;
+  document.getElementById('status').textContent = 'ASSEMBLING...';
+  document.getElementById('hint').textContent = '▶ Click any component to inspect it';
+
+  parts.forEach(p => {
+    setTimeout(() => {
+      const el = document.getElementById('part-' + p.id);
+      if (el) el.classList.add('arrived');
+      arrivedCount++;
+      const pct = Math.round((arrivedCount / parts.length) * 100);
+      document.getElementById('prog').style.width = pct + '%';
+      document.getElementById('progPct').textContent = pct + '%';
+      document.getElementById('doneCount').textContent = arrivedCount;
+      document.getElementById('partCounter').textContent = `${arrivedCount} / ${parts.length} PARTS`;
+      const dot = document.getElementById('dot-' + p.id);
+      if (dot) dot.classList.add('done');
+      if (arrivedCount === parts.length) {
+        document.getElementById('status').textContent = 'MEGA 2560 — FULLY ASSEMBLED';
+        document.getElementById('hint').textContent = `▶ ${parts.length} components — click any to inspect`;
+      }
+    }, p.delay);
+  });
+}
+
+function doReset() {
+  assembled = false;
+  arrivedCount = 0;
+  selectedId = null;
+  document.getElementById('prog').style.width = '0%';
+  document.getElementById('progPct').textContent = '0%';
+  document.getElementById('status').textContent = 'AWAITING ASSEMBLY';
+  document.getElementById('hint').textContent = '▶ Click ASSEMBLE to begin';
+  document.getElementById('infoName').textContent = '— SELECT A PART —';
+  document.getElementById('infoDesc').textContent = 'Assemble the board first, then click any glowing component to inspect it. Every resistor, capacitor, LED, header pin, and IC is individually clickable.';
+  document.getElementById('infoStats').innerHTML = '';
+  document.getElementById('infoCard').classList.remove('active');
+  document.getElementById('doneCount').textContent = '0';
+  document.getElementById('btnAssemble').disabled = false;
+  buildStage();
+}
+
+function highlightAll() {
+  if (!assembled) return;
+  selectedId = null;
+  document.querySelectorAll('.part').forEach(el => {
+    el.classList.remove('selected', 'dimmed');
+  });
+  document.getElementById('infoName').textContent = '— ALL PARTS ACTIVE —';
+  document.getElementById('infoDesc').textContent = `All ${parts.length} components highlighted. Click any individual part to inspect it.`;
+  document.getElementById('infoStats').innerHTML = `<span class="stat-chip green">${parts.length} TOTAL PARTS</span><span class="stat-chip">5 CATEGORIES</span>`;
+  document.getElementById('infoCard').classList.add('active');
+}
+
+function selectPart(p) {
+  if (!assembled) return;
+  selectedId = p.id;
+  // update info panel
+  document.getElementById('infoName').textContent = p.name.toUpperCase();
+  document.getElementById('infoDesc').textContent = p.desc;
+  const catColors = { ic:'green', power:'red', header:'', passive:'', led:'' };
+  document.getElementById('infoStats').innerHTML = p.stats.map((s,i) =>
+    `<span class="stat-chip ${i===0&&catColors[p.cat]?catColors[p.cat]:''}">${s}</span>`
+  ).join('');
+  document.getElementById('infoCard').classList.add('active');
+
+  // dim all, highlight selected
+  document.querySelectorAll('.part.arrived').forEach(el => {
+    el.classList.remove('selected');
+    el.classList.add('dimmed');
+  });
+  const sel = document.getElementById('part-' + p.id);
+  if (sel) {
+    sel.classList.remove('dimmed');
+    sel.classList.add('selected');
+  }
+}
+
+buildStage();
+</script>
+</body>
+</html>

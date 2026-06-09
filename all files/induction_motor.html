@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>3-Phase Induction Motor — Interactive Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --accent: #ff6b00;
+    --accent2: #ffaa33;
+    --accent3: #ffe066;
+    --bg: #0a0500;
+    --surface: #120900;
+    --border: rgba(255,107,0,0.13);
+    --glow: rgba(255,107,0,0.3);
+  }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 14px 8px;
+    overflow: hidden;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    pointer-events: none;
+    z-index: 1000;
+  }
+  .hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .title-main {
+    font-family: 'Orbitron', monospace; font-size: 16px; font-weight: 900;
+    color: var(--accent); letter-spacing: 4px; text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(255,107,0,0.5);
+  }
+  .title-sub { font-family: 'Rajdhani', sans-serif; font-size: 11px; color: rgba(255,107,0,0.4); letter-spacing: 3px; margin-top: 2px; }
+  .hdr-right { display: flex; align-items: center; gap: 10px; }
+  .status-badge {
+    font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px;
+    color: var(--accent3); background: rgba(255,224,102,0.07);
+    border: 1px solid rgba(255,224,102,0.25); border-radius: 4px; padding: 4px 10px;
+  }
+  .controls { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; flex-shrink: 0; }
+  .btn-assemble {
+    font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; color: #000; background: var(--accent); border: none;
+    border-radius: 6px; padding: 9px 22px; cursor: pointer; transition: all 0.2s;
+    text-transform: uppercase; box-shadow: 0 0 20px rgba(255,107,0,0.4);
+  }
+  .btn-assemble:hover { box-shadow: 0 0 35px rgba(255,107,0,0.7); transform: translateY(-1px); }
+  .btn-assemble:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-reset, .btn-highlight {
+    font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 1px;
+    background: transparent; border-radius: 6px; padding: 9px 14px; cursor: pointer;
+    transition: all 0.2s; text-transform: uppercase;
+  }
+  .btn-reset { color: rgba(255,107,0,0.5); border: 1px solid rgba(255,107,0,0.2); }
+  .btn-reset:hover { color: var(--accent); border-color: rgba(255,107,0,0.5); }
+  .btn-highlight { color: rgba(255,170,51,0.6); border: 1px solid rgba(255,170,51,0.2); }
+  .btn-highlight:hover { color: var(--accent2); border-color: rgba(255,170,51,0.5); }
+  .progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-shrink: 0; }
+  .progress-label { font-size: 9px; color: rgba(255,107,0,0.35); letter-spacing: 2px; min-width: 44px; }
+  .progress-track { flex: 1; height: 2px; background: rgba(255,107,0,0.08); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #3a1200, var(--accent)); border-radius: 2px; width: 0%; transition: width 0.3s ease; box-shadow: 0 0 8px var(--accent); }
+  .progress-pct { font-size: 10px; color: var(--accent); min-width: 36px; text-align: right; font-family: 'Orbitron', monospace; }
+  .main-layout { display: flex; gap: 12px; flex: 1; min-height: 0; }
+  .stage-wrap {
+    flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; position: relative;
+    box-shadow: 0 0 40px rgba(20,5,0,0.8), inset 0 0 30px rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stage-wrap::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(255,107,0,0.012) 0px, rgba(255,107,0,0.012) 1px, transparent 1px, transparent 40px),
+                repeating-linear-gradient(90deg, rgba(255,107,0,0.012) 0px, rgba(255,107,0,0.012) 1px, transparent 1px, transparent 40px);
+    pointer-events: none; border-radius: 12px; z-index: 0;
+  }
+  .stage { position: relative; width: 580px; height: 500px; z-index: 1; flex-shrink: 0; }
+  .part {
+    position: absolute; cursor: pointer;
+    transition: transform 0.8s cubic-bezier(.34,1.5,.64,1), opacity 0.5s ease, filter 0.15s;
+    opacity: 0; transform: translateX(var(--ox)) translateY(var(--oy)) scale(0.55);
+    filter: drop-shadow(0 0 4px rgba(255,107,0,0.25)); z-index: 2;
+  }
+  .part.arrived { opacity: 1; transform: translateX(0) translateY(0) scale(1); }
+  .part:hover { filter: drop-shadow(0 0 14px rgba(255,107,0,0.9)) brightness(1.35) !important; transform: translateX(0) translateY(0) scale(1.08) !important; z-index: 50 !important; }
+  .part.selected { filter: drop-shadow(0 0 22px rgba(255,107,0,1)) brightness(1.6) !important; z-index: 49 !important; }
+  .part.dimmed { filter: drop-shadow(0 0 2px rgba(255,107,0,0.05)) brightness(0.25) !important; }
+  .part svg { display: block; pointer-events: none; }
+  .side-panel { width: 260px; flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .info-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; flex: 1; min-height: 0; overflow-y: auto; transition: border-color 0.3s;
+  }
+  .info-card.active { border-color: rgba(255,107,0,0.35); }
+  .info-name { font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 2px; margin-bottom: 8px; padding-bottom: 7px; border-bottom: 1px solid rgba(255,107,0,0.12); line-height: 1.4; }
+  .info-desc { font-size: 10px; color: rgba(255,210,160,0.6); line-height: 1.8; margin-bottom: 10px; }
+  .info-stats { display: flex; gap: 5px; flex-wrap: wrap; }
+  .stat-chip { font-size: 8px; color: rgba(255,107,0,0.8); background: rgba(255,107,0,0.06); border: 1px solid rgba(255,107,0,0.18); border-radius: 4px; padding: 3px 7px; letter-spacing: 0.5px; }
+  .parts-grid-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; flex-shrink: 0; }
+  .parts-grid-title { font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px; color: rgba(255,107,0,0.35); margin-bottom: 8px; }
+  .parts-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pdot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,107,0,0.06); border: 1px solid rgba(255,107,0,0.18); transition: all 0.3s; cursor: pointer; position: relative; }
+  .pdot:hover::after { content: attr(title); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: #1a0800; border: 1px solid rgba(255,107,0,0.3); border-radius: 4px; padding: 3px 7px; font-size: 9px; color: var(--accent); white-space: nowrap; z-index: 100; pointer-events: none; }
+  .pdot.done { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 4px rgba(255,107,0,0.5); }
+  .pdot.done.cat-stator { background: #ff6b00; border-color: #ff6b00; }
+  .pdot.done.cat-rotor { background: #33aaff; border-color: #33aaff; box-shadow: 0 0 4px rgba(51,170,255,0.5); }
+  .pdot.done.cat-mechanical { background: #a8ff3e; border-color: #a8ff3e; box-shadow: 0 0 4px rgba(168,255,62,0.5); }
+  .pdot.done.cat-electrical { background: #ffaa33; border-color: #ffaa33; box-shadow: 0 0 4px rgba(255,170,51,0.5); }
+  .pdot.done.cat-housing { background: #888; border-color: #aaa; }
+  .legend { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 7px; }
+  .leg-item { display: flex; align-items: center; gap: 3px; font-size: 8px; color: rgba(255,107,0,0.4); }
+  .leg-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .hint { font-size: 9px; color: rgba(255,107,0,0.25); letter-spacing: 1px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <div class="title-main">3-Phase Induction Motor</div>
+    <div class="title-sub">INTERACTIVE ASSEMBLY — SQUIRREL CAGE / AC POWERED / ELECTROMAGNETIC INDUCTION</div>
+  </div>
+  <div class="hdr-right">
+    <div class="status-badge" id="status">AWAITING ASSEMBLY</div>
+    <div style="font-size:9px;color:rgba(255,107,0,0.35);letter-spacing:1px;" id="partCounter">0 / 0 PARTS</div>
+  </div>
+</div>
+<div class="controls">
+  <button class="btn-assemble" id="btnAssemble" onclick="assemble()">⚡ Assemble Motor</button>
+  <button class="btn-reset" onclick="doReset()">↺ Reset</button>
+  <button class="btn-highlight" onclick="highlightAll()">◈ Highlight All</button>
+</div>
+<div class="progress-row">
+  <span class="progress-label">BUILD</span>
+  <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+  <span class="progress-pct" id="progPct">0%</span>
+</div>
+<div class="main-layout">
+  <div class="stage-wrap">
+    <div class="stage" id="stage"></div>
+  </div>
+  <div class="side-panel">
+    <div class="info-card" id="infoCard">
+      <div class="info-name" id="infoName">— SELECT A PART —</div>
+      <div class="info-desc" id="infoDesc">Assemble the motor first, then click any component to inspect it. Every winding, bearing, shaft, and housing part is individually clickable with full specs.</div>
+      <div class="info-stats" id="infoStats"></div>
+    </div>
+    <div class="parts-grid-card">
+      <div class="parts-grid-title">COMPONENT MAP — <span id="doneCount">0</span> ARRIVED</div>
+      <div class="parts-grid" id="partsGrid"></div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#ff6b00"></div>Stator</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#33aaff"></div>Rotor</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#a8ff3e"></div>Mech.</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ffaa33"></div>Elect.</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#888"></div>Housing</div>
+      </div>
+    </div>
+    <div class="hint" id="hint">▶ Click ASSEMBLE to begin</div>
+  </div>
+</div>
+<script>
+const parts = [
+  {
+    id:'frame', name:'Motor Frame / Yoke (Cast Iron)',
+    cat:'housing',
+    ox:'0px', oy:'300px', x:80, y:80, w:420, h:340, delay:0,
+    desc:'The motor frame (also called the yoke) is the main structural and magnetic enclosure of the induction motor. Made of cast iron or fabricated steel, it provides mechanical support for all internal components and forms a low-reluctance return path for the magnetic flux. External cooling fins are cast into the frame surface to dissipate heat generated by iron and copper losses. The frame is grounded for safety and carries the motor nameplate.',
+    stats:['Material: Cast iron / steel','Function: Structural + magnetic yoke','Surface: External cooling fins','Finish: Grey enamel paint','Protects: IP54 or IP55 typical','Grounded: for electrical safety'],
+    svg:`<svg width="420" height="340" viewBox="0 0 420 340">
+      <defs>
+        <linearGradient id="frameG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2a2a2a"/><stop offset="100%" style="stop-color:#1a1a1a"/></linearGradient>
+      </defs>
+      <rect x="2" y="40" width="416" height="260" rx="8" fill="url(#frameG)" stroke="#555" stroke-width="2"/>
+      ${[...Array(16)].map((_,i)=>`<rect x="${10+i*25}" y="2" width="12" height="42" rx="3" fill="#333" stroke="#555" stroke-width="0.6"/>`).join('')}
+      ${[...Array(16)].map((_,i)=>`<rect x="${10+i*25}" y="296" width="12" height="42" rx="3" fill="#333" stroke="#555" stroke-width="0.6"/>`).join('')}
+      <rect x="2" y="80" width="14" height="180" rx="4" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+      <rect x="404" y="80" width="14" height="180" rx="4" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+      <circle cx="210" cy="170" r="100" fill="#1a1a1a" stroke="#444" stroke-width="1.5"/>
+      <text x="210" y="330" fill="rgba(200,140,0,0.22)" font-size="9" text-anchor="middle" font-family="'Share Tech Mono',monospace">3-PHASE INDUCTION MOTOR</text>
+    </svg>`
+  },
+  {
+    id:'stator_core', name:'Stator Lamination Core',
+    cat:'stator',
+    ox:'-300px', oy:'0px', x:120, y:110, w:340, h:260, delay:200,
+    desc:'The stator core is built from hundreds of thin silicon-steel laminations (typically 0.35–0.5mm thick) stacked and compressed together. Each lamination is stamped with slots around its inner circumference to hold the stator windings. Silicon steel has high permeability for strong magnetic flux and low hysteresis loss. Laminating breaks eddy current loops, dramatically reducing eddy current losses compared to a solid steel core. Insulating varnish between laminations maintains electrical isolation.',
+    stats:['Material: Silicon steel (M45 grade)','Lamination thickness: 0.35–0.5mm','Slots: 36–48 typical (3-phase)','Stack length: varies with power','Loss: reduced eddy current','Varnish: inter-lamination insulation'],
+    svg:`<svg width="340" height="260" viewBox="0 0 340 260">
+      <defs><linearGradient id="stG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#1a0800"/><stop offset="100%" style="stop-color:#0d0400"/></linearGradient></defs>
+      <ellipse cx="170" cy="130" rx="160" ry="120" fill="url(#stG)" stroke="#884400" stroke-width="1.5"/>
+      ${[...Array(36)].map((_,i)=>{const a=i*10*Math.PI/180,r1=60,r2=115,sx=170+r1*Math.cos(a),sy=130+r1*Math.sin(a),ex=170+r2*Math.cos(a),ey=130+r2*Math.sin(a);return `<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="rgba(255,107,0,0.15)" stroke-width="1.2"/>`}).join('')}
+      ${[...Array(36)].map((_,i)=>{const a=i*10*Math.PI/180,r=115,cx2=170+r*Math.cos(a),cy2=130+r*Math.sin(a);return `<rect x="${cx2-3}" y="${cy2-5}" width="6" height="10" rx="1" fill="#442200" stroke="rgba(255,107,0,0.35)" stroke-width="0.5" transform="rotate(${i*10} ${cx2} ${cy2})"/>`}).join('')}
+      <ellipse cx="170" cy="130" rx="60" ry="60" fill="#0a0500" stroke="#662200" stroke-width="1.2"/>
+      <text x="170" y="125" fill="rgba(255,107,0,0.25)" font-size="8" text-anchor="middle" font-family="'Share Tech Mono',monospace">STATOR</text>
+      <text x="170" y="138" fill="rgba(255,107,0,0.2)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">CORE</text>
+    </svg>`
+  },
+  {
+    id:'stator_winding', name:'3-Phase Stator Windings (Copper)',
+    cat:'stator',
+    ox:'300px', oy:'-200px', x:140, y:130, w:300, h:220, delay:400,
+    desc:'Three sets of copper windings are distributed in the stator slots, physically displaced 120° apart around the circumference. When 3-phase AC current flows through them, each phase creates an alternating magnetic field; the combination of all three produces a smoothly rotating magnetic field (RMF) that spins at synchronous speed (Ns = 120f/P). The RMF is the key to induction motor operation — it induces currents in the rotor without any physical contact. Windings are insulated with Class B (130°C) or Class F (155°C) enamel and impregnated with varnish.',
+    stats:['Phases: 3 (U/V/W)','Displacement: 120° each','Wire: enamelled copper','Insulation class: B (130°C) or F','Connection: Star (Y) or Delta (Δ)','Creates: Rotating Magnetic Field'],
+    svg:`<svg width="300" height="220" viewBox="0 0 300 220">
+      ${[0,1,2].map(i=>{const colors=['#ff6b00','#33aaff','#a8ff3e'],a=i*120*Math.PI/180;const cx=150+50*Math.cos(a),cy=110+50*Math.sin(a);return `<ellipse cx="${cx}" cy="${cy}" rx="55" ry="28" fill="none" stroke="${colors[i]}" stroke-width="4" opacity="0.55" transform="rotate(${i*120} ${cx} ${cy})"/><ellipse cx="${cx}" cy="${cy}" rx="42" ry="18" fill="none" stroke="${colors[i]}" stroke-width="3" opacity="0.35" transform="rotate(${i*120} ${cx} ${cy})"/><text x="${cx}" y="${cy+4}" fill="${colors[i]}" font-size="9" text-anchor="middle" font-family="'Share Tech Mono',monospace" opacity="0.6">${['U','V','W'][i]}</text>`}).join('')}
+      <ellipse cx="150" cy="110" rx="32" ry="32" fill="rgba(0,0,0,0.5)" stroke="rgba(255,107,0,0.2)" stroke-width="0.8"/>
+    </svg>`
+  },
+  {
+    id:'rotor', name:'Squirrel Cage Rotor',
+    cat:'rotor',
+    ox:'0px', oy:'-300px', x:152, y:118, w:236, h:224, delay:600,
+    desc:'The squirrel cage rotor is the most common rotor type in induction motors. It consists of a laminated silicon-steel core with aluminium (or copper in high-efficiency motors) bars cast into slots around the periphery, short-circuited at both ends by aluminium end rings. No external electrical connection is needed — the rotating magnetic field from the stator induces EMF in the bars, causing currents to flow in the cage loops, which interact with the field to produce torque. The rotor always runs slightly slower than the RMF (slip), which is essential for torque production.',
+    stats:['Type: Squirrel cage (most common)','Bars: Aluminium die-cast (or Cu)','End rings: Short-circuit the bars','Slip: 2–8% at full load','No external connection needed','Core: Silicon steel laminations'],
+    svg:`<svg width="236" height="224" viewBox="0 0 236 224">
+      <defs><linearGradient id="rotG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0a1a2a"/><stop offset="100%" style="stop-color:#050d15"/></linearGradient></defs>
+      <ellipse cx="118" cy="112" rx="108" ry="105" fill="url(#rotG)" stroke="#2255aa" stroke-width="1.5"/>
+      ${[...Array(28)].map((_,i)=>{const a=i*360/28*Math.PI/180,r1=48,r2=95;return `<rect x="${118+r1*Math.cos(a)-3}" y="${112+r1*Math.sin(a)-8}" width="6" height="${r2-r1}" rx="2" fill="#335588" stroke="rgba(51,170,255,0.5)" stroke-width="0.5" transform="rotate(${i*360/28} 118 112)"/>`}).join('')}
+      <ellipse cx="118" cy="112" rx="45" ry="45" fill="#08141f" stroke="#2255aa" stroke-width="1.2"/>
+      <ellipse cx="118" cy="112" rx="18" ry="18" fill="#0a1a2a" stroke="rgba(51,170,255,0.4)" stroke-width="1"/>
+      <text x="118" y="108" fill="rgba(51,170,255,0.4)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">SQUIRREL</text>
+      <text x="118" y="119" fill="rgba(51,170,255,0.3)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">CAGE</text>
+    </svg>`
+  },
+  {
+    id:'shaft', name:'Rotor Shaft (Machined Steel)',
+    cat:'mechanical',
+    ox:'0px', oy:'300px', x:60, y:158, w:460, h:36, delay:750,
+    desc:'The rotor shaft is a precision-machined steel rod that transfers mechanical torque from the rotor to the load. It passes through the centre of the rotor core (press-fit or keyed) and extends beyond both end shields where it is supported by bearings. The shaft end (drive end) typically has a keyway slot to attach pulleys, couplings, or gears. Shaft material is usually medium-carbon steel (C45 or 4140) for its combination of strength, machinability, and availability. Shaft runout must be kept below 0.02mm for balanced high-speed operation.',
+    stats:['Material: C45 / 4140 steel','Fit to rotor: press-fit or key','Drive end: keyway + flat','Runout: <0.02mm tolerance','Surface: ground and polished','Purpose: torque transmission'],
+    svg:`<svg width="460" height="36" viewBox="0 0 460 36">
+      <defs><linearGradient id="shG" x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="0%" style="stop-color:#888"/><stop offset="30%" style="stop-color:#ccc"/><stop offset="70%" style="stop-color:#bbb"/><stop offset="100%" style="stop-color:#666"/></linearGradient></defs>
+      <rect x="2" y="10" width="456" height="16" rx="4" fill="url(#shG)" stroke="#999" stroke-width="1"/>
+      <rect x="2" y="12" width="40" height="12" rx="2" fill="#aaa" stroke="#bbb" stroke-width="0.5"/>
+      <rect x="8" y="14" width="28" height="4" rx="1" fill="#777"/>
+      <rect x="30" y="10" width="2" height="16" fill="#999"/>
+      <text x="230" y="8" fill="rgba(200,200,200,0.2)" font-size="6" text-anchor="middle" font-family="'Share Tech Mono',monospace">MACHINED STEEL SHAFT</text>
+    </svg>`
+  },
+  {
+    id:'bearing_de', name:'Drive-End Bearing (Deep Groove Ball)',
+    cat:'mechanical',
+    ox:'-300px', oy:'0px', x:68, y:142, w:68, h:68, delay:850,
+    desc:'Deep groove ball bearings support the rotor shaft at the drive end (DE), carrying both radial loads (weight of rotor + belt tension) and some axial loads. The bearing consists of an inner race (press-fit to shaft), outer race (press-fit into end shield), and a complement of hardened steel balls held by a cage. Pre-lubricated with lithium-based grease for maintenance-free operation up to 20,000 hours. The DE bearing typically carries higher loads and may be a larger size than the NDE bearing.',
+    stats:['Type: Deep groove ball (6200 series)','Location: Drive End (DE)','Fits: Shaft inner race (press)','Fits: End shield outer race (press)','Lube: Lithium grease','Life: 20,000–50,000 hrs typical'],
+    svg:`<svg width="68" height="68" viewBox="0 0 68 68">
+      <circle cx="34" cy="34" r="32" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/>
+      <circle cx="34" cy="34" r="24" fill="none" stroke="#888" stroke-width="4"/>
+      <circle cx="34" cy="34" r="16" fill="#222" stroke="#666" stroke-width="1.2"/>
+      ${[...Array(8)].map((_,i)=>{const a=i*45*Math.PI/180;return `<circle cx="${34+20*Math.cos(a)}" cy="${34+20*Math.sin(a)}" r="4.5" fill="#444" stroke="#999" stroke-width="0.7"/>`}).join('')}
+      <circle cx="34" cy="34" r="8" fill="#1a1a1a" stroke="#555" stroke-width="1"/>
+      <text x="34" y="38" fill="rgba(200,200,200,0.3)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">DE</text>
+    </svg>`
+  },
+  {
+    id:'bearing_nde', name:'Non-Drive-End Bearing',
+    cat:'mechanical',
+    ox:'300px', oy:'0px', x:444, y:142, w:68, h:68, delay:870,
+    desc:'The non-drive-end (NDE) bearing supports the opposite end of the shaft from the load. It typically carries lighter radial loads than the DE bearing and is often a smaller frame size. In some motor designs, the NDE bearing is a locating bearing (fixed axially) while the DE bearing is a floating bearing (allowing thermal expansion). Regular bearing inspection and regreasing (in regreasable designs) is essential preventive maintenance for induction motor reliability.',
+    stats:['Type: Deep groove ball','Location: Non-Drive End (NDE)','Load: Lighter than DE','Role: Locating or floating','Grease port: some designs','Inspect: every 6–12 months'],
+    svg:`<svg width="68" height="68" viewBox="0 0 68 68">
+      <circle cx="34" cy="34" r="32" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/>
+      <circle cx="34" cy="34" r="24" fill="none" stroke="#888" stroke-width="4"/>
+      <circle cx="34" cy="34" r="16" fill="#222" stroke="#666" stroke-width="1.2"/>
+      ${[...Array(8)].map((_,i)=>{const a=i*45*Math.PI/180;return `<circle cx="${34+20*Math.cos(a)}" cy="${34+20*Math.sin(a)}" r="4.5" fill="#444" stroke="#999" stroke-width="0.7"/>`}).join('')}
+      <circle cx="34" cy="34" r="8" fill="#1a1a1a" stroke="#555" stroke-width="1"/>
+      <text x="34" y="38" fill="rgba(200,200,200,0.3)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">NDE</text>
+    </svg>`
+  },
+  {
+    id:'end_shield_de', name:'Drive-End Shield / Bracket',
+    cat:'housing',
+    ox:'-300px', oy:'-200px', x:62, y:108, w:80, h:144, delay:950,
+    desc:'The drive-end end shield (also called bracket or end bell) is a cast iron or aluminium disc that closes the DE side of the motor frame. It houses the DE bearing in a machined bore and features shaft-seal provisions to prevent ingress of dust and moisture. Mounting feet may be integral with the frame or the DE shield. The end shield is bolted to the frame with through-bolts and must be correctly aligned during reassembly to avoid shaft misalignment and bearing damage.',
+    stats:['Material: Cast iron or aluminium','Function: Closes frame + holds bearing','Bore: machined for bearing OD','Seal: lip seal or V-ring','Bolting: through-bolts from NDE','Alignment: critical during assembly'],
+    svg:`<svg width="80" height="144" viewBox="0 0 80 144">
+      <ellipse cx="40" cy="72" rx="36" ry="70" fill="#2a2a2a" stroke="#666" stroke-width="1.5"/>
+      <ellipse cx="40" cy="72" rx="24" ry="50" fill="#1a1a1a" stroke="#555" stroke-width="1"/>
+      <circle cx="40" cy="72" r="18" fill="#222" stroke="#666" stroke-width="1.2"/>
+      <circle cx="40" cy="72" r="9" fill="#333" stroke="#888" stroke-width="0.8"/>
+      ${[0,60,120,180,240,300].map(a=>{const r=30,ax=40+r*Math.cos(a*Math.PI/180),ay=72+r*Math.sin(a*Math.PI/180);return `<circle cx="${ax}" cy="${ay}" r="3" fill="#444" stroke="#888" stroke-width="0.5"/>`}).join('')}
+      <text x="40" y="128" fill="rgba(200,200,200,0.2)" font-size="6" text-anchor="middle" font-family="'Share Tech Mono',monospace">DE</text>
+    </svg>`
+  },
+  {
+    id:'end_shield_nde', name:'Non-Drive-End Shield',
+    cat:'housing',
+    ox:'300px', oy:'-200px', x:438, y:108, w:80, h:144, delay:970,
+    desc:'The NDE end shield mirrors the DE shield on the opposite end. It holds the NDE bearing and may incorporate a cooling fan attachment point. In externally cooled motors, a separate fan cover is bolted to the NDE shield. The NDE shield often has a cable entry point or conduit box connection for the stator leads. Terminal box may also be integrated here in smaller motors.',
+    stats:['Material: Cast iron or aluminium','Function: Closes frame NDE side','Fan mount: external fan models','Cable entry: some designs','Conduit box: on this end often','Bolted: to frame through-bolts'],
+    svg:`<svg width="80" height="144" viewBox="0 0 80 144">
+      <ellipse cx="40" cy="72" rx="36" ry="70" fill="#2a2a2a" stroke="#666" stroke-width="1.5"/>
+      <ellipse cx="40" cy="72" rx="24" ry="50" fill="#1a1a1a" stroke="#555" stroke-width="1"/>
+      <circle cx="40" cy="72" r="18" fill="#222" stroke="#666" stroke-width="1.2"/>
+      <circle cx="40" cy="72" r="9" fill="#333" stroke="#888" stroke-width="0.8"/>
+      ${[0,60,120,180,240,300].map(a=>{const r=30,ax=40+r*Math.cos(a*Math.PI/180),ay=72+r*Math.sin(a*Math.PI/180);return `<circle cx="${ax}" cy="${ay}" r="3" fill="#444" stroke="#888" stroke-width="0.5"/>`}).join('')}
+      <text x="40" y="128" fill="rgba(200,200,200,0.2)" font-size="6" text-anchor="middle" font-family="'Share Tech Mono',monospace">NDE</text>
+    </svg>`
+  },
+  {
+    id:'cooling_fan', name:'External Cooling Fan',
+    cat:'mechanical',
+    ox:'300px', oy:'300px', x:444, y:128, w:80, h:84, delay:1050,
+    desc:'A die-cast aluminium or polycarbonate fan is press-fitted to the rotor shaft on the NDE. As the motor runs, it draws ambient air over the motor frame fins to dissipate heat. The fan is enclosed by a sheet-steel fan cover that directs airflow. Self-cooled TEFC (Totally Enclosed Fan-Cooled) motors rely entirely on this fan — when the motor runs slowly (e.g. under VFD control below ~25Hz), cooling efficiency drops and motor derating is required.',
+    stats:['Type: Centrifugal / axial','Material: Al die-cast or PC','Mounted: NDE shaft (press-fit)','Cover: Sheet steel shroud','Cooling: TEFC — Self-cooled','VFD: Derate below 30Hz'],
+    svg:`<svg width="80" height="84" viewBox="0 0 80 84">
+      <ellipse cx="40" cy="42" rx="38" ry="38" fill="#1a1a1a" stroke="#555" stroke-width="1.2"/>
+      ${[...Array(6)].map((_,i)=>{const a=i*60*Math.PI/180,cx2=40+18*Math.cos(a),cy2=42+18*Math.sin(a);return `<ellipse cx="${cx2}" cy="${cy2}" rx="14" ry="7" fill="#2a2a2a" stroke="#777" stroke-width="0.7" transform="rotate(${i*60} ${cx2} ${cy2})"/>`}).join('')}
+      <circle cx="40" cy="42" r="10" fill="#333" stroke="#888" stroke-width="1"/>
+      <circle cx="40" cy="42" r="5" fill="#444" stroke="#aaa" stroke-width="0.6"/>
+    </svg>`
+  },
+  {
+    id:'terminal_box', name:'Terminal Box & Connection Board',
+    cat:'electrical',
+    ox:'-300px', oy:'300px', x:160, y:60, w:100, h:60, delay:1100,
+    desc:'The terminal box is a cast iron or aluminium enclosure mounted on top of the motor frame. It houses the six stator winding terminals (U1/U2, V1/V2, W1/W2) on a terminal block. Copper links (straps) configure Star (Y) or Delta (Δ) connection. In Y configuration, U2/V2/W2 are strapped together; in Δ, U1-V2, V1-W2, W1-U2 are connected. The terminal box includes a cable gland entry and protective earth terminal. IP rating must match the frame rating for the complete motor.',
+    stats:['Terminals: U1/U2, V1/V2, W1/W2','Star (Y): join U2-V2-W2','Delta (Δ): cross-connect pairs','Earth terminal: mandatory','Cable entry: PG gland / conduit','IP: matches motor frame rating'],
+    svg:`<svg width="100" height="60" viewBox="0 0 100 60">
+      <rect x="2" y="2" width="96" height="56" rx="5" fill="#222" stroke="#666" stroke-width="1.3"/>
+      <rect x="8" y="8" width="84" height="36" rx="3" fill="#1a1a1a" stroke="#444" stroke-width="0.8"/>
+      ${['U1','V1','W1','U2','V2','W2'].map((l,i)=>`<circle cx="${14+i*14}" cy="26" r="5" fill="#333" stroke="#aa7700" stroke-width="1"/><text x="${14+i*14}" y="29" fill="rgba(255,180,0,0.6)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">${l}</text>`).join('')}
+      <rect x="30" y="48" width="40" height="6" rx="2" fill="#228822" stroke="#44aa44" stroke-width="0.6"/>
+      <text x="50" y="53" fill="rgba(100,255,100,0.4)" font-size="4" text-anchor="middle" font-family="'Share Tech Mono',monospace">EARTH</text>
+    </svg>`
+  },
+  {
+    id:'nameplate', name:'Motor Nameplate',
+    cat:'electrical',
+    ox:'0px', oy:'300px', x:165, y:295, w:90, h:50, delay:1200,
+    desc:'The motor nameplate is a stainless steel or aluminium plate riveted to the frame. It contains all key operating parameters: voltage, frequency, full-load current, power (kW/HP), speed (RPM), power factor, insulation class, IP rating, duty cycle, and frame size. The nameplate is your first reference for motor selection, protection relay settings, and starter sizing. Always check nameplate data before connecting a motor to a new supply.',
+    stats:['Voltage: e.g. 415V 3-ph','Frequency: 50Hz or 60Hz','Power: kW and HP','Speed: FLSpeed (RPM)','Insulation class: B, F, or H','IP rating: 54 or 55 typical'],
+    svg:`<svg width="90" height="50" viewBox="0 0 90 50">
+      <rect x="1" y="1" width="88" height="48" rx="3" fill="#c8a000" stroke="#ffcc00" stroke-width="1"/>
+      <rect x="4" y="4" width="82" height="42" rx="2" fill="#aa8800" stroke="#ddaa00" stroke-width="0.5"/>
+      <text x="45" y="13" fill="rgba(0,0,0,0.7)" font-size="5.5" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-weight="bold">INDUCTION MOTOR</text>
+      <text x="45" y="22" fill="rgba(0,0,0,0.55)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">415V  50Hz  3-Ph</text>
+      <text x="45" y="30" fill="rgba(0,0,0,0.55)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">1480 RPM  7.5kW</text>
+      <text x="45" y="38" fill="rgba(0,0,0,0.5)" font-size="4" text-anchor="middle" font-family="'Share Tech Mono',monospace">IP55  CL.F  DUTY:S1</text>
+    </svg>`
+  },
+];
+
+let assembled=false,arrivedCount=0,selectedId=null,highlightMode=false;
+function init(){
+  const stage=document.getElementById('stage');
+  const grid=document.getElementById('partsGrid');
+  document.getElementById('partCounter').textContent=`0 / ${parts.length} PARTS`;
+  parts.forEach(p=>{
+    const el=document.createElement('div');
+    el.className='part';el.id='part_'+p.id;
+    el.style.setProperty('--ox',p.ox);el.style.setProperty('--oy',p.oy);
+    el.style.left=p.x+'px';el.style.top=p.y+'px';
+    el.innerHTML=p.svg;
+    el.addEventListener('click',()=>selectPart(p.id));
+    stage.appendChild(el);
+    const dot=document.createElement('div');
+    dot.className='pdot cat-'+p.cat;dot.id='dot_'+p.id;dot.title=p.name;
+    dot.addEventListener('click',()=>selectPart(p.id));
+    grid.appendChild(dot);
+  });
+}
+function assemble(){
+  if(assembled)return;assembled=true;
+  document.getElementById('btnAssemble').disabled=true;
+  document.getElementById('status').textContent='ASSEMBLING…';
+  document.getElementById('hint').textContent='▶ Click any component to inspect';
+  let done=0;
+  parts.forEach(p=>{
+    setTimeout(()=>{
+      document.getElementById('part_'+p.id).classList.add('arrived');
+      document.getElementById('dot_'+p.id).classList.add('done');
+      done++;arrivedCount=done;updateProgress(done,parts.length);
+    },p.delay);
+  });
+  setTimeout(()=>{
+    document.getElementById('status').textContent='ASSEMBLY COMPLETE';
+    document.getElementById('hint').textContent='✓ Click any component to inspect';
+  },Math.max(...parts.map(p=>p.delay))+900);
+}
+function doReset(){
+  assembled=false;arrivedCount=0;selectedId=null;highlightMode=false;
+  document.getElementById('btnAssemble').disabled=false;
+  document.getElementById('status').textContent='AWAITING ASSEMBLY';
+  document.getElementById('hint').textContent='▶ Click ASSEMBLE to begin';
+  document.getElementById('partCounter').textContent=`0 / ${parts.length} PARTS`;
+  updateProgress(0,parts.length);
+  document.getElementById('infoCard').classList.remove('active');
+  document.getElementById('infoName').textContent='— SELECT A PART —';
+  document.getElementById('infoDesc').textContent='Assemble the motor first, then click any component to inspect it.';
+  document.getElementById('infoStats').innerHTML='';
+  document.getElementById('doneCount').textContent='0';
+  parts.forEach(p=>{document.getElementById('part_'+p.id).className='part';document.getElementById('dot_'+p.id).classList.remove('done');});
+}
+function highlightAll(){
+  if(!assembled)return;highlightMode=!highlightMode;selectedId=null;
+  parts.forEach(p=>{const el=document.getElementById('part_'+p.id);el.classList.remove('dimmed','selected');if(highlightMode)el.classList.add('selected');});
+}
+function selectPart(id){
+  if(!assembled)return;highlightMode=false;
+  const p=parts.find(x=>x.id===id);if(!p)return;
+  selectedId=id;
+  parts.forEach(q=>{const el=document.getElementById('part_'+q.id);el.classList.remove('dimmed','selected');if(q.id!==id)el.classList.add('dimmed');else el.classList.add('selected');});
+  document.getElementById('infoCard').classList.add('active');
+  document.getElementById('infoName').textContent=p.name.toUpperCase();
+  document.getElementById('infoDesc').textContent=p.desc;
+  const statsEl=document.getElementById('infoStats');statsEl.innerHTML='';
+  (p.stats||[]).forEach(s=>{const chip=document.createElement('div');chip.className='stat-chip';chip.textContent=s;statsEl.appendChild(chip);});
+}
+function updateProgress(done,total){
+  const pct=Math.round(done/total*100);
+  document.getElementById('prog').style.width=pct+'%';
+  document.getElementById('progPct').textContent=pct+'%';
+  document.getElementById('partCounter').textContent=`${done} / ${total} PARTS`;
+  document.getElementById('doneCount').textContent=done;
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  init();
+  document.getElementById('stage').addEventListener('click',e=>{
+    if(!e.target.closest('.part')&&selectedId){
+      selectedId=null;
+      parts.forEach(q=>{const el=document.getElementById('part_'+q.id);el.classList.remove('dimmed','selected');});
+      document.getElementById('infoCard').classList.remove('active');
+      document.getElementById('infoName').textContent='— SELECT A PART —';
+      document.getElementById('infoDesc').textContent='Click any glowing component to inspect it.';
+      document.getElementById('infoStats').innerHTML='';
+    }
+  });
+});
+</script>
+</body>
+</html>
