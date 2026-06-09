@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Arduino Nano — Interactive Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --accent3: #a8ff3e;
+    --bg: #030912;
+    --surface: #070f1e;
+    --border: rgba(0,229,255,0.12);
+    --glow: rgba(0,229,255,0.3);
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 14px 8px;
+    overflow: hidden;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* HEADER */
+  .hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .title-main {
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(0,229,255,0.5);
+  }
+  .title-sub {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    color: rgba(0,229,255,0.4);
+    letter-spacing: 3px;
+    margin-top: 2px;
+  }
+  .hdr-right { display: flex; align-items: center; gap: 10px; }
+  .status-badge {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--accent3);
+    background: rgba(168,255,62,0.07);
+    border: 1px solid rgba(168,255,62,0.25);
+    border-radius: 4px;
+    padding: 4px 10px;
+  }
+
+  /* CONTROLS */
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .btn-assemble {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #000;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    padding: 9px 22px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    box-shadow: 0 0 20px rgba(0,229,255,0.4);
+  }
+  .btn-assemble:hover { box-shadow: 0 0 35px rgba(0,229,255,0.7); transform: translateY(-1px); }
+  .btn-assemble:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-reset, .btn-highlight {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    background: transparent;
+    border-radius: 6px;
+    padding: 9px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-reset { color: rgba(0,229,255,0.5); border: 1px solid rgba(0,229,255,0.2); }
+  .btn-reset:hover { color: var(--accent); border-color: rgba(0,229,255,0.5); }
+  .btn-highlight { color: rgba(255,107,53,0.6); border: 1px solid rgba(255,107,53,0.2); }
+  .btn-highlight:hover { color: var(--accent2); border-color: rgba(255,107,53,0.5); }
+
+  /* PROGRESS */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .progress-label { font-size: 9px; color: rgba(0,229,255,0.35); letter-spacing: 2px; min-width: 44px; }
+  .progress-track { flex: 1; height: 2px; background: rgba(0,229,255,0.08); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #003d55, var(--accent)); border-radius: 2px; width: 0%; transition: width 0.3s ease; box-shadow: 0 0 8px var(--accent); }
+  .progress-pct { font-size: 10px; color: var(--accent); min-width: 36px; text-align: right; font-family: 'Orbitron', monospace; }
+
+  /* MAIN LAYOUT */
+  .main-layout {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* STAGE */
+  .stage-wrap {
+    flex: 1;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0,20,40,0.8), inset 0 0 30px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .stage-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,229,255,0.012) 0px, rgba(0,229,255,0.012) 1px, transparent 1px, transparent 40px),
+      repeating-linear-gradient(90deg, rgba(0,229,255,0.012) 0px, rgba(0,229,255,0.012) 1px, transparent 1px, transparent 40px);
+    pointer-events: none;
+    border-radius: 12px;
+    z-index: 0;
+  }
+  .stage {
+    position: relative;
+    width: 560px;
+    height: 520px;
+    z-index: 1;
+    flex-shrink: 0;
+  }
+
+  /* PARTS */
+  .part {
+    position: absolute;
+    cursor: pointer;
+    transition: transform 0.8s cubic-bezier(.34,1.5,.64,1), opacity 0.5s ease, filter 0.15s;
+    opacity: 0;
+    transform: translateX(var(--ox)) translateY(var(--oy)) scale(0.55);
+    filter: drop-shadow(0 0 4px rgba(0,229,255,0.25));
+    z-index: 2;
+  }
+  .part.arrived {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  .part:hover {
+    filter: drop-shadow(0 0 14px rgba(0,229,255,0.9)) brightness(1.35) !important;
+    transform: translateX(0) translateY(0) scale(1.1) !important;
+    z-index: 50 !important;
+  }
+  .part.selected {
+    filter: drop-shadow(0 0 22px rgba(0,229,255,1)) brightness(1.6) !important;
+    z-index: 49 !important;
+  }
+  .part.dimmed {
+    filter: drop-shadow(0 0 2px rgba(0,229,255,0.05)) brightness(0.25) !important;
+  }
+  .part svg { display: block; pointer-events: none; }
+
+  /* SIDE PANEL */
+  .side-panel {
+    width: 260px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+  }
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    transition: border-color 0.3s;
+  }
+  .info-card.active { border-color: rgba(0,229,255,0.35); }
+  .info-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid rgba(0,229,255,0.12);
+    line-height: 1.4;
+  }
+  .info-desc {
+    font-size: 10px;
+    color: rgba(180,230,255,0.6);
+    line-height: 1.8;
+    margin-bottom: 10px;
+  }
+  .info-stats { display: flex; gap: 5px; flex-wrap: wrap; }
+  .stat-chip {
+    font-size: 8px;
+    color: rgba(0,229,255,0.7);
+    background: rgba(0,229,255,0.05);
+    border: 1px solid rgba(0,229,255,0.15);
+    border-radius: 4px;
+    padding: 3px 7px;
+    letter-spacing: 0.5px;
+  }
+
+  /* PARTS MAP */
+  .parts-grid-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    flex-shrink: 0;
+  }
+  .parts-grid-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: rgba(0,229,255,0.35);
+    margin-bottom: 8px;
+  }
+  .parts-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pdot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: rgba(0,229,255,0.06);
+    border: 1px solid rgba(0,229,255,0.18);
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+  }
+  .pdot:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 130%; left: 50%;
+    transform: translateX(-50%);
+    background: #0a1a2a;
+    border: 1px solid rgba(0,229,255,0.3);
+    border-radius: 4px;
+    padding: 3px 7px;
+    font-size: 9px;
+    color: var(--accent);
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .pdot.done { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 4px rgba(0,229,255,0.5); }
+  .pdot.done.cat-power { background: #ff4422; border-color: #ff4422; box-shadow: 0 0 4px rgba(255,68,34,0.5); }
+  .pdot.done.cat-ic { background: #a8ff3e; border-color: #a8ff3e; box-shadow: 0 0 4px rgba(168,255,62,0.5); }
+  .pdot.done.cat-header { background: #00e5ff; border-color: #00e5ff; }
+  .pdot.done.cat-passive { background: #ffaa00; border-color: #ffaa00; box-shadow: 0 0 4px rgba(255,170,0,0.5); }
+  .pdot.done.cat-led { background: #ff6bff; border-color: #ff6bff; box-shadow: 0 0 4px rgba(255,107,255,0.5); }
+
+  .legend {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 7px;
+  }
+  .leg-item { display: flex; align-items: center; gap: 3px; font-size: 8px; color: rgba(0,229,255,0.4); }
+  .leg-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .hint { font-size: 9px; color: rgba(0,229,255,0.25); letter-spacing: 1px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="title-main">Arduino Nano</div>
+    <div class="title-sub">INTERACTIVE ASSEMBLY — ATmega328P / 22 I/O PINS / MINI-USB</div>
+  </div>
+  <div class="hdr-right">
+    <div class="status-badge" id="status">AWAITING ASSEMBLY</div>
+    <div style="font-size:9px;color:rgba(0,229,255,0.35);letter-spacing:1px;" id="partCounter">0 / 0 PARTS</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn-assemble" id="btnAssemble" onclick="assemble()">⚡ Assemble Nano</button>
+  <button class="btn-reset" onclick="doReset()">↺ Reset</button>
+  <button class="btn-highlight" onclick="highlightAll()">◈ Highlight All</button>
+</div>
+
+<div class="progress-row">
+  <span class="progress-label">BUILD</span>
+  <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+  <span class="progress-pct" id="progPct">0%</span>
+</div>
+
+<div class="main-layout">
+  <div class="stage-wrap">
+    <div class="stage" id="stage"></div>
+  </div>
+  <div class="side-panel">
+    <div class="info-card" id="infoCard">
+      <div class="info-name" id="infoName">— SELECT A PART —</div>
+      <div class="info-desc" id="infoDesc">Assemble the board first, then click any component to inspect it. Every IC, capacitor, resistor, LED, and header is individually clickable with full specs.</div>
+      <div class="info-stats" id="infoStats"></div>
+    </div>
+    <div class="parts-grid-card">
+      <div class="parts-grid-title">COMPONENT MAP — <span id="doneCount">0</span> ARRIVED</div>
+      <div class="parts-grid" id="partsGrid"></div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#a8ff3e"></div>ICs</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#00e5ff"></div>Headers</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ff4422"></div>Power</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ffaa00"></div>Passives</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ff6bff"></div>LEDs</div>
+      </div>
+    </div>
+    <div class="hint" id="hint">▶ Click ASSEMBLE to begin</div>
+  </div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────
+   Arduino Nano — 560×520 stage
+   Board: ~18mm × 43mm, scaled to ~130×390px on stage
+   Centre board at x:215, y:65, w:130, h:390
+   ───────────────────────────────────────────────────────────────── */
+
+const parts = [
+
+  /* ══ PCB ══ */
+  {
+    id:'pcb', name:'PCB Board — FR4 Two-Layer',
+    cat:'ic',
+    ox:'0px', oy:'300px', x:195, y:55, w:170, h:410, delay:0,
+    desc:'The Arduino Nano PCB is a compact two-layer FR4 fibreglass board measuring just 18 × 45 mm — one of the smallest in the Arduino family. The dark blue soldermask hosts all components on the top layer. The narrow form factor makes it ideal for breadboard use. Castellated pads on some clones allow direct SMD soldering onto a host PCB.',
+    stats:['Material: FR4 fiberglass','Layers: 2','Size: 18 × 45 mm','Form: DIP-30 breadboard','Color: Dark blue soldermask','Holes: 2 × M2 mounting'],
+    svg:`<svg width="170" height="410" viewBox="0 0 170 410">
+      <defs>
+        <linearGradient id="pcbG" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#0a1832"/>
+          <stop offset="100%" style="stop-color:#071024"/>
+        </linearGradient>
+      </defs>
+      <rect x="2" y="2" width="166" height="406" rx="6" fill="url(#pcbG)" stroke="#1a4a8a" stroke-width="1.5"/>
+      ${[...Array(10)].map((_,i)=>`<line x1="10" y1="${30+i*38}" x2="160" y2="${30+i*38}" stroke="rgba(30,100,200,0.05)" stroke-width="0.6"/>`).join('')}
+      ${[...Array(6)].map((_,i)=>`<line x1="${10+i*26}" y1="2" x2="${10+i*26}" y2="408" stroke="rgba(30,100,200,0.05)" stroke-width="0.6"/>`).join('')}
+      <!-- mounting holes -->
+      <circle cx="16" cy="20" r="5" fill="none" stroke="rgba(0,200,255,0.2)" stroke-width="1.2"/>
+      <circle cx="16" cy="20" r="2.5" fill="rgba(200,180,140,0.12)"/>
+      <circle cx="154" cy="20" r="5" fill="none" stroke="rgba(0,200,255,0.2)" stroke-width="1.2"/>
+      <circle cx="154" cy="20" r="2.5" fill="rgba(200,180,140,0.12)"/>
+      <!-- silkscreen -->
+      <text x="85" y="400" fill="rgba(100,180,255,0.22)" font-size="9" text-anchor="middle" font-family="'Share Tech Mono',monospace">ARDUINO NANO</text>
+      <text x="85" y="390" fill="rgba(100,180,255,0.12)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">www.arduino.cc</text>
+      <!-- copper pad strips hint -->
+      <rect x="5" y="60" width="12" height="300" rx="3" fill="rgba(180,120,0,0.05)" stroke="rgba(180,120,0,0.08)" stroke-width="0.4"/>
+      <rect x="153" y="60" width="12" height="300" rx="3" fill="rgba(180,120,0,0.05)" stroke="rgba(180,120,0,0.08)" stroke-width="0.4"/>
+    </svg>`
+  },
+
+  /* ══ ATmega328P ══ */
+  {
+    id:'mcu', name:'ATmega328P Microcontroller',
+    cat:'ic',
+    ox:'0px', oy:'-300px', x:225, y:185, w:110, h:115, delay:200,
+    desc:'The ATmega328P is the Nano\'s brain — an 8-bit AVR RISC microcontroller running at 16MHz. It packs 32KB of Flash (2KB used by bootloader), 2KB of SRAM, and 1KB of EEPROM. With 22 usable I/O pins, 1 hardware UART, 1 SPI, 1 I2C, 6 PWM outputs, and a 6-channel 10-bit ADC, it handles most hobbyist tasks. The TQFP-32 flat package is soldered directly to the PCB.',
+    stats:['CPU: AVR 8-bit 16MHz','Flash: 32KB (–2KB bootloader)','SRAM: 2KB','EEPROM: 1KB','I/O: 22 pins','PWM: 6 channels','ADC: 6-ch 10-bit','Package: TQFP-32'],
+    svg:`<svg width="110" height="115" viewBox="0 0 110 115">
+      <defs>
+        <linearGradient id="mcuG" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1e1e1e"/>
+          <stop offset="100%" style="stop-color:#0e0e0e"/>
+        </linearGradient>
+      </defs>
+      <rect x="14" y="14" width="82" height="87" rx="3" fill="url(#mcuG)" stroke="#444" stroke-width="1.2"/>
+      <circle cx="19" cy="19" r="3.5" fill="rgba(255,255,255,0.08)" stroke="#666" stroke-width="0.5"/>
+      <!-- top pins 8 -->
+      ${[...Array(8)].map((_,i)=>`<rect x="${17+i*10}" y="7" width="6" height="9" rx="1" fill="#777" stroke="#aaa" stroke-width="0.35"/>`).join('')}
+      <!-- bottom pins 8 -->
+      ${[...Array(8)].map((_,i)=>`<rect x="${17+i*10}" y="99" width="6" height="9" rx="1" fill="#777" stroke="#aaa" stroke-width="0.35"/>`).join('')}
+      <!-- left pins 8 -->
+      ${[...Array(8)].map((_,i)=>`<rect x="7" y="${17+i*10}" width="9" height="6" rx="1" fill="#777" stroke="#aaa" stroke-width="0.35"/>`).join('')}
+      <!-- right pins 8 -->
+      ${[...Array(8)].map((_,i)=>`<rect x="94" y="${17+i*10}" width="9" height="6" rx="1" fill="#777" stroke="#aaa" stroke-width="0.35"/>`).join('')}
+      <text x="55" y="52" fill="rgba(220,220,220,0.85)" font-size="11" text-anchor="middle" font-weight="bold" font-family="'Share Tech Mono',monospace">ATmega</text>
+      <text x="55" y="66" fill="rgba(220,220,220,0.85)" font-size="11" text-anchor="middle" font-weight="bold" font-family="'Share Tech Mono',monospace">328P</text>
+      <text x="55" y="79" fill="rgba(160,160,160,0.5)" font-size="7.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">MICROCHIP</text>
+      <text x="55" y="89" fill="rgba(130,130,130,0.4)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">16MHz  32K</text>
+    </svg>`
+  },
+
+  /* ══ Mini-USB Port ══ */
+  {
+    id:'usb', name:'Mini-USB Port (Programming & Power)',
+    cat:'power',
+    ox:'0px', oy:'-340px', x:224, y:57, w:112, h:52, delay:400,
+    desc:'The Mini-USB Type-B socket is the Nano\'s primary interface to the world. It serves dual duty: powering the board (5V up to 500mA from USB) and programming the ATmega328P via the CH340G or FT232R USB-serial chip. The Mini-USB was standard for embedded boards circa 2008 — it\'s more rugged than Micro-USB but larger than modern USB-C. When connected, it also enables Serial Monitor communication at any baud rate.',
+    stats:['Type: Mini-USB Type-B','Power: 5V / 500mA','Protocol: USB 2.0 Full-Speed','Cable: USB-A to Mini-B','Chip routes to: CH340G/FT232R','Durability: ~5000 cycles'],
+    svg:`<svg width="112" height="52" viewBox="0 0 112 52">
+      <rect x="2" y="2" width="108" height="48" rx="5" fill="#252525" stroke="#666" stroke-width="1.3"/>
+      <!-- USB opening -->
+      <path d="M22,10 L90,10 L90,34 L80,42 L32,42 L22,34 Z" fill="#111" stroke="#444" stroke-width="0.8"/>
+      <!-- contacts -->
+      <rect x="30" y="14" width="7" height="14" rx="1" fill="#999"/>
+      <rect x="42" y="14" width="7" height="14" rx="1" fill="#999"/>
+      <rect x="54" y="14" width="7" height="14" rx="1" fill="#999"/>
+      <rect x="66" y="14" width="7" height="14" rx="1" fill="#999"/>
+      <rect x="78" y="14" width="7" height="14" rx="1" fill="#999"/>
+      <!-- shield tabs -->
+      <rect x="0" y="5" width="4" height="9" rx="1" fill="#1a1a1a" stroke="#555" stroke-width="0.6"/>
+      <rect x="108" y="5" width="4" height="9" rx="1" fill="#1a1a1a" stroke="#555" stroke-width="0.6"/>
+      <rect x="0" y="38" width="4" height="9" rx="1" fill="#1a1a1a" stroke="#555" stroke-width="0.6"/>
+      <rect x="108" y="38" width="4" height="9" rx="1" fill="#1a1a1a" stroke="#555" stroke-width="0.6"/>
+      <text x="56" y="49" fill="rgba(150,150,150,0.3)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">MINI USB</text>
+    </svg>`
+  },
+
+  /* ══ CH340G USB-Serial ══ */
+  {
+    id:'ch340', name:'CH340G USB-to-Serial Bridge',
+    cat:'ic',
+    ox:'-280px', oy:'-300px', x:225, y:135, w:72, h:52, delay:500,
+    desc:'The CH340G (or FT232RL on original Nanos) translates USB signals into the UART signals the ATmega328P needs for programming and Serial Monitor. It handles USB enumeration, CDC class driver negotiation, and baud rate conversion transparently. The CH340G is a low-cost Chinese chip found on most clone Nanos; the FT232RL by FTDI is on genuine Arduino boards and requires no driver on modern OS. Both work identically for programming.',
+    stats:['IC: CH340G (or FT232RL)','USB: 2.0 Full-Speed 12Mbps','Max baud: 2Mbps','Interface: UART (RX/TX)','Package: SOP-16','Driver: CH341 (Win 7/8)'],
+    svg:`<svg width="72" height="52" viewBox="0 0 72 52">
+      <rect x="3" y="3" width="66" height="46" rx="3" fill="#181818" stroke="#555" stroke-width="1.1"/>
+      ${[...Array(4)].map((_,i)=>`<rect x="${8+i*14}" y="0" width="9" height="5" rx="1" fill="#666" stroke="#888" stroke-width="0.3"/>`).join('')}
+      ${[...Array(4)].map((_,i)=>`<rect x="${8+i*14}" y="47" width="9" height="5" rx="1" fill="#666" stroke="#888" stroke-width="0.3"/>`).join('')}
+      ${[...Array(3)].map((_,i)=>`<rect x="0" y="${8+i*12}" width="5" height="8" rx="1" fill="#666" stroke="#888" stroke-width="0.3"/>`).join('')}
+      ${[...Array(3)].map((_,i)=>`<rect x="67" y="${8+i*12}" width="5" height="8" rx="1" fill="#666" stroke="#888" stroke-width="0.3"/>`).join('')}
+      <circle cx="9" cy="9" r="3" fill="#333"/>
+      <text x="36" y="24" fill="rgba(200,200,200,0.7)" font-size="9" text-anchor="middle" font-family="'Share Tech Mono',monospace">CH340G</text>
+      <text x="36" y="36" fill="rgba(160,160,160,0.4)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">USB-UART</text>
+    </svg>`
+  },
+
+  /* ══ 16MHz Crystal ══ */
+  {
+    id:'crystal', name:'16MHz Crystal Oscillator',
+    cat:'passive',
+    ox:'0px', oy:'300px', x:234, y:320, w:92, h:22, delay:600,
+    desc:'A 16MHz HC-49/S quartz crystal provides the master clock for the ATmega328P. Every AVR instruction runs synchronously with this clock — at 16MHz the processor can execute up to 16 million instructions per second. Two 22pF ceramic load capacitors sit on either side to set the correct oscillation frequency. Accuracy is ±20ppm — crucial for baud rate generation and timer-based functions like tone() and servo libraries.',
+    stats:['Frequency: 16.000MHz','Package: HC-49/S (SMD)','Tolerance: ±20ppm','Load capacitors: 22pF × 2','Temperature: –20°C to +70°C','Affects: all timing functions'],
+    svg:`<svg width="92" height="22" viewBox="0 0 92 22">
+      <rect x="18" y="2" width="56" height="18" rx="6" fill="#b8b8b8" stroke="#888" stroke-width="1.1"/>
+      <rect x="22" y="5" width="48" height="12" rx="4" fill="#cccccc" stroke="#aaa" stroke-width="0.4"/>
+      <rect x="14" y="8" width="6" height="6" rx="1" fill="#999" stroke="#777" stroke-width="0.4"/>
+      <rect x="72" y="8" width="6" height="6" rx="1" fill="#999" stroke="#777" stroke-width="0.4"/>
+      <!-- load caps on either side -->
+      <rect x="0" y="6" width="12" height="10" rx="2" fill="#1a1a1a" stroke="#555" stroke-width="0.7"/>
+      <rect x="1" y="6" width="3" height="10" rx="1" fill="#777"/>
+      <rect x="9" y="6" width="3" height="10" rx="1" fill="#777"/>
+      <rect x="80" y="6" width="12" height="10" rx="2" fill="#1a1a1a" stroke="#555" stroke-width="0.7"/>
+      <rect x="80" y="6" width="3" height="10" rx="1" fill="#777"/>
+      <rect x="89" y="6" width="3" height="10" rx="1" fill="#777"/>
+      <text x="46" y="14" fill="rgba(50,50,50,0.7)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">16.000</text>
+    </svg>`
+  },
+
+  /* ══ Linear Regulator (3.3V) ══ */
+  {
+    id:'vreg33', name:'3.3V LDO Regulator (LP2985)',
+    cat:'power',
+    ox:'280px', oy:'300px', x:248, y:355, w:64, h:36, delay:700,
+    desc:'The LP2985-3.3 low-dropout regulator generates 3.3V from the 5V USB/VIN supply. It provides up to 150mA — sufficient for most 3.3V sensors, Bluetooth modules, or SD card breakouts connected to the 3.3V header pin. The Nano uses this instead of a heavier regulator because its small form factor limits thermal dissipation. Always keep total 3.3V draw under 150mA.',
+    stats:['IC: LP2985-33','Vin: 5V rail','Vout: 3.3V ±1%','Iout: 150mA max','Package: SOT-23-5','Dropout: <300mV at 150mA'],
+    svg:`<svg width="64" height="36" viewBox="0 0 64 36">
+      <rect x="2" y="2" width="60" height="22" rx="3" fill="#1a1a10" stroke="#886600" stroke-width="1"/>
+      <rect x="8" y="24" width="12" height="12" rx="1.5" fill="#665500" stroke="#aa8800" stroke-width="0.7"/>
+      <rect x="26" y="24" width="12" height="12" rx="1.5" fill="#665500" stroke="#aa8800" stroke-width="0.7"/>
+      <rect x="44" y="24" width="12" height="12" rx="1.5" fill="#665500" stroke="#aa8800" stroke-width="0.7"/>
+      <text x="32" y="16" fill="rgba(200,160,0,0.75)" font-size="7.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">LP2985</text>
+    </svg>`
+  },
+
+  /* ══ Voltage Regulator (5V) ══ */
+  {
+    id:'vreg5', name:'5V Regulator (MC33269/LM1117)',
+    cat:'power',
+    ox:'-280px', oy:'300px', x:248, y:300, w:64, h:38, delay:750,
+    desc:'The Nano has a small linear regulator (MC33269 or LM1117-5.0) on the VIN path that converts an external supply (7–12V on VIN pin) down to a stable 5V for the rest of the board. When powered via USB, the USB 5V bypasses the regulator. The regulator sits in a TO-252 package — smaller than the Mega but still capable of 800mA output, though the tiny board limits thermal dissipation to ~300mA safely.',
+    stats:['IC: MC33269 / LM1117-5.0','Vin: 7–12V (VIN pin)','Vout: 5.0V regulated','Iout: ~300mA practical','Package: TO-252 (DPAK)','Bypass: USB powers 5V direct'],
+    svg:`<svg width="64" height="38" viewBox="0 0 64 38">
+      <rect x="2" y="2" width="60" height="24" rx="3" fill="#1a1a10" stroke="#aa8800" stroke-width="1.1"/>
+      <rect x="0" y="12" width="64" height="9" rx="2" fill="#2a2a18" stroke="#ccaa00" stroke-width="0.7"/>
+      <rect x="8" y="26" width="13" height="12" rx="1.5" fill="#887722" stroke="#ccaa00" stroke-width="0.7"/>
+      <rect x="25" y="26" width="13" height="12" rx="1.5" fill="#887722" stroke="#ccaa00" stroke-width="0.7"/>
+      <rect x="42" y="26" width="13" height="12" rx="1.5" fill="#887722" stroke="#ccaa00" stroke-width="0.7"/>
+      <text x="32" y="19" fill="rgba(210,160,0,0.8)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">LM1117-5V</text>
+    </svg>`
+  },
+
+  /* ══ Reset Button ══ */
+  {
+    id:'reset_btn', name:'Reset Button',
+    cat:'passive',
+    ox:'0px', oy:'-340px', x:233, y:455, w:94, h:32, delay:800,
+    desc:'The tactile reset button pulls the ATmega328P\'s RESET pin to GND when pressed, restarting the microcontroller and running the bootloader for ~2 seconds before jumping to your sketch. On the Nano, the button is placed at the far end from the USB port. It\'s also used for manual sketch upload sync when the auto-reset circuit doesn\'t trigger the bootloader correctly.',
+    stats:['Type: SMD tact switch','Active: LOW (GND)','RESET pin: PC6','Bootloader window: 2s','Auto-reset: via DTR cap','Pull-up: 10kΩ to VCC'],
+    svg:`<svg width="94" height="32" viewBox="0 0 94 32">
+      <rect x="2" y="2" width="90" height="28" rx="5" fill="#1a0505" stroke="#cc2200" stroke-width="1.3"/>
+      <rect x="8" y="5" width="78" height="22" rx="4" fill="#dd3300" stroke="#ff4422" stroke-width="0.8"/>
+      <rect x="16" y="9" width="62" height="14" rx="6" fill="#ff5533" stroke="#ff7755" stroke-width="0.7"/>
+      <ellipse cx="47" cy="16" rx="16" ry="5" fill="rgba(255,200,180,0.25)"/>
+      <rect x="0" y="6" width="3" height="7" rx="1" fill="#777"/>
+      <rect x="91" y="6" width="3" height="7" rx="1" fill="#777"/>
+      <rect x="0" y="19" width="3" height="7" rx="1" fill="#777"/>
+      <rect x="91" y="19" width="3" height="7" rx="1" fill="#777"/>
+      <text x="47" y="19" fill="rgba(255,200,200,0.3)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">RESET</text>
+    </svg>`
+  },
+
+  /* ══ Digital Header Left D0-D13 ══ */
+  {
+    id:'digi_left', name:'Digital Headers D0–D13 (Left Rail)',
+    cat:'header',
+    ox:'-300px', oy:'0px', x:197, y:85, w:14, h:348, delay:900,
+    desc:'The left-side pin headers expose Digital pins D0 through D13. D0(RX) and D1(TX) are the hardware UART shared with the CH340G USB chip. D2 and D3 support external interrupts (INT0/INT1). D3, D5, D6, D9, D10, D11 are PWM-capable via hardware timers. D10(SS), D11(MOSI), D12(MISO), D13(SCK) form the SPI bus. D13 also connects to the built-in L LED. All pins are 5V logic, 40mA max each.',
+    stats:['D0: RX (UART)','D1: TX (UART)','D2-D3: INT0/INT1','D3,5,6,9,10,11: PWM','D10-D13: SPI bus','D13: L LED + SCK','Logic: 5V | Max: 40mA/pin'],
+    svg:`<svg width="14" height="348" viewBox="0 0 14 348">
+      <rect x="1" y="1" width="12" height="346" rx="3" fill="#0a1a0a" stroke="#1a7a2a" stroke-width="0.8"/>
+      ${[...Array(15)].map((_,i)=>`
+        <circle cx="7" cy="${12+i*22}" r="4.5" fill="#143a14" stroke="rgba(0,220,100,0.4)" stroke-width="0.6"/>
+        <circle cx="7" cy="${12+i*22}" r="2" fill="rgba(0,255,100,0.12)"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══ Analog/Power Header Right ══ */
+  {
+    id:'analog_right', name:'Analog & Power Headers A0–A7 / Power (Right Rail)',
+    cat:'header',
+    ox:'300px', oy:'0px', x:349, y:85, w:14, h:348, delay:950,
+    desc:'The right rail carries analog inputs A0–A7 and the power pins. A0–A5 connect directly to the ATmega328P\'s ADC channels (10-bit, 0–1023 for 0–5V). A6 and A7 are analog-only pins — no digital function — unique to the Nano. Power pins include VIN (raw input 7–12V), two GNDs, 5V output, and 3.3V output (150mA max). AREF sets the ADC reference voltage, and RST allows external board reset.',
+    stats:['A0-A5: ADC + digital capable','A6-A7: Analog-ONLY (Nano unique)','VIN: 7–12V external power','5V: USB/reg output','3.3V: 150mA from LP2985','AREF: ADC reference pin'],
+    svg:`<svg width="14" height="348" viewBox="0 0 14 348">
+      <rect x="1" y="1" width="12" height="346" rx="3" fill="#0a1a12" stroke="#1a7a4a" stroke-width="0.8"/>
+      ${[...Array(15)].map((_,i)=>`
+        <circle cx="7" cy="${12+i*22}" r="4.5" fill="#0a3020" stroke="rgba(0,200,140,0.4)" stroke-width="0.6"/>
+        <circle cx="7" cy="${12+i*22}" r="2" fill="rgba(0,200,140,0.1)"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══ 100µF Electrolytic Cap ══ */
+  {
+    id:'ecap', name:'Electrolytic Capacitor (100µF — Bulk)',
+    cat:'passive',
+    ox:'280px', oy:'-300px', x:232, y:110, w:32, h:32, delay:1000,
+    desc:'A 100µF electrolytic capacitor near the USB power input provides bulk energy storage. When the ATmega328P switches multiple I/O pins or the USB activity surges, this cap smooths the current draw to prevent voltage droop. On the Nano\'s limited board area, only one large electrolytic is used (versus two on the Mega), so its correct placement near the 5V regulator output is critical.',
+    stats:['Value: 100µF','Voltage: 16V rated','Type: SMD electrolytic','Purpose: Bulk decoupling','ESR: low','Near: 5V output node'],
+    svg:`<svg width="32" height="32" viewBox="0 0 32 32">
+      <ellipse cx="16" cy="16" rx="13" ry="13" fill="#1a1a3a" stroke="#4444aa" stroke-width="1.2"/>
+      <line x1="16" y1="3" x2="16" y2="29" stroke="rgba(150,150,220,0.2)" stroke-width="0.6"/>
+      <rect x="3" y="3" width="12" height="26" rx="12" fill="rgba(0,0,0,0.28)"/>
+      <rect x="9" y="0" width="14" height="5" rx="2" fill="#2a2a4a" stroke="#5555bb" stroke-width="0.5"/>
+      <text x="16" y="30" fill="rgba(100,100,200,0.35)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">100µ</text>
+    </svg>`
+  },
+
+  /* ══ 100nF Decoupling Caps ══ */
+  {
+    id:'decaps', name:'100nF Decoupling Capacitors (×6)',
+    cat:'passive',
+    ox:'0px', oy:'-300px', x:227, y:147, w:106, h:36, delay:1050,
+    desc:'Six 100nF ceramic 0402 capacitors are distributed across the board adjacent to every IC power supply pin. These bypass capacitors are critical for stable operation — they filter high-frequency switching noise (10MHz+) that bulk electrolytics cannot suppress. Without them, the MCU can exhibit ghost resets, corrupted EEPROM writes, and erratic ADC readings. Microchip/Atmel mandates decoupling on every VCC/AVCC pin.',
+    stats:['Value: 100nF (0.1µF)','Type: Ceramic X7R 0402','Count: 6 on board','Placed: near IC power pins','Purpose: HF noise suppression','ESR: ~0.1Ω ceramic advantage'],
+    svg:`<svg width="106" height="36" viewBox="0 0 106 36">
+      ${[...Array(6)].map((_,i)=>`
+        <rect x="${3+i*17}" y="10" width="13" height="8" rx="1.5" fill="#1a1a1a" stroke="#555" stroke-width="0.7"/>
+        <rect x="${3+i*17}" y="10" width="3" height="8" rx="1" fill="#777"/>
+        <rect x="${13+i*17}" y="10" width="3" height="8" rx="1" fill="#777"/>
+        <text x="${9+i*17}" y="25" fill="rgba(180,180,180,0.28)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">104</text>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══ ICSP Header ══ */
+  {
+    id:'icsp', name:'ICSP Header (SPI / Bootloader Burn)',
+    cat:'header',
+    ox:'300px', oy:'-300px', x:234, y:380, w:92, h:30, delay:1100,
+    desc:'The 6-pin ICSP (In-Circuit Serial Programming) header provides direct SPI access to the ATmega328P. An AVR programmer (USBtinyISP, AVRISP mkII, or another Arduino as ISP) can burn a fresh bootloader, change fuse bits, or upload a sketch directly — bypassing the bootloader entirely for maximum flash space. Pins: MISO (D12), MOSI (D11), SCK (D13), RESET, VCC (+5V), GND.',
+    stats:['Pins: 6 (2×3, 2.54mm)','Protocol: SPI','Signals: MISO/MOSI/SCK/RST/VCC/GND','Use: bootloader burning','Pin 1: MISO (square pad)','Also: direct HEX upload'],
+    svg:`<svg width="92" height="30" viewBox="0 0 92 30">
+      <rect x="1" y="1" width="90" height="28" rx="3" fill="#0a1a0a" stroke="#1a8a2a" stroke-width="0.9"/>
+      ${[0,1,2].map(i=>`
+        <circle cx="${15+i*30}" cy="8" r="4.5" fill="#143a14" stroke="rgba(0,220,100,0.5)" stroke-width="0.7"/>
+        <circle cx="${15+i*30}" cy="8" r="2" fill="rgba(0,255,100,0.2)"/>
+        <circle cx="${15+i*30}" cy="22" r="4.5" fill="#143a14" stroke="rgba(0,220,100,0.5)" stroke-width="0.7"/>
+        <circle cx="${15+i*30}" cy="22" r="2" fill="rgba(0,255,100,0.2)"/>
+      `).join('')}
+      <rect x="10" y="3" width="9" height="9" rx="1" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="0.5"/>
+    </svg>`
+  },
+
+  /* ══ PWR LED ══ */
+  {
+    id:'led_pwr', name:'PWR LED (Power Indicator)',
+    cat:'led',
+    ox:'-280px', oy:'-300px', x:230, y:430, w:14, h:14, delay:1200,
+    desc:'A green SMD 0402 LED lights up the moment the Nano receives power — either from USB or the VIN pin. It is wired from the 5V rail through a 1kΩ current-limiting resistor. If this LED is off and you know you have power, the 5V regulator or polarity protection diode may have failed. A steady glow means your board is alive and the 5V rail is present.',
+    stats:['Color: Green','Vf: ~2.1V','Series resistor: 1kΩ','Current: ~2.9mA','Always on with power','Signals: 5V rail healthy'],
+    svg:`<svg width="14" height="14" viewBox="0 0 14 14">
+      <rect x="1" y="1" width="12" height="12" rx="2" fill="#001800" stroke="#00aa00" stroke-width="1"/>
+      <ellipse cx="7" cy="7" rx="4" ry="4" fill="#00dd00" opacity="0.9"/>
+      <ellipse cx="5.5" cy="5.5" rx="1.5" ry="1" fill="rgba(180,255,180,0.4)"/>
+    </svg>`
+  },
+
+  /* ══ TX LED ══ */
+  {
+    id:'led_tx', name:'TX LED (UART Transmit)',
+    cat:'led',
+    ox:'280px', oy:'-300px', x:246, y:430, w:14, h:14, delay:1220,
+    desc:'The TX LED (yellow/orange) flickers every time the ATmega328P sends data over the serial UART — whether from a Serial.print() call or during sketch upload. The CH340G drives this LED based on USB TX activity. Watch it blink during uploading or when your sketch outputs data to the Serial Monitor. A rapid sustained flicker means data is flowing at high baud rates.',
+    stats:['Color: Yellow','Function: UART TX activity','Driven: CH340G USB chip','Flickers: Serial.print()','Flickers: sketch upload TX','Blink = data flowing'],
+    svg:`<svg width="14" height="14" viewBox="0 0 14 14">
+      <rect x="1" y="1" width="12" height="12" rx="2" fill="#1a1a00" stroke="#aaaa00" stroke-width="1"/>
+      <ellipse cx="7" cy="7" rx="4" ry="4" fill="#dddd00" opacity="0.9"/>
+      <ellipse cx="5.5" cy="5.5" rx="1.5" ry="1" fill="rgba(255,255,180,0.4)"/>
+    </svg>`
+  },
+
+  /* ══ RX LED ══ */
+  {
+    id:'led_rx', name:'RX LED (UART Receive)',
+    cat:'led',
+    ox:'-280px', oy:'300px', x:262, y:430, w:14, h:14, delay:1230,
+    desc:'The RX LED flickers when data arrives at the Nano from the computer — most visibly during a sketch upload as the IDE streams the compiled HEX file. It also blinks each time you send a character via the Serial Monitor. Both TX and RX LEDs together tell you the serial connection is working — if only one blinks, you may have a wiring or baud rate issue with an external device.',
+    stats:['Color: Yellow/Amber','Function: UART RX activity','Driven: CH340G USB chip','Flickers: sketch upload','Flickers: Serial Monitor input','Useful: serial debug indicator'],
+    svg:`<svg width="14" height="14" viewBox="0 0 14 14">
+      <rect x="1" y="1" width="12" height="12" rx="2" fill="#1a1500" stroke="#ccaa00" stroke-width="1"/>
+      <ellipse cx="7" cy="7" rx="4" ry="4" fill="#ccaa00" opacity="0.9"/>
+      <ellipse cx="5.5" cy="5.5" rx="1.5" ry="1" fill="rgba(255,230,150,0.4)"/>
+    </svg>`
+  },
+
+  /* ══ L LED (D13) ══ */
+  {
+    id:'led_l', name:'L LED (Built-in, Pin 13 — Blink)',
+    cat:'led',
+    ox:'280px', oy:'300px', x:278, y:430, w:14, h:14, delay:1240,
+    desc:'The iconic "L" LED is your first friend in Arduino programming. It is connected to digital pin 13 through a 1kΩ resistor, and is the LED you control in the legendary Blink sketch — the "Hello World" of hardware. Use digitalWrite(LED_BUILTIN, HIGH) to light it. No external wiring needed to learn GPIO output. On the Nano, it doubles as a visual indicator that D13 (SCK) is active during SPI communication.',
+    stats:['GPIO: D13 / LED_BUILTIN','Color: Orange/Yellow','Resistor: 1kΩ series','Sketch: the Blink example','Also blinks: SPI SCK activity','No wiring needed to test'],
+    svg:`<svg width="14" height="14" viewBox="0 0 14 14">
+      <rect x="1" y="1" width="12" height="12" rx="2" fill="#1a0800" stroke="#cc5500" stroke-width="1"/>
+      <ellipse cx="7" cy="7" rx="4" ry="4" fill="#ff7700" opacity="0.9"/>
+      <ellipse cx="5.5" cy="5.5" rx="1.5" ry="1" fill="rgba(255,220,150,0.4)"/>
+    </svg>`
+  },
+
+  /* ══ LED Resistors ══ */
+  {
+    id:'led_res', name:'LED Resistors 1kΩ (×4)',
+    cat:'passive',
+    ox:'0px', oy:'300px', x:228, y:416, w:88, h:12, delay:1300,
+    desc:'Four 1kΩ SMD 0402 resistors limit the current through each of the four on-board LEDs (PWR, TX, RX, L). At 5V supply and ~2V LED forward voltage, each passes about 3mA — bright enough to see, low enough not to stress the GPIO. Without current-limiting resistors, 5V directly into an LED would draw 50–100mA and destroy both the LED and the driving pin.',
+    stats:['Value: 1kΩ each','Count: 4 (one per LED)','Package: 0402 SMD','Current: ~3mA per LED','Color code: Brn-Blk-Red-Gold','Purpose: LED current limiting'],
+    svg:`<svg width="88" height="12" viewBox="0 0 88 12">
+      ${[0,1,2,3].map(i=>`
+        <rect x="${2+i*22}" y="2" width="18" height="8" rx="1.5" fill="#2a1a0a" stroke="#886633" stroke-width="0.6"/>
+        <rect x="${2+i*22}" y="2" width="3" height="8" rx="1" fill="#aa8844"/>
+        <rect x="${17+i*22}" y="2" width="3" height="8" rx="1" fill="#aa8844"/>
+        <rect x="${6+i*22}" y="3" width="2" height="6" fill="#8B4513"/>
+        <rect x="${9+i*22}" y="3" width="2" height="6" fill="#111"/>
+        <rect x="${12+i*22}" y="3" width="2" height="6" fill="#cc2200"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══ 10kΩ Pull-up Resistors ══ */
+  {
+    id:'pullups', name:'Pull-up Resistors 10kΩ (RESET / I2C)',
+    cat:'passive',
+    ox:'-280px', oy:'300px', x:228, y:394, w:66, h:12, delay:1320,
+    desc:'Three 10kΩ SMD resistors hold the RESET and I2C SDA/SCL lines at logic HIGH when no device is actively driving them. The RESET pull-up prevents the MCU from spuriously resetting due to noise. I2C pull-ups define the bus idle state — without them, the Wire library cannot communicate correctly. All three are 0402 package placed near their respective pins.',
+    stats:['Value: 10kΩ each','Count: 3 total','RESET: 1× pull-up to 5V','I2C SDA/SCL: 2× pull-ups','Package: 0402 SMD','Color code: Brn-Blk-Org-Gold'],
+    svg:`<svg width="66" height="12" viewBox="0 0 66 12">
+      ${[0,1,2].map(i=>`
+        <rect x="${2+i*22}" y="2" width="18" height="8" rx="1.5" fill="#1a2a0a" stroke="#446633" stroke-width="0.6"/>
+        <rect x="${2+i*22}" y="2" width="3" height="8" rx="1" fill="#668844"/>
+        <rect x="${17+i*22}" y="2" width="3" height="8" rx="1" fill="#668844"/>
+        <rect x="${6+i*22}" y="3" width="2" height="6" fill="#8B4513"/>
+        <rect x="${9+i*22}" y="3" width="2" height="6" fill="#111"/>
+        <rect x="${12+i*22}" y="3" width="2" height="6" fill="#ff8800"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══ USB Series Resistors 22Ω ══ */
+  {
+    id:'usb_res', name:'22Ω USB D+/D− Resistors',
+    cat:'passive',
+    ox:'-280px', oy:'-300px', x:256, y:374, w:44, h:12, delay:1330,
+    desc:'Two 22Ω series resistors in-line with the USB D+ and D− differential pair help match the PCB trace impedance to the USB cable\'s 90Ω differential impedance. This reduces signal reflections that cause USB enumeration failures or instability at high data rates. A common oversight in DIY USB designs, these resistors are included on the official Nano schematic as per USB 2.0 signal integrity guidelines.',
+    stats:['Value: 22Ω each','Count: 2 (D+ and D−)','Purpose: USB impedance match','Prevents: USB signal reflection','Package: 0402 SMD','Required: USB 2.0 spec'],
+    svg:`<svg width="44" height="12" viewBox="0 0 44 12">
+      ${[0,1].map(i=>`
+        <rect x="${2+i*22}" y="2" width="18" height="8" rx="1.5" fill="#0a1a2a" stroke="#334466" stroke-width="0.6"/>
+        <rect x="${2+i*22}" y="2" width="3" height="8" rx="1" fill="#446688"/>
+        <rect x="${17+i*22}" y="2" width="3" height="8" rx="1" fill="#446688"/>
+        <rect x="${6+i*22}" y="3" width="2" height="6" fill="#cc2200"/>
+        <rect x="${9+i*22}" y="3" width="2" height="6" fill="#cc2200"/>
+        <rect x="${12+i*22}" y="3" width="2" height="6" fill="#111"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══ Auto-Reset Cap ══ */
+  {
+    id:'rst_cap', name:'Auto-Reset Capacitor (100nF)',
+    cat:'passive',
+    ox:'280px', oy:'-300px', x:302, y:365, w:20, h:12, delay:1340,
+    desc:'A 100nF capacitor couples the CH340G\'s DTR signal to the ATmega328P\'s RESET pin. When the Arduino IDE opens the serial port to upload a sketch, it asserts DTR, which pulses RESET through this capacitor for about 1ms — just long enough to trigger the bootloader. This \'auto-reset\' feature means you never have to press the reset button when uploading. Cutting the RESET-EN trace disables it for applications needing a stable serial connection.',
+    stats:['Value: 100nF ceramic','Connected: DTR → RESET','Purpose: auto-reset for upload','Disable: cut RESET-EN trace','Package: 0402','Coupling: AC only, not DC'],
+    svg:`<svg width="20" height="12" viewBox="0 0 20 12">
+      <rect x="1" y="2" width="18" height="8" rx="1.5" fill="#1a1a1a" stroke="#555" stroke-width="0.6"/>
+      <rect x="1" y="2" width="3.5" height="8" rx="1" fill="#777"/>
+      <rect x="15.5" y="2" width="3.5" height="8" rx="1" fill="#777"/>
+      <text x="10" y="9" fill="rgba(200,180,180,0.3)" font-size="4" text-anchor="middle" font-family="'Share Tech Mono',monospace">100n</text>
+    </svg>`
+  },
+
+  /* ══ Schottky Diode ══ */
+  {
+    id:'diode', name:'Schottky Diode (Reverse-Polarity Protection)',
+    cat:'passive',
+    ox:'0px', oy:'-340px', x:250, y:282, w:28, h:14, delay:1350,
+    desc:'A small Schottky diode in series with the VIN power path prevents damage if you accidentally connect a supply with reversed polarity. The Schottky type is chosen for its low forward voltage drop (~0.3V) versus a standard silicon diode (0.7V) — minimizing wasted power. If no power is provided via VIN, this diode has zero effect on USB-powered operation.',
+    stats:['Type: Schottky diode','Package: SOD-123 SMD','Vf: ~0.3V forward drop','Purpose: reverse polarity block','Location: VIN input path','Transparent for USB power'],
+    svg:`<svg width="28" height="14" viewBox="0 0 28 14">
+      <rect x="1" y="3" width="26" height="8" rx="2" fill="#2a1a0a" stroke="#886633" stroke-width="0.8"/>
+      <line x1="1" y1="7" x2="7" y2="7" stroke="#aaa" stroke-width="1.2"/>
+      <line x1="20" y1="7" x2="27" y2="7" stroke="#aaa" stroke-width="1.2"/>
+      <polygon points="9,3.5 17,7 9,10.5" fill="#cc6600" stroke="#ffaa00" stroke-width="0.5"/>
+      <line x1="17" y1="3.5" x2="17" y2="10.5" stroke="#ffaa00" stroke-width="1.1"/>
+      <text x="14" y="14" fill="rgba(200,140,0,0.45)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">BAT</text>
+    </svg>`
+  },
+
+  /* ══ AREF Pin area ══ */
+  {
+    id:'aref', name:'AREF Pin (Analog Voltage Reference)',
+    cat:'header',
+    ox:'300px', oy:'300px', x:348, y:370, w:14, h:18, delay:1400,
+    desc:'The AREF pin accepts an external reference voltage for the ADC. By default the ATmega328P uses VCC (5V) as the ADC reference, giving ~4.88mV per ADC step. Connecting a precision voltage to AREF and calling analogReference(EXTERNAL) lets you set a custom range — e.g., 2.56V reference gives ~2.5mV per step, nearly doubling ADC resolution. Never apply AREF voltage while the internal reference is selected, as this could damage the chip.',
+    stats:['Default ref: VCC (5V)','External: 0 to VCC input','Call: analogReference(EXTERNAL)','Resolution: Vref ÷ 1024','Max input: VCC (5V)','100nF cap nearby to filter'],
+    svg:`<svg width="14" height="18" viewBox="0 0 14 18">
+      <rect x="1" y="1" width="12" height="16" rx="2" fill="#1a1a2a" stroke="#3a3a9a" stroke-width="0.8"/>
+      <circle cx="7" cy="9" r="3.5" fill="#10103a" stroke="rgba(100,100,220,0.5)" stroke-width="0.6"/>
+      <text x="7" y="12" fill="rgba(120,120,255,0.45)" font-size="4" text-anchor="middle" font-family="'Share Tech Mono',monospace">AR</text>
+    </svg>`
+  },
+
+];
+
+/* ─────────────── STATE ─────────────── */
+let assembled = false;
+let arrivedCount = 0;
+let selectedId = null;
+let highlightMode = false;
+
+/* ─────────────── BUILD DOM ─────────────── */
+function init() {
+  const stage = document.getElementById('stage');
+  const grid = document.getElementById('partsGrid');
+  document.getElementById('partCounter').textContent = `0 / ${parts.length} PARTS`;
+
+  parts.forEach(p => {
+    // Stage element
+    const el = document.createElement('div');
+    el.className = 'part';
+    el.id = 'part_' + p.id;
+    el.style.setProperty('--ox', p.ox);
+    el.style.setProperty('--oy', p.oy);
+    el.style.left = p.x + 'px';
+    el.style.top = p.y + 'px';
+    el.innerHTML = p.svg;
+    el.addEventListener('click', () => selectPart(p.id));
+    stage.appendChild(el);
+
+    // Grid dot
+    const dot = document.createElement('div');
+    dot.className = 'pdot cat-' + p.cat;
+    dot.id = 'dot_' + p.id;
+    dot.title = p.name;
+    dot.addEventListener('click', () => selectPart(p.id));
+    grid.appendChild(dot);
+  });
+}
+
+/* ─────────────── ASSEMBLE ─────────────── */
+function assemble() {
+  if (assembled) return;
+  assembled = true;
+  document.getElementById('btnAssemble').disabled = true;
+  document.getElementById('status').textContent = 'ASSEMBLING…';
+  document.getElementById('hint').textContent = '▶ Click any component to inspect';
+
+  let done = 0;
+  parts.forEach((p, i) => {
+    setTimeout(() => {
+      const el = document.getElementById('part_' + p.id);
+      el.classList.add('arrived');
+      const dot = document.getElementById('dot_' + p.id);
+      dot.classList.add('done');
+      done++;
+      arrivedCount = done;
+      updateProgress(done, parts.length);
+    }, p.delay);
+  });
+
+  const totalDelay = Math.max(...parts.map(p => p.delay)) + 900;
+  setTimeout(() => {
+    document.getElementById('status').textContent = 'ASSEMBLY COMPLETE';
+    document.getElementById('hint').textContent = '✓ Click any component to inspect';
+  }, totalDelay);
+}
+
+/* ─────────────── RESET ─────────────── */
+function doReset() {
+  assembled = false;
+  arrivedCount = 0;
+  selectedId = null;
+  highlightMode = false;
+  document.getElementById('btnAssemble').disabled = false;
+  document.getElementById('status').textContent = 'AWAITING ASSEMBLY';
+  document.getElementById('hint').textContent = '▶ Click ASSEMBLE to begin';
+  document.getElementById('partCounter').textContent = `0 / ${parts.length} PARTS`;
+  updateProgress(0, parts.length);
+  document.getElementById('infoCard').classList.remove('active');
+  document.getElementById('infoName').textContent = '— SELECT A PART —';
+  document.getElementById('infoDesc').textContent = 'Assemble the board first, then click any component to inspect it.';
+  document.getElementById('infoStats').innerHTML = '';
+  document.getElementById('doneCount').textContent = '0';
+
+  parts.forEach(p => {
+    document.getElementById('part_' + p.id).className = 'part';
+    document.getElementById('dot_' + p.id).classList.remove('done');
+  });
+}
+
+/* ─────────────── HIGHLIGHT ─────────────── */
+function highlightAll() {
+  if (!assembled) return;
+  highlightMode = !highlightMode;
+  selectedId = null;
+  parts.forEach(p => {
+    const el = document.getElementById('part_' + p.id);
+    el.classList.remove('dimmed', 'selected');
+    if (highlightMode && p.cat !== 'ic') {
+      el.classList.add('selected');
+    }
+  });
+}
+
+/* ─────────────── SELECT ─────────────── */
+function selectPart(id) {
+  if (!assembled && id !== 'pcb') return;
+  highlightMode = false;
+
+  const p = parts.find(x => x.id === id);
+  if (!p) return;
+
+  selectedId = id;
+  parts.forEach(q => {
+    const el = document.getElementById('part_' + q.id);
+    el.classList.remove('dimmed', 'selected');
+    if (q.id !== id) el.classList.add('dimmed');
+    else el.classList.add('selected');
+  });
+
+  // Update info card
+  document.getElementById('infoCard').classList.add('active');
+  document.getElementById('infoName').textContent = p.name.toUpperCase();
+  document.getElementById('infoDesc').textContent = p.desc;
+  const statsEl = document.getElementById('infoStats');
+  statsEl.innerHTML = '';
+  (p.stats || []).forEach(s => {
+    const chip = document.createElement('div');
+    chip.className = 'stat-chip';
+    chip.textContent = s;
+    statsEl.appendChild(chip);
+  });
+}
+
+/* ─────────────── PROGRESS ─────────────── */
+function updateProgress(done, total) {
+  const pct = Math.round(done / total * 100);
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('progPct').textContent = pct + '%';
+  document.getElementById('partCounter').textContent = `${done} / ${total} PARTS`;
+  document.getElementById('doneCount').textContent = done;
+}
+
+/* ─────────────── CLICK BLANK = DESELECT ─────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  document.getElementById('stage').addEventListener('click', e => {
+    if (e.target === document.getElementById('stage') || e.target.closest('.stage-wrap') && !e.target.closest('.part')) {
+      if (selectedId) {
+        selectedId = null;
+        parts.forEach(q => {
+          const el = document.getElementById('part_' + q.id);
+          el.classList.remove('dimmed', 'selected');
+        });
+        document.getElementById('infoCard').classList.remove('active');
+        document.getElementById('infoName').textContent = '— SELECT A PART —';
+        document.getElementById('infoDesc').textContent = 'Click any glowing component to inspect it.';
+        document.getElementById('infoStats').innerHTML = '';
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>

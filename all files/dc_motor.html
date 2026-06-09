@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DC Motor — Interactive Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--accent:#ff2266;--accent2:#ff6699;--accent3:#ffaacc;--bg:#0d0005;--surface:#100008;--border:rgba(255,34,102,0.13);--glow:rgba(255,34,102,0.3);}
+  html,body{height:100%;overflow:hidden;}
+  body{background:var(--bg);font-family:'Share Tech Mono',monospace;height:100vh;display:flex;flex-direction:column;padding:10px 14px 8px;overflow:hidden;}
+  body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);pointer-events:none;z-index:1000;}
+  .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .title-main{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--accent);letter-spacing:4px;text-transform:uppercase;text-shadow:0 0 20px rgba(255,34,102,0.5);}
+  .title-sub{font-family:'Rajdhani',sans-serif;font-size:11px;color:rgba(255,34,102,0.4);letter-spacing:3px;margin-top:2px;}
+  .hdr-right{display:flex;align-items:center;gap:10px;}
+  .status-badge{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--accent3);background:rgba(255,170,204,0.07);border:1px solid rgba(255,170,204,0.25);border-radius:4px;padding:4px 10px;}
+  .controls{display:flex;gap:8px;margin-bottom:8px;align-items:center;flex-shrink:0;}
+  .btn-assemble{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:#fff;background:var(--accent);border:none;border-radius:6px;padding:9px 22px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;box-shadow:0 0 20px rgba(255,34,102,0.4);}
+  .btn-assemble:hover{box-shadow:0 0 35px rgba(255,34,102,0.7);transform:translateY(-1px);}
+  .btn-assemble:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+  .btn-reset,.btn-highlight{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:1px;background:transparent;border-radius:6px;padding:9px 14px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;}
+  .btn-reset{color:rgba(255,34,102,0.5);border:1px solid rgba(255,34,102,0.2);}
+  .btn-reset:hover{color:var(--accent);border-color:rgba(255,34,102,0.5);}
+  .btn-highlight{color:rgba(255,102,153,0.6);border:1px solid rgba(255,102,153,0.2);}
+  .btn-highlight:hover{color:var(--accent2);border-color:rgba(255,102,153,0.5);}
+  .progress-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-shrink:0;}
+  .progress-label{font-size:9px;color:rgba(255,34,102,0.35);letter-spacing:2px;min-width:44px;}
+  .progress-track{flex:1;height:2px;background:rgba(255,34,102,0.08);border-radius:2px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,#330010,var(--accent));border-radius:2px;width:0%;transition:width 0.3s ease;box-shadow:0 0 8px var(--accent);}
+  .progress-pct{font-size:10px;color:var(--accent);min-width:36px;text-align:right;font-family:'Orbitron',monospace;}
+  .main-layout{display:flex;gap:12px;flex:1;min-height:0;}
+  .stage-wrap{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:relative;box-shadow:0 0 40px rgba(15,0,8,0.8),inset 0 0 30px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;}
+  .stage-wrap::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,34,102,0.012) 0px,rgba(255,34,102,0.012) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,rgba(255,34,102,0.012) 0px,rgba(255,34,102,0.012) 1px,transparent 1px,transparent 40px);pointer-events:none;border-radius:12px;z-index:0;}
+  .stage{position:relative;width:580px;height:500px;z-index:1;flex-shrink:0;}
+  .part{position:absolute;cursor:pointer;transition:transform 0.8s cubic-bezier(.34,1.5,.64,1),opacity 0.5s ease,filter 0.15s;opacity:0;transform:translateX(var(--ox)) translateY(var(--oy)) scale(0.55);filter:drop-shadow(0 0 4px rgba(255,34,102,0.25));z-index:2;}
+  .part.arrived{opacity:1;transform:translateX(0) translateY(0) scale(1);}
+  .part:hover{filter:drop-shadow(0 0 14px rgba(255,34,102,0.9)) brightness(1.35) !important;transform:translateX(0) translateY(0) scale(1.08) !important;z-index:50 !important;}
+  .part.selected{filter:drop-shadow(0 0 22px rgba(255,34,102,1)) brightness(1.6) !important;z-index:49 !important;}
+  .part.dimmed{filter:drop-shadow(0 0 2px rgba(255,34,102,0.05)) brightness(0.25) !important;}
+  .part svg{display:block;pointer-events:none;}
+  .side-panel{width:260px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;min-height:0;}
+  .info-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;flex:1;min-height:0;overflow-y:auto;transition:border-color 0.3s;}
+  .info-card.active{border-color:rgba(255,34,102,0.35);}
+  .info-name{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid rgba(255,34,102,0.12);line-height:1.4;}
+  .info-desc{font-size:10px;color:rgba(255,180,200,0.6);line-height:1.8;margin-bottom:10px;}
+  .info-stats{display:flex;gap:5px;flex-wrap:wrap;}
+  .stat-chip{font-size:8px;color:rgba(255,34,102,0.8);background:rgba(255,34,102,0.06);border:1px solid rgba(255,34,102,0.18);border-radius:4px;padding:3px 7px;letter-spacing:0.5px;}
+  .parts-grid-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;flex-shrink:0;}
+  .parts-grid-title{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,34,102,0.35);margin-bottom:8px;}
+  .parts-grid{display:flex;flex-wrap:wrap;gap:4px;}
+  .pdot{width:9px;height:9px;border-radius:50%;background:rgba(255,34,102,0.06);border:1px solid rgba(255,34,102,0.18);transition:all 0.3s;cursor:pointer;position:relative;}
+  .pdot:hover::after{content:attr(title);position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#1a000a;border:1px solid rgba(255,34,102,0.3);border-radius:4px;padding:3px 7px;font-size:9px;color:var(--accent);white-space:nowrap;z-index:100;pointer-events:none;}
+  .pdot.done{background:var(--accent);border-color:var(--accent);box-shadow:0 0 4px rgba(255,34,102,0.5);}
+  .pdot.done.cat-stator{background:#ff2266;}
+  .pdot.done.cat-armature{background:#ffaa00;box-shadow:0 0 4px rgba(255,170,0,0.5);}
+  .pdot.done.cat-commutation{background:#a8ff3e;box-shadow:0 0 4px rgba(168,255,62,0.5);}
+  .pdot.done.cat-mechanical{background:#33aaff;box-shadow:0 0 4px rgba(51,170,255,0.5);}
+  .pdot.done.cat-housing{background:#888;}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;}
+  .leg-item{display:flex;align-items:center;gap:3px;font-size:8px;color:rgba(255,34,102,0.4);}
+  .leg-dot{width:7px;height:7px;border-radius:50%;}
+  .hint{font-size:9px;color:rgba(255,34,102,0.25);letter-spacing:1px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <div class="title-main">DC Motor</div>
+    <div class="title-sub">INTERACTIVE ASSEMBLY — BRUSHED DC / PERMANENT MAGNET / SERIES & SHUNT WOUND</div>
+  </div>
+  <div class="hdr-right">
+    <div class="status-badge" id="status">AWAITING ASSEMBLY</div>
+    <div style="font-size:9px;color:rgba(255,34,102,0.35);letter-spacing:1px;" id="partCounter">0 / 0 PARTS</div>
+  </div>
+</div>
+<div class="controls">
+  <button class="btn-assemble" id="btnAssemble" onclick="assemble()">⚡ Assemble Motor</button>
+  <button class="btn-reset" onclick="doReset()">↺ Reset</button>
+  <button class="btn-highlight" onclick="highlightAll()">◈ Highlight All</button>
+</div>
+<div class="progress-row">
+  <span class="progress-label">BUILD</span>
+  <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+  <span class="progress-pct" id="progPct">0%</span>
+</div>
+<div class="main-layout">
+  <div class="stage-wrap"><div class="stage" id="stage"></div></div>
+  <div class="side-panel">
+    <div class="info-card" id="infoCard">
+      <div class="info-name" id="infoName">— SELECT A PART —</div>
+      <div class="info-desc" id="infoDesc">Assemble the motor first, then click any component to inspect it. Field magnets, armature, commutator, brushes, and all mechanical parts are detailed.</div>
+      <div class="info-stats" id="infoStats"></div>
+    </div>
+    <div class="parts-grid-card">
+      <div class="parts-grid-title">COMPONENT MAP — <span id="doneCount">0</span> ARRIVED</div>
+      <div class="parts-grid" id="partsGrid"></div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#ff2266"></div>Stator</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ffaa00"></div>Armature</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#a8ff3e"></div>Commut.</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#33aaff"></div>Mech.</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#888"></div>Housing</div>
+      </div>
+    </div>
+    <div class="hint" id="hint">▶ Click ASSEMBLE to begin</div>
+  </div>
+</div>
+<script>
+const parts=[
+  {
+    id:'frame_dc',name:'Motor Yoke / Frame',cat:'housing',
+    ox:'0px',oy:'300px',x:80,y:90,w:420,h:320,delay:0,
+    desc:'The DC motor frame (yoke) is made of cast iron or rolled steel. In wound-field DC motors, the yoke forms part of the magnetic circuit, providing a low-reluctance return path for the field flux generated by the pole pieces. In permanent magnet DC motors, the yoke still provides structural support but is non-magnetic in some designs. The frame carries the mounting feet, terminal box, and end brackets. Field winding terminal leads exit through the frame for series, shunt, or compound connections.',
+    stats:['Material: Cast iron or rolled steel','Magnetic: yoke = flux return path','PM motors: structural only','Carries: terminal box + mounting','Finish: Black enamel or RAL 7031','Earthed: protective ground'],
+    svg:`<svg width="420" height="320" viewBox="0 0 420 320"><defs><linearGradient id="fdcG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#1a0a0a"/><stop offset="100%" style="stop-color:#0d0505"/></linearGradient></defs><rect x="2" y="30" width="416" height="260" rx="8" fill="url(#fdcG)" stroke="#663333" stroke-width="2"/>${[...Array(12)].map((_,i)=>`<rect x="${15+i*32}" y="0" width="18" height="34" rx="3" fill="#221111" stroke="#553333" stroke-width="0.7"/>`).join('')}${[...Array(12)].map((_,i)=>`<rect x="${15+i*32}" y="286" width="18" height="34" rx="3" fill="#221111" stroke="#553333" stroke-width="0.7"/>`).join('')}<circle cx="210" cy="160" r="100" fill="#0d0505" stroke="#443333" stroke-width="1.5"/><text x="210" y="310" fill="rgba(255,34,102,0.18)" font-size="9" text-anchor="middle" font-family="'Share Tech Mono',monospace">DC MOTOR — BRUSHED</text></svg>`
+  },
+  {
+    id:'field_magnets',name:'Field Magnets (Permanent Magnet)',cat:'stator',
+    ox:'-300px',oy:'0px',x:100,y:105,w:380,h:290,delay:200,
+    desc:'In a permanent magnet DC (PMDC) motor, strong neodymium or ferrite magnets are bonded or bolted to the inside of the yoke, creating a fixed radial magnetic field across the air gap. This field interacts with the current-carrying armature conductors to produce torque (F = BIL). PMDC motors are compact and efficient — no field winding losses — but field strength cannot be controlled, so speed is controlled only via armature voltage. Found in toys, power tools, automotive actuators, and precision servo applications.',
+    stats:['Type: Neodymium (NdFeB) or Ferrite','Arrangement: 2 or 4 poles','Field: Fixed — no control','No field winding losses','Speed control: armature voltage','Demagnetisation: avoid >80°C (ferrite)'],
+    svg:`<svg width="380" height="290" viewBox="0 0 380 290"><ellipse cx="190" cy="145" rx="175" ry="135" fill="#0d0505" stroke="#553333" stroke-width="1.5"/>
+      <path d="M15,145 A175,135 0 0,1 190,10 L190,50 A135,95 0 0,0 55,145 Z" fill="#4a0011" stroke="#cc0033" stroke-width="1.2"/>
+      <path d="M365,145 A175,135 0 0,1 190,280 L190,240 A135,95 0 0,0 325,145 Z" fill="#001144" stroke="#0033cc" stroke-width="1.2"/>
+      <text x="80" y="80" fill="rgba(255,0,50,0.5)" font-size="12" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-weight="bold">N</text>
+      <text x="300" y="220" fill="rgba(0,80,255,0.5)" font-size="12" text-anchor="middle" font-family="'Share Tech Mono',monospace" font-weight="bold">S</text>
+      <ellipse cx="190" cy="145" rx="80" ry="80" fill="#0d0505" stroke="#443333" stroke-width="1.2"/>
+    </svg>`
+  },
+  {
+    id:'armature',name:'Armature (Rotor Core + Windings)',cat:'armature',
+    ox:'0px',oy:'-300px',x:148,y:107,w:244,h:236,delay:400,
+    desc:'The armature is the rotating part of a brushed DC motor. A laminated silicon-steel core is wound with multiple coils of enamelled copper wire in slots. When current flows through the armature windings (supplied via the commutator and brushes), each conductor carrying current in the magnetic field experiences a force (Lorentz force), creating torque. The armature winding is designed so that regardless of rotor position, current always flows in the correct direction to produce unidirectional torque — this switching is performed by the commutator.',
+    stats:['Core: Silicon steel laminations','Coils: Enamelled copper wire','Slots: typically 12–36','Current: from brushes/commutator','Torque: F = BIL each conductor','EMF: back-EMF limits speed'],
+    svg:`<svg width="244" height="236" viewBox="0 0 244 236"><defs><linearGradient id="armG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#1a0800"/><stop offset="100%" style="stop-color:#0d0400"/></linearGradient></defs><ellipse cx="122" cy="118" rx="112" ry="110" fill="url(#armG)" stroke="#995500" stroke-width="1.5"/>${[...Array(24)].map((_,i)=>{const a=i*15*Math.PI/180,r1=35,r2=90;return `<rect x="${122+r1*Math.cos(a)-4}" y="${118+r1*Math.sin(a)-9}" width="8" height="55" rx="2.5" fill="#442200" stroke="rgba(255,140,0,0.45)" stroke-width="0.6" transform="rotate(${i*15} 122 118)"/>`}).join('')}<ellipse cx="122" cy="118" rx="32" ry="32" fill="#0d0400" stroke="#664400" stroke-width="1.2"/><ellipse cx="122" cy="118" rx="14" ry="14" fill="#1a0800" stroke="rgba(255,140,0,0.25)" stroke-width="0.8"/><text x="122" y="114" fill="rgba(255,140,0,0.35)" font-size="6" text-anchor="middle" font-family="'Share Tech Mono',monospace">ARMA-</text><text x="122" y="124" fill="rgba(255,140,0,0.3)" font-size="6" text-anchor="middle" font-family="'Share Tech Mono',monospace">TURE</text></svg>`
+  },
+  {
+    id:'commutator',name:'Commutator (Copper Segments)',cat:'commutation',
+    ox:'300px',oy:'-200px',x:200,y:210,w:164,h:64,delay:600,
+    desc:'The commutator is a cylindrical assembly of copper segments separated by mica insulation, press-fitted to the shaft. As the armature rotates, the commutator mechanically reverses the connection to each armature coil every half turn, ensuring that the current through each conductor always flows in the direction that produces torque in the same direction. This is the key to DC motor operation. The number of commutator segments equals the number of armature coils. Worn commutator surfaces cause arcing and must be skimmed on a lathe.',
+    stats:['Material: Hard-drawn copper','Segments: one per armature coil','Insulation: Mica between segments','Function: current reversal switching','Wear: brush friction — service interval','Repair: skim/turn on lathe'],
+    svg:`<svg width="164" height="64" viewBox="0 0 164 64"><defs><linearGradient id="cmG" x1="0%" y1="0%" x2="100%" y2="50%"><stop offset="0%" style="stop-color:#aa7700"/><stop offset="100%" style="stop-color:#dd9900"/></linearGradient></defs><rect x="2" y="8" width="160" height="48" rx="6" fill="url(#cmG)" stroke="#ccaa00" stroke-width="1.3"/>${[...Array(16)].map((_,i)=>`<rect x="${6+i*9.5}" y="8" width="0.8" height="48" fill="#1a1a00" opacity="0.7"/>`).join('')}${[...Array(16)].map((_,i)=>`<rect x="${4+i*9.5}" y="10" width="8" height="44" rx="1" fill="rgba(180,140,0,0.15)"/>`).join('')}<text x="82" y="38" fill="rgba(0,0,0,0.35)" font-size="7.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">COMMUTATOR</text></svg>`
+  },
+  {
+    id:'brushes',name:'Carbon Brushes & Brush Holders',cat:'commutation',
+    ox:'-300px',oy:'-200px',x:152,y:145,w:240,h:40,delay:750,
+    desc:'Carbon brushes are spring-loaded against the commutator surface to make sliding electrical contact with the rotating commutator segments. They are made from a mixture of carbon, graphite, and sometimes copper, chosen for their self-lubricating properties and controlled wear rate. A spring in the brush holder maintains constant contact pressure (typically 150–300g/cm²). Brushes are a wear item — inspect every 6 months and replace when worn to 1/3 of original length. Brush grade must match the motor and commutator material.',
+    stats:['Material: Carbon-graphite compound','Contact pressure: 150–300 g/cm²','Number: 2 per pole pair','Wear item: inspect every 6 months','Replace: at 1/3 original length','Grade: matched to commutator type'],
+    svg:`<svg width="240" height="40" viewBox="0 0 240 40">${[0,180].map(ox=>`<rect x="${ox+10}" y="5" width="50" height="30" rx="4" fill="#2a2a2a" stroke="#666" stroke-width="1"/><rect x="${ox+15}" y="10" width="12" height="20" rx="2" fill="#333" stroke="#999" stroke-width="0.7"/><rect x="${ox+17}" y="12" width="8" height="16" rx="1" fill="#1a1a1a" stroke="#777" stroke-width="0.5"/><line x1="${ox+50}" y1="20" x2="${ox+60}" y2="20" stroke="#888" stroke-width="2"/>`).join('')}<rect x="60" y="18" width="120" height="4" rx="2" fill="#443300" stroke="#886600" stroke-width="0.8"/><text x="120" y="36" fill="rgba(168,255,62,0.3)" font-size="6" text-anchor="middle" font-family="'Share Tech Mono',monospace">CARBON BRUSHES</text></svg>`
+  },
+  {
+    id:'shaft_dc',name:'Armature Shaft',cat:'mechanical',
+    ox:'0px',oy:'300px',x:60,y:157,w:460,h:36,delay:850,
+    desc:'The DC motor armature shaft is precision-ground steel (often EN8 or 4140 steel) that carries the armature core, commutator, and fan. The shaft must withstand combined torsional, bending, and radial loads from belt or gear drives. Keyways are machined for coupling attachment. In servo applications, an encoder or tachometer is often mounted on the NDE end of the shaft to provide speed feedback for closed-loop control. Maximum shaft runout is typically held to 0.02mm TIR.',
+    stats:['Material: EN8 or 4140 alloy steel','Carries: armature, commutator, fan','Drive end: keyway machined','NDE: encoder/tach mount option','Runout: <0.02mm TIR','Surface: ground finish'],
+    svg:`<svg width="460" height="36" viewBox="0 0 460 36"><defs><linearGradient id="shdcG" x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="0%" style="stop-color:#888"/><stop offset="30%" style="stop-color:#ccc"/><stop offset="70%" style="stop-color:#bbb"/><stop offset="100%" style="stop-color:#666"/></linearGradient></defs><rect x="2" y="10" width="456" height="16" rx="4" fill="url(#shdcG)" stroke="#999" stroke-width="1"/><rect x="2" y="11" width="38" height="14" rx="2" fill="#aaa"/><rect x="7" y="13" width="27" height="4" rx="1" fill="#777"/></svg>`
+  },
+  {
+    id:'bearing_dc_f',name:'Front Bearing (Drive End)',cat:'mechanical',
+    ox:'-300px',oy:'0px',x:70,y:142,w:68,h:68,delay:920,
+    desc:'Deep groove ball bearings at the drive end support radial and axial loads from the connected drive (belt, coupling, or gear). DC motors often drive high-torque loads with significant overhung (side) forces. For high overhung loads, angular contact or cylindrical roller bearings are used instead. Pre-lubricated sealed bearings (2RS or ZZ) are standard. In high-speed DC motors (>3000 RPM), bearing selection must also consider cage material and grease type for temperature and speed.',
+    stats:['Type: Deep groove ball (standard)','HHL loads: angular contact type','Pre-lubricated: sealed (2RS/ZZ)','High speed: special cage/grease','Failure sign: noise/heat','Inspect: with brush service'],
+    svg:`<svg width="68" height="68" viewBox="0 0 68 68"><circle cx="34" cy="34" r="32" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/><circle cx="34" cy="34" r="24" fill="none" stroke="#888" stroke-width="4"/><circle cx="34" cy="34" r="16" fill="#222" stroke="#666" stroke-width="1.2"/>${[...Array(8)].map((_,i)=>{const a=i*45*Math.PI/180;return `<circle cx="${34+20*Math.cos(a)}" cy="${34+20*Math.sin(a)}" r="4.5" fill="#444" stroke="#999" stroke-width="0.7"/>`}).join('')}<circle cx="34" cy="34" r="8" fill="#1a1a1a" stroke="#555" stroke-width="1"/><text x="34" y="38" fill="rgba(255,34,102,0.3)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">DE</text></svg>`
+  },
+  {
+    id:'bearing_dc_r',name:'Rear Bearing (Non-Drive End)',cat:'mechanical',
+    ox:'300px',oy:'0px',x:442,y:142,w:68,h:68,delay:940,
+    desc:'The NDE (rear) bearing supports the shaft at the brush/commutator end. It typically carries lighter radial loads than the DE bearing. In some designs, a brush pressure plate or commutator access cover is attached near this bearing. Grease contamination of brushes and commutator from an over-greased NDE bearing is a common maintenance error — only use the specified quantity of correct grade grease.',
+    stats:['Type: Deep groove ball','Location: Non-Drive End','Lighter load than DE','Watch: grease contamination of commutator','Access: near brush inspection port','Grease: correct quantity critical'],
+    svg:`<svg width="68" height="68" viewBox="0 0 68 68"><circle cx="34" cy="34" r="32" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/><circle cx="34" cy="34" r="24" fill="none" stroke="#888" stroke-width="4"/><circle cx="34" cy="34" r="16" fill="#222" stroke="#666" stroke-width="1.2"/>${[...Array(8)].map((_,i)=>{const a=i*45*Math.PI/180;return `<circle cx="${34+20*Math.cos(a)}" cy="${34+20*Math.sin(a)}" r="4.5" fill="#444" stroke="#999" stroke-width="0.7"/>`}).join('')}<circle cx="34" cy="34" r="8" fill="#1a1a1a" stroke="#555" stroke-width="1"/><text x="34" y="38" fill="rgba(255,34,102,0.3)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">NDE</text></svg>`
+  },
+  {
+    id:'end_bells_dc',name:'End Bells / Brackets',cat:'housing',
+    ox:'0px',oy:'-300px',x:62,y:106,w:416,h:138,delay:1050,
+    desc:'Two end bells close both ends of the DC motor yoke. The DE end bell includes the shaft seal and bearing housing. The NDE end bell typically provides access ports for brush inspection and replacement — these ports are covered by hinged caps or removable plates. Proper brush access is critical since brushes are the primary maintenance item. End bells are precisely machined for bearing bore concentricity and frame fit.',
+    stats:['DE end bell: shaft seal + DE bearing','NDE end bell: brush access ports','Material: Cast iron or Al','Access: hinged caps for brushes','Machined: for bearing concentricity','Secured: through-bolts'],
+    svg:`<svg width="416" height="138" viewBox="0 0 416 138"><rect x="2" y="2" width="76" height="134" rx="10" fill="#1e0808" stroke="#553333" stroke-width="1.3"/><ellipse cx="40" cy="69" rx="26" ry="26" fill="#0d0404" stroke="#443333" stroke-width="1"/><circle cx="40" cy="69" r="12" fill="#1a0808" stroke="#553333" stroke-width="0.8"/><rect x="338" y="2" width="76" height="134" rx="10" fill="#1e0808" stroke="#553333" stroke-width="1.3"/><ellipse cx="376" cy="69" rx="26" ry="26" fill="#0d0404" stroke="#443333" stroke-width="1"/><circle cx="376" cy="69" r="12" fill="#1a0808" stroke="#553333" stroke-width="0.8"/><rect x="340" y="55" width="20" height="28" rx="4" fill="#2a0a0a" stroke="#775555" stroke-width="0.7"/><text x="208" y="75" fill="rgba(255,34,102,0.15)" font-size="8" text-anchor="middle" font-family="'Share Tech Mono',monospace">END BELLS (BRUSH ACCESS NDE)</text></svg>`
+  },
+  {
+    id:'brush_covers',name:'Brush Inspection Covers',cat:'commutation',
+    ox:'300px',oy:'300px',x:400,y:148,w:50,h:56,delay:1150,
+    desc:'Removable brush covers on the NDE end bell provide access to the carbon brushes and commutator for routine inspection and replacement without full motor disassembly. They must be replaced correctly to maintain the motor\'s IP ingress protection rating. Some covers incorporate a transparent window for visual inspection while the motor is running — allowing observation of sparking levels without opening the cover (excessive sparking indicates worn brushes, dirty commutator, or incorrect brush grade).',
+    stats:['Location: NDE end bell','Access: brush + commutator visual','Replace: maintain IP rating','Transparent window: some designs','Sparking check: visible through window','Intervals: inspect every 6 months'],
+    svg:`<svg width="50" height="56" viewBox="0 0 50 56"><rect x="2" y="2" width="46" height="52" rx="5" fill="#221010" stroke="#773333" stroke-width="1.2"/><rect x="7" y="7" width="36" height="38" rx="3" fill="#1a0808" stroke="#553333" stroke-width="0.7"/><rect x="12" y="12" width="26" height="26" rx="4" fill="#111" stroke="rgba(255,34,102,0.2)" stroke-width="0.5"/><text x="25" y="52" fill="rgba(255,34,102,0.3)" font-size="5" text-anchor="middle" font-family="'Share Tech Mono',monospace">COVER</text></svg>`
+  },
+  {
+    id:'terminal_dc',name:'Terminal Box & Connections',cat:'stator',
+    ox:'-300px',oy:'300px',x:156,y:60,w:108,h:55,delay:1250,
+    desc:'The terminal box on a DC motor exposes connections for armature (A1/A2) and field windings (F1/F2 for shunt field; S1/S2 for series field). Connection configuration determines motor type: shunt connection (field in parallel with armature) gives relatively constant speed; series connection (field in series) gives high starting torque but speed varies with load. Compound motors use both field windings. Separate excitation is used in servo and precision speed control applications.',
+    stats:['A1/A2: Armature terminals','F1/F2: Shunt field (parallel)','S1/S2: Series field winding','Shunt: near-constant speed','Series: high torque, speed varies','Sep. excitation: servo/precision'],
+    svg:`<svg width="108" height="55" viewBox="0 0 108 55"><rect x="1" y="1" width="106" height="53" rx="5" fill="#1a0808" stroke="#663333" stroke-width="1.2"/><rect x="6" y="6" width="96" height="35" rx="3" fill="#110505" stroke="#443333" stroke-width="0.8"/>${['A1','A2','F1','F2','S1','S2'].map((l,i)=>`<circle cx="${12+i*17}" cy="24" r="5.5" fill="#331111" stroke="#aa3333" stroke-width="0.9"/><text x="${12+i*17}" y="27" fill="rgba(255,100,100,0.6)" font-size="4.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">${l}</text>`).join('')}<rect x="30" y="44" width="48" height="6" rx="2" fill="#223322" stroke="#44aa44" stroke-width="0.6"/><text x="54" y="49" fill="rgba(100,255,100,0.4)" font-size="4" text-anchor="middle" font-family="'Share Tech Mono',monospace">EARTH</text></svg>`
+  },
+];
+let assembled=false,arrivedCount=0,selectedId=null,highlightMode=false;
+function init(){const stage=document.getElementById('stage');const grid=document.getElementById('partsGrid');document.getElementById('partCounter').textContent=`0 / ${parts.length} PARTS`;parts.forEach(p=>{const el=document.createElement('div');el.className='part';el.id='part_'+p.id;el.style.setProperty('--ox',p.ox);el.style.setProperty('--oy',p.oy);el.style.left=p.x+'px';el.style.top=p.y+'px';el.innerHTML=p.svg;el.addEventListener('click',()=>selectPart(p.id));stage.appendChild(el);const dot=document.createElement('div');dot.className='pdot cat-'+p.cat;dot.id='dot_'+p.id;dot.title=p.name;dot.addEventListener('click',()=>selectPart(p.id));grid.appendChild(dot);});}
+function assemble(){if(assembled)return;assembled=true;document.getElementById('btnAssemble').disabled=true;document.getElementById('status').textContent='ASSEMBLING…';document.getElementById('hint').textContent='▶ Click any component to inspect';let done=0;parts.forEach(p=>{setTimeout(()=>{document.getElementById('part_'+p.id).classList.add('arrived');document.getElementById('dot_'+p.id).classList.add('done');done++;arrivedCount=done;updateProgress(done,parts.length);},p.delay);});setTimeout(()=>{document.getElementById('status').textContent='ASSEMBLY COMPLETE';document.getElementById('hint').textContent='✓ Click any component to inspect';},Math.max(...parts.map(p=>p.delay))+900);}
+function doReset(){assembled=false;arrivedCount=0;selectedId=null;highlightMode=false;document.getElementById('btnAssemble').disabled=false;document.getElementById('status').textContent='AWAITING ASSEMBLY';document.getElementById('hint').textContent='▶ Click ASSEMBLE to begin';document.getElementById('partCounter').textContent=`0 / ${parts.length} PARTS`;updateProgress(0,parts.length);document.getElementById('infoCard').classList.remove('active');document.getElementById('infoName').textContent='— SELECT A PART —';document.getElementById('infoDesc').textContent='Assemble the motor first, then click any component to inspect it.';document.getElementById('infoStats').innerHTML='';document.getElementById('doneCount').textContent='0';parts.forEach(p=>{document.getElementById('part_'+p.id).className='part';document.getElementById('dot_'+p.id).classList.remove('done');});}
+function highlightAll(){if(!assembled)return;highlightMode=!highlightMode;selectedId=null;parts.forEach(p=>{const el=document.getElementById('part_'+p.id);el.classList.remove('dimmed','selected');if(highlightMode)el.classList.add('selected');});}
+function selectPart(id){if(!assembled)return;highlightMode=false;const p=parts.find(x=>x.id===id);if(!p)return;selectedId=id;parts.forEach(q=>{const el=document.getElementById('part_'+q.id);el.classList.remove('dimmed','selected');if(q.id!==id)el.classList.add('dimmed');else el.classList.add('selected');});document.getElementById('infoCard').classList.add('active');document.getElementById('infoName').textContent=p.name.toUpperCase();document.getElementById('infoDesc').textContent=p.desc;const statsEl=document.getElementById('infoStats');statsEl.innerHTML='';(p.stats||[]).forEach(s=>{const chip=document.createElement('div');chip.className='stat-chip';chip.textContent=s;statsEl.appendChild(chip);});}
+function updateProgress(done,total){const pct=Math.round(done/total*100);document.getElementById('prog').style.width=pct+'%';document.getElementById('progPct').textContent=pct+'%';document.getElementById('partCounter').textContent=`${done} / ${total} PARTS`;document.getElementById('doneCount').textContent=done;}
+document.addEventListener('DOMContentLoaded',()=>{init();document.getElementById('stage').addEventListener('click',e=>{if(!e.target.closest('.part')&&selectedId){selectedId=null;parts.forEach(q=>{const el=document.getElementById('part_'+q.id);el.classList.remove('dimmed','selected');});document.getElementById('infoCard').classList.remove('active');document.getElementById('infoName').textContent='— SELECT A PART —';document.getElementById('infoDesc').textContent='Click any glowing component to inspect it.';document.getElementById('infoStats').innerHTML='';}});});
+</script>
+</body>
+</html>

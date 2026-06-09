@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultrasonic Sensor – How It Works</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f1117; color: #e0e0e0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+  h1 { font-size: 22px; font-weight: 600; color: #ffffff; text-align: center; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 20px; }
+
+  /* Steps */
+  .steps { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+  .step { background: #1a1d2e; border: 1px solid #2a2d4a; border-radius: 10px; padding: 12px 16px; text-align: center; min-width: 140px; flex: 1; max-width: 180px; }
+  .step.tx { border-color: #534AB7; }
+  .step.rx { border-color: #0F6E56; }
+  .step-num { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .step.tx .step-num { color: #8B83E8; }
+  .step.rx .step-num { color: #1D9E75; }
+  .step-title { font-size: 13px; font-weight: 600; color: #ffffff; margin-bottom: 4px; }
+  .step-desc { font-size: 11px; color: #888; line-height: 1.4; }
+  .formula { background: #1a1d2e; border: 1px solid #2a4a3a; border-radius: 8px; padding: 10px 20px; text-align: center; font-size: 14px; font-weight: 600; color: #1D9E75; margin-bottom: 20px; }
+
+  /* Canvas */
+  canvas { border-radius: 12px; background: #0d1019; display: block; max-width: 720px; width: 100%; }
+
+  /* Legend */
+  .legend { display: flex; gap: 20px; margin-top: 14px; flex-wrap: wrap; justify-content: center; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #aaa; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .dot-tx { background: #7F77DD; }
+  .dot-rx { background: #1D9E75; }
+  .dot-led { background: #EF9F27; }
+</style>
+</head>
+<body>
+
+<h1>🔊 Ultrasonic Sensor (HC-SR04)</h1>
+<p class="subtitle">Animated working principle — measuring distance with sound</p>
+
+<div class="steps">
+  <div class="step tx"><div class="step-num">①</div><div class="step-title">Trigger</div><div class="step-desc">MCU sends a 10 μs HIGH pulse on TRIG pin</div></div>
+  <div class="step tx"><div class="step-num">②</div><div class="step-title">Transmit</div><div class="step-desc">Sensor emits 8-cycle burst at 40 kHz</div></div>
+  <div class="step rx"><div class="step-num">③</div><div class="step-title">Reflect</div><div class="step-desc">Sound wave hits object and bounces back</div></div>
+  <div class="step rx"><div class="step-num">④</div><div class="step-title">Calculate</div><div class="step-desc">Time measured → distance computed</div></div>
+</div>
+
+<div class="formula">Distance (cm) &nbsp;=&nbsp; Echo pulse width (μs) &nbsp;÷&nbsp; 58</div>
+
+<canvas id="c" width="720" height="420"></canvas>
+
+<div class="legend">
+  <div class="legend-item"><span class="dot dot-tx"></span> Outgoing ultrasonic pulse</div>
+  <div class="legend-item"><span class="dot dot-rx"></span> Returning echo</div>
+  <div class="legend-item"><span class="dot dot-led"></span> Status LED</div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// Responsive
+function resize() {
+  const w = Math.min(720, window.innerWidth - 40);
+  canvas.style.width = w + 'px';
+  canvas.style.height = (w * 420/720) + 'px';
+}
+resize();
+window.addEventListener('resize', resize);
+
+const W = 720, H = 420;
+const SENSOR_X = 80, SENSOR_Y = 200;
+const WALL_X = 580, WALL_Y = 140, WALL_H = 200;
+const GROUND_Y = 370;
+const CYCLE = 200; // frames per cycle
+
+let frame = 0;
+
+// Wave rings
+const waves = [];
+function spawnWave(x, y, type) {
+  waves.push({ x, y, r: 0, maxR: 90, type, life: 1 });
+}
+
+function drawSensor(t) {
+  const bob = Math.sin(t * 0.03) * 4;
+  const sx = SENSOR_X, sy = SENSOR_Y + bob;
+
+  // PCB board
+  ctx.fillStyle = '#1a2035';
+  ctx.strokeStyle = '#3a3d6a';
+  ctx.lineWidth = 1;
+  roundRect(ctx, sx - 10, sy + 10, 160, 80, 8, true, true);
+
+  // PCB label
+  ctx.fillStyle = '#555';
+  ctx.font = '11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('HC-SR04', sx + 70, sy + 68);
+
+  // Pin labels
+  ctx.fillStyle = '#444';
+  ctx.font = '9px monospace';
+  ctx.textAlign = 'left';
+  ['TRIG','ECHO','VCC','GND'].forEach((p, i) => {
+    ctx.fillText(p, sx - 6, sy + 25 + i * 13);
+  });
+
+  // Transmitter (T)
+  drawTransducer(ctx, sx + 38, sy - 5, '#534AB7', '#8B83E8', 'T');
+  ctx.fillStyle = '#8B83E8';
+  ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Transmitter', sx + 38, sy - 22);
+
+  // Receiver (R)
+  drawTransducer(ctx, sx + 100, sy - 5, '#0F6E56', '#1D9E75', 'R');
+  ctx.fillStyle = '#1D9E75';
+  ctx.fillText('Receiver', sx + 100, sy - 22);
+
+  // LED blink
+  const ledOn = (t % 60) < 30;
+  ctx.beginPath();
+  ctx.arc(sx + 148, sy + 30, 5, 0, Math.PI * 2);
+  ctx.fillStyle = ledOn ? '#EF9F27' : '#553800';
+  ctx.fill();
+  if (ledOn) {
+    ctx.shadowColor = '#EF9F27';
+    ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+  ctx.strokeStyle = '#BA7517';
+  ctx.lineWidth = 0.7;
+  ctx.stroke();
+
+  return { tx: sx + 38, rx: sx + 100, y: sy + 10 };
+}
+
+function drawTransducer(ctx, cx, cy, dark, light, label) {
+  // Body
+  ctx.fillStyle = dark;
+  ctx.strokeStyle = light;
+  ctx.lineWidth = 0.8;
+  roundRect(ctx, cx - 18, cy, 36, 26, 4, true, true);
+  // Top cap
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, 18, 8, 0, Math.PI, 0);
+  ctx.fillStyle = light;
+  ctx.fill();
+  ctx.stroke();
+  // Bottom rim
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + 26, 18, 8, 0, 0, Math.PI * 2);
+  ctx.fillStyle = dark;
+  ctx.fill();
+  ctx.stroke();
+  // Label
+  ctx.fillStyle = '#eee';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText(label, cx, cy + 17);
+}
+
+function drawWall() {
+  ctx.fillStyle = '#1e2a40';
+  ctx.strokeStyle = '#3a5070';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, WALL_X, WALL_Y, 28, WALL_H, 5, true, true);
+  ctx.fillStyle = '#446';
+  ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Wall', WALL_X + 14, WALL_Y + WALL_H / 2 + 4);
+}
+
+function drawGround() {
+  ctx.fillStyle = '#181e2a';
+  ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+  ctx.strokeStyle = '#2a3550';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, GROUND_Y); ctx.lineTo(W, GROUND_Y); ctx.stroke();
+  ctx.fillStyle = '#334';
+  ctx.font = '11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Surface / floor', W / 2, GROUND_Y + 22);
+}
+
+function drawBeams(phase, txX, rxX, sensorY) {
+  const beamY = sensorY + 5;
+  const wallFace = WALL_X;
+  // Phase 0–0.5: outgoing beam
+  if (phase < 0.5) {
+    const t = phase / 0.5;
+    const endX = txX + (wallFace - txX) * t;
+    ctx.beginPath();
+    ctx.moveTo(txX + 20, beamY);
+    ctx.lineTo(endX, beamY);
+    ctx.strokeStyle = '#7F77DD';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Label
+    ctx.fillStyle = '#9988ff';
+    ctx.font = '10px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('▶ 40 kHz pulse', (txX + 20 + endX) / 2, beamY - 10);
+  }
+  // Phase 0.5–1.0: returning beam
+  if (phase >= 0.5) {
+    const t = (phase - 0.5) / 0.5;
+    const startX = wallFace - (wallFace - rxX - 20) * t;
+    ctx.beginPath();
+    ctx.moveTo(wallFace, beamY + 10);
+    ctx.lineTo(startX, beamY + 10);
+    ctx.strokeStyle = '#1D9E75';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Arrowhead
+    ctx.beginPath();
+    ctx.moveTo(startX, beamY + 10);
+    ctx.lineTo(startX + 10, beamY + 5);
+    ctx.lineTo(startX + 10, beamY + 15);
+    ctx.fillStyle = '#1D9E75';
+    ctx.fill();
+    // Label
+    ctx.fillStyle = '#1D9E75';
+    ctx.font = '10px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('◀ Echo return', (startX + wallFace) / 2, beamY + 25);
+  }
+}
+
+function drawDistLabel(phase) {
+  // Show measured distance when echo arrives
+  const alpha = phase > 0.8 ? (phase - 0.8) / 0.2 : 0;
+  if (alpha <= 0) return;
+  ctx.globalAlpha = alpha;
+  const midX = (SENSOR_X + WALL_X) / 2 + 30;
+  ctx.fillStyle = '#1a3050';
+  roundRect(ctx, midX - 45, GROUND_Y + 35, 90, 26, 6, true, false);
+  ctx.strokeStyle = '#185FA5';
+  ctx.lineWidth = 1;
+  roundRect(ctx, midX - 45, GROUND_Y + 35, 90, 26, 6, false, true);
+  ctx.fillStyle = '#4aa8ff';
+  ctx.font = 'bold 13px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('≈ 24.8 cm', midX, GROUND_Y + 53);
+  ctx.globalAlpha = 1;
+}
+
+function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  if (fill) ctx.fill();
+  if (stroke) ctx.stroke();
+}
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = '#0d1019';
+  ctx.fillRect(0, 0, W, H);
+
+  drawGround();
+  drawWall();
+
+  const phase = (frame % CYCLE) / CYCLE;
+  const { tx: txX, rx: rxX, y: sensorY } = drawSensor(frame);
+
+  // Spawn outgoing waves near start
+  if (phase < 0.45 && frame % 18 === 0) {
+    waves.push({ x: txX + 18, y: sensorY - 10, r: 0, maxR: 80, type: 'tx', life: 1 });
+  }
+  // Spawn echo waves near wall
+  if (phase >= 0.45 && phase < 0.95 && frame % 18 === 0) {
+    waves.push({ x: WALL_X, y: sensorY - 10, r: 0, maxR: 70, type: 'rx', life: 1 });
+  }
+
+  // Draw waves
+  waves.forEach((w, i) => {
+    ctx.beginPath();
+    ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2);
+    ctx.strokeStyle = w.type === 'tx'
+      ? `rgba(127,119,221,${w.life * 0.7})`
+      : `rgba(29,158,117,${w.life * 0.7})`;
+    ctx.lineWidth = 1.8 * w.life;
+    ctx.stroke();
+    w.r += 1.4;
+    w.life = 1 - w.r / w.maxR;
+    if (w.r >= w.maxR) waves.splice(i, 1);
+  });
+
+  drawBeams(phase, txX, rxX, sensorY);
+  drawDistLabel(phase);
+
+  frame++;
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+</body>
+</html>

@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Servo Motor — Interactive Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #bf5fff;
+    --accent2: #7b2fff;
+    --accent3: #e0aaff;
+    --bg: #05000d;
+    --surface: #0a0114;
+    --border: rgba(191,95,255,0.13);
+    --glow: rgba(191,95,255,0.32);
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 14px 8px;
+    overflow: hidden;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  .hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .title-main {
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(191,95,255,0.6);
+  }
+  .title-sub {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    color: rgba(191,95,255,0.42);
+    letter-spacing: 3px;
+    margin-top: 2px;
+  }
+  .hdr-right { display: flex; align-items: center; gap: 10px; }
+  .status-badge {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--accent3);
+    background: rgba(224,170,255,0.07);
+    border: 1px solid rgba(224,170,255,0.25);
+    border-radius: 4px;
+    padding: 4px 10px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .btn-assemble {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #fff;
+    background: var(--accent2);
+    border: none;
+    border-radius: 6px;
+    padding: 9px 22px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    box-shadow: 0 0 20px rgba(123,47,255,0.5);
+  }
+  .btn-assemble:hover { box-shadow: 0 0 35px rgba(191,95,255,0.75); transform: translateY(-1px); background: var(--accent); }
+  .btn-assemble:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-reset, .btn-highlight {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    background: transparent;
+    border-radius: 6px;
+    padding: 9px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-reset { color: rgba(191,95,255,0.5); border: 1px solid rgba(191,95,255,0.2); }
+  .btn-reset:hover { color: var(--accent); border-color: rgba(191,95,255,0.5); }
+  .btn-highlight { color: rgba(123,47,255,0.65); border: 1px solid rgba(123,47,255,0.22); }
+  .btn-highlight:hover { color: var(--accent2); border-color: rgba(123,47,255,0.55); }
+
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .progress-label { font-size: 9px; color: rgba(191,95,255,0.36); letter-spacing: 2px; min-width: 44px; }
+  .progress-track { flex: 1; height: 2px; background: rgba(191,95,255,0.08); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #1a0038, var(--accent)); border-radius: 2px; width: 0%; transition: width 0.3s ease; box-shadow: 0 0 8px var(--accent); }
+  .progress-pct { font-size: 10px; color: var(--accent); min-width: 36px; text-align: right; font-family: 'Orbitron', monospace; }
+
+  .main-layout {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .stage-wrap {
+    flex: 1;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 40px rgba(20,0,50,0.95), inset 0 0 30px rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .stage-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(191,95,255,0.012) 0px, rgba(191,95,255,0.012) 1px, transparent 1px, transparent 40px),
+      repeating-linear-gradient(90deg, rgba(191,95,255,0.012) 0px, rgba(191,95,255,0.012) 1px, transparent 1px, transparent 40px);
+    pointer-events: none;
+    border-radius: 12px;
+    z-index: 0;
+  }
+  .stage {
+    position: relative;
+    width: 560px;
+    height: 520px;
+    z-index: 1;
+    flex-shrink: 0;
+  }
+
+  .part {
+    position: absolute;
+    cursor: pointer;
+    transition: transform 0.8s cubic-bezier(.34,1.5,.64,1), opacity 0.5s ease, filter 0.15s;
+    opacity: 0;
+    transform: translateX(var(--ox)) translateY(var(--oy)) scale(0.55);
+    filter: drop-shadow(0 0 4px rgba(191,95,255,0.25));
+    z-index: 2;
+  }
+  .part.arrived {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  .part:hover {
+    filter: drop-shadow(0 0 14px rgba(191,95,255,0.95)) brightness(1.35) !important;
+    transform: translateX(0) translateY(0) scale(1.1) !important;
+    z-index: 50 !important;
+  }
+  .part.selected {
+    filter: drop-shadow(0 0 22px rgba(191,95,255,1)) brightness(1.6) !important;
+    z-index: 49 !important;
+  }
+  .part.dimmed {
+    filter: drop-shadow(0 0 2px rgba(191,95,255,0.04)) brightness(0.2) !important;
+  }
+  .part svg { display: block; pointer-events: none; }
+
+  .side-panel {
+    width: 260px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+  }
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    transition: border-color 0.3s;
+  }
+  .info-card.active { border-color: rgba(191,95,255,0.4); }
+  .info-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid rgba(191,95,255,0.13);
+    line-height: 1.4;
+  }
+  .info-desc {
+    font-size: 10px;
+    color: rgba(210,170,255,0.62);
+    line-height: 1.8;
+    margin-bottom: 10px;
+  }
+  .info-stats { display: flex; gap: 5px; flex-wrap: wrap; }
+  .stat-chip {
+    font-size: 8px;
+    color: rgba(191,95,255,0.78);
+    background: rgba(191,95,255,0.06);
+    border: 1px solid rgba(191,95,255,0.18);
+    border-radius: 4px;
+    padding: 3px 7px;
+    letter-spacing: 0.5px;
+  }
+
+  .parts-grid-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    flex-shrink: 0;
+  }
+  .parts-grid-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: rgba(191,95,255,0.36);
+    margin-bottom: 8px;
+  }
+  .parts-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pdot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: rgba(191,95,255,0.06);
+    border: 1px solid rgba(191,95,255,0.2);
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+  }
+  .pdot:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 130%; left: 50%;
+    transform: translateX(-50%);
+    background: #0d0018;
+    border: 1px solid rgba(191,95,255,0.38);
+    border-radius: 4px;
+    padding: 3px 7px;
+    font-size: 9px;
+    color: var(--accent);
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .pdot.done { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 4px rgba(191,95,255,0.6); }
+  .pdot.done.cat-housing { background: #6622aa; border-color: #9944dd; }
+  .pdot.done.cat-motor { background: #bf5fff; border-color: #bf5fff; }
+  .pdot.done.cat-gear { background: #55ccaa; border-color: #55ccaa; box-shadow: 0 0 4px rgba(85,204,170,0.55); }
+  .pdot.done.cat-control { background: #44aaff; border-color: #44aaff; box-shadow: 0 0 4px rgba(68,170,255,0.55); }
+  .pdot.done.cat-output { background: #ff88cc; border-color: #ff88cc; box-shadow: 0 0 4px rgba(255,136,204,0.55); }
+  .pdot.done.cat-feedback { background: #ffe066; border-color: #ffe066; box-shadow: 0 0 4px rgba(255,224,102,0.55); }
+
+  .legend {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 7px;
+  }
+  .leg-item { display: flex; align-items: center; gap: 3px; font-size: 8px; color: rgba(191,95,255,0.42); }
+  .leg-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .hint { font-size: 9px; color: rgba(191,95,255,0.26); letter-spacing: 1px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="title-main">Servo Motor</div>
+    <div class="title-sub">INTERACTIVE ASSEMBLY — SG90 / 180° ROTATION / PWM CONTROL / 3-WIRE</div>
+  </div>
+  <div class="hdr-right">
+    <div class="status-badge" id="status">AWAITING ASSEMBLY</div>
+    <div style="font-size:9px;color:rgba(191,95,255,0.36);letter-spacing:1px;" id="partCounter">0 / 0 PARTS</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn-assemble" id="btnAssemble" onclick="assemble()">◉ Assemble Servo</button>
+  <button class="btn-reset" onclick="doReset()">↺ Reset</button>
+  <button class="btn-highlight" onclick="highlightAll()">◈ Highlight All</button>
+</div>
+
+<div class="progress-row">
+  <span class="progress-label">BUILD</span>
+  <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+  <span class="progress-pct" id="progPct">0%</span>
+</div>
+
+<div class="main-layout">
+  <div class="stage-wrap">
+    <div class="stage" id="stage"></div>
+  </div>
+  <div class="side-panel">
+    <div class="info-card" id="infoCard">
+      <div class="info-name" id="infoName">— SELECT A PART —</div>
+      <div class="info-desc" id="infoDesc">Assemble the servo first, then click any component to inspect it. Every gear, motor, PCB, potentiometer, and horn is individually clickable with full specs.</div>
+      <div class="info-stats" id="infoStats"></div>
+    </div>
+    <div class="parts-grid-card">
+      <div class="parts-grid-title">COMPONENT MAP — <span id="doneCount">0</span> ARRIVED</div>
+      <div class="parts-grid" id="partsGrid"></div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#6622aa"></div>Housing</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#bf5fff"></div>Motor</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#55ccaa"></div>Gears</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#44aaff"></div>Control</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ff88cc"></div>Output</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ffe066"></div>Feedback</div>
+      </div>
+    </div>
+    <div class="hint" id="hint">▶ Click ASSEMBLE to begin</div>
+  </div>
+</div>
+
+<script>
+const parts = [
+
+  /* ══ Main Case ══ */
+  {
+    id:'case', name:'Servo Case — Nylon PA Housing',
+    cat:'housing',
+    ox:'0px', oy:'320px', x:120, y:60, w:320, h:220, delay:0,
+    desc:'The SG90 servo housing is injection-moulded from nylon PA (polyamide) — chosen for its light weight (just 9g total servo weight), strength, and dimensional stability. The case measures 23 × 12 × 29mm and has a distinctive rectangular shape with mounting ears. Two M2 screws on each side of the ears secure it to the robot frame, aircraft control surface, or mechanism. The case is split into two halves to allow internal assembly and gear access.',
+    stats:['Material: Nylon PA (polyamide)','Dimensions: 23 × 12 × 29mm','Total weight: 9g','Mounting: M2 screws on ears','Color: Typically orange/white','Split: 2 halves clamped'],
+    svg:`<svg width="320" height="220" viewBox="0 0 320 220">
+      <defs>
+        <linearGradient id="caseG" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1a0838"/>
+          <stop offset="100%" style="stop-color:#0a0120"/>
+        </linearGradient>
+      </defs>
+      <!-- main body -->
+      <rect x="40" y="20" width="240" height="180" rx="12" fill="url(#caseG)" stroke="#6633aa" stroke-width="2"/>
+      <rect x="45" y="25" width="230" height="170" rx="10" fill="rgba(30,5,70,0.7)" stroke="rgba(140,60,220,0.2)" stroke-width="0.7"/>
+      <!-- mounting ears -->
+      <rect x="2" y="60" width="42" height="40" rx="6" fill="#1a0838" stroke="#6633aa" stroke-width="1.5"/>
+      <circle cx="23" cy="80" r="7" fill="#050010" stroke="rgba(191,95,255,0.35)" stroke-width="1"/>
+      <circle cx="23" cy="80" r="3.5" fill="#0a0018"/>
+      <rect x="276" y="60" width="42" height="40" rx="6" fill="#1a0838" stroke="#6633aa" stroke-width="1.5"/>
+      <circle cx="297" cy="80" r="7" fill="#050010" stroke="rgba(191,95,255,0.35)" stroke-width="1"/>
+      <circle cx="297" cy="80" r="3.5" fill="#0a0018"/>
+      <!-- output shaft hole -->
+      <circle cx="160" cy="30" r="18" fill="#05000d" stroke="rgba(191,95,255,0.3)" stroke-width="1.2"/>
+      <circle cx="160" cy="30" r="10" fill="#030008" stroke="rgba(150,60,220,0.4)" stroke-width="0.8"/>
+      <!-- split line -->
+      <line x1="40" y1="110" x2="280" y2="110" stroke="rgba(120,50,200,0.22)" stroke-width="0.7" stroke-dasharray="4,3"/>
+      <!-- vent detail -->
+      ${[0,1,2,3,4].map(i=>`<rect x="${62+i*36}" y="175" width="22" height="5" rx="2" fill="rgba(80,20,150,0.35)" stroke="rgba(140,60,220,0.18)" stroke-width="0.5"/>`).join('')}
+      <text x="160" y="210" fill="rgba(140,60,220,0.28)" font-size="9" text-anchor="middle" font-family="'Share Tech Mono',monospace">SG90  9g  4.8V</text>
+    </svg>`
+  },
+
+  /* ══ DC Coreless Motor ══ */
+  {
+    id:'dcmotor', name:'Coreless DC Motor — 3V/5V',
+    cat:'motor',
+    ox:'-320px', oy:'0px', x:148, y:80, w:82, h:82, delay:180,
+    desc:'At the heart of the servo is a tiny coreless DC motor. Unlike conventional DC motors, the "coreless" rotor has no iron core — instead, a self-supporting copper coil basket spins inside the permanent magnet stator. This design eliminates cogging and gives extremely fast response and low inertia. At 4.8V, this motor spins at over 10,000 RPM, which the gear train reduces to useful output speed. The motor draws up to 650mA under stall.',
+    stats:['Type: Coreless DC motor','Voltage: 3–6V (rated 4.8V)','No-load speed: ~10,000 RPM','Stall current: 650mA','No cogging: smooth motion','Low inertia: fast response'],
+    svg:`<svg width="82" height="82" viewBox="0 0 82 82">
+      <defs>
+        <radialGradient id="dcG" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style="stop-color:#2a1060"/>
+          <stop offset="100%" style="stop-color:#100428"/>
+        </radialGradient>
+      </defs>
+      <circle cx="41" cy="41" r="40" fill="url(#dcG)" stroke="#8844cc" stroke-width="1.5"/>
+      <!-- stator magnets -->
+      <path d="M41,41 L10,20 A36,36 0 0,1 72,20 Z" fill="#3a1870" stroke="rgba(180,80,255,0.4)" stroke-width="0.6"/>
+      <path d="M41,41 L72,62 A36,36 0 0,1 10,62 Z" fill="#2a1060" stroke="rgba(140,60,200,0.3)" stroke-width="0.6"/>
+      <!-- rotor coil basket -->
+      <circle cx="41" cy="41" r="22" fill="#180840" stroke="rgba(200,100,255,0.4)" stroke-width="0.8"/>
+      ${[...Array(8)].map((_,i)=>{
+        const a=i*45*(Math.PI/180);
+        const x1=41+12*Math.cos(a),y1=41+12*Math.sin(a);
+        const x2=41+20*Math.cos(a),y2=41+20*Math.sin(a);
+        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(200,120,255,0.5)" stroke-width="1.2"/>`;
+      }).join('')}
+      <circle cx="41" cy="41" r="7" fill="#0d0420" stroke="rgba(180,80,255,0.6)" stroke-width="0.8"/>
+      <!-- shaft -->
+      <circle cx="41" cy="41" r="3" fill="#aaaacc" stroke="#ddd" stroke-width="0.5"/>
+      <text x="41" y="78" fill="rgba(180,80,255,0.3)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">CORELESS</text>
+    </svg>`
+  },
+
+  /* ══ Gear Train ══ */
+  {
+    id:'gears', name:'Gear Train — 3-Stage Nylon Reduction',
+    cat:'gear',
+    ox:'320px', oy:'-320px', x:200, y:75, w:170, h:100, delay:320,
+    desc:'The SG90 uses a 3-stage plastic (nylon) gear reduction train to step the motor\'s 10,000+ RPM down to the output speed of ~60 RPM at full swing in 0.1 seconds (4.8V). Each gear stage reduces speed while multiplying torque. The final gear ratio is approximately 1:256. Nylon gears are quiet and light but wear faster than metal gears — high-torque metal-gear servos replace this train with brass or stainless gears. The gear mesh quality directly affects servo backlash.',
+    stats:['Stages: 3 reduction stages','Reduction ratio: ~1:256','Output speed: 60°/0.1s at 4.8V','Material: Nylon (plastic)','Backlash: ~1–3° typical','Metal-gear upgrade: brass/SS'],
+    svg:`<svg width="170" height="100" viewBox="0 0 170 100">
+      <!-- Gear 1 large (motor pinion mesh) -->
+      <circle cx="30" cy="50" r="22" fill="#0d1a14" stroke="#33aa77" stroke-width="1"/>
+      ${[...Array(12)].map((_,i)=>{
+        const a=i*30*(Math.PI/180);
+        const x1=30+18*Math.cos(a),y1=50+18*Math.sin(a);
+        const x2=30+26*Math.cos(a-0.12),y2=50+26*Math.sin(a-0.12);
+        const x3=30+26*Math.cos(a+0.12),y3=50+26*Math.sin(a+0.12);
+        return `<polygon points="${x1},${y1} ${x2},${y2} ${x3},${y3}" fill="#22aa66" stroke="rgba(85,204,170,0.4)" stroke-width="0.4"/>`;
+      }).join('')}
+      <circle cx="30" cy="50" r="10" fill="#070f0b" stroke="rgba(85,204,170,0.4)" stroke-width="0.6"/>
+      <circle cx="30" cy="50" r="4" fill="#aaccbb" stroke="#88ddbb" stroke-width="0.5"/>
+
+      <!-- Gear 2 medium -->
+      <circle cx="86" cy="50" r="18" fill="#0a1812" stroke="#22aa66" stroke-width="1"/>
+      ${[...Array(10)].map((_,i)=>{
+        const a=i*36*(Math.PI/180);
+        const x1=86+14*Math.cos(a),y1=50+14*Math.sin(a);
+        const x2=86+21*Math.cos(a-0.14),y2=50+21*Math.sin(a-0.14);
+        const x3=86+21*Math.cos(a+0.14),y3=50+21*Math.sin(a+0.14);
+        return `<polygon points="${x1},${y1} ${x2},${y2} ${x3},${y3}" fill="#1a8855" stroke="rgba(85,204,150,0.35)" stroke-width="0.4"/>`;
+      }).join('')}
+      <circle cx="86" cy="50" r="7" fill="#060e0a" stroke="rgba(85,204,150,0.4)" stroke-width="0.6"/>
+      <circle cx="86" cy="50" r="3" fill="#99ccaa" stroke="#77bbaa" stroke-width="0.5"/>
+
+      <!-- Gear 3 small output -->
+      <circle cx="135" cy="50" r="28" fill="#0d2018" stroke="#44ccaa" stroke-width="1.2"/>
+      ${[...Array(16)].map((_,i)=>{
+        const a=i*22.5*(Math.PI/180);
+        const x1=135+22*Math.cos(a),y1=50+22*Math.sin(a);
+        const x2=135+30*Math.cos(a-0.1),y2=50+30*Math.sin(a-0.1);
+        const x3=135+30*Math.cos(a+0.1),y3=50+30*Math.sin(a+0.1);
+        return `<polygon points="${x1},${y1} ${x2},${y2} ${x3},${y3}" fill="#33bb88" stroke="rgba(68,204,170,0.4)" stroke-width="0.4"/>`;
+      }).join('')}
+      <circle cx="135" cy="50" r="12" fill="#080f0a" stroke="rgba(68,204,170,0.45)" stroke-width="0.7"/>
+      <circle cx="135" cy="50" r="5" fill="#aaddcc" stroke="#88ccaa" stroke-width="0.5"/>
+      <text x="85" y="96" fill="rgba(68,204,150,0.3)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">3-STAGE  1:256</text>
+    </svg>`
+  },
+
+  /* ══ Control PCB ══ */
+  {
+    id:'pcb', name:'Control PCB — PWM Decoder + H-Bridge',
+    cat:'control',
+    ox:'-320px', oy:'320px', x:145, y:178, w:230, h:80, delay:460,
+    desc:'The servo\'s small control PCB decodes the PWM signal from the microcontroller and drives the DC motor accordingly. A pulse width between 1ms and 2ms (sent every 20ms at 50Hz) commands 0° to 180° position. The PCB contains a small IC (often a custom servo controller) that compares the desired position (from the PWM) with the actual position (from the potentiometer) and drives the motor H-bridge to close the error. This closed-loop feedback is what makes servos self-correcting.',
+    stats:['Signal: PWM 50Hz','Pulse: 1ms (0°) to 2ms (180°)','Period: 20ms (50Hz)','Control: position PID loop','H-bridge: integrated motor driver','Feedback: potentiometer comparison'],
+    svg:`<svg width="230" height="80" viewBox="0 0 230 80">
+      <defs>
+        <linearGradient id="pcbG" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#001830"/>
+          <stop offset="100%" style="stop-color:#000d1a"/>
+        </linearGradient>
+      </defs>
+      <rect x="2" y="2" width="226" height="76" rx="6" fill="url(#pcbG)" stroke="#224488" stroke-width="1.2"/>
+      <!-- controller IC -->
+      <rect x="20" y="14" width="60" height="40" rx="3" fill="#0a0a1a" stroke="#4488cc" stroke-width="1"/>
+      ${[0,1,2].map(i=>`<rect x="14" y="${18+i*10}" width="8" height="7" rx="1" fill="#5588cc" stroke="#88aadd" stroke-width="0.3"/>`).join('')}
+      ${[0,1,2].map(i=>`<rect x="78" y="${18+i*10}" width="8" height="7" rx="1" fill="#5588cc" stroke="#88aadd" stroke-width="0.3"/>`).join('')}
+      <circle cx="25" cy="19" r="3.5" fill="#1a1a2a"/>
+      <text x="50" y="37" fill="rgba(100,180,255,0.7)" font-size="8.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">CTRL</text>
+      <text x="50" y="48" fill="rgba(80,140,200,0.4)" font-size="6.5" text-anchor="middle" font-family="'Share Tech Mono',monospace">IC</text>
+      <!-- H-bridge chips -->
+      <rect x="100" y="14" width="40" height="40" rx="3" fill="#0a0a14" stroke="#3366aa" stroke-width="0.9"/>
+      ${[0,1,2].map(i=>`<rect x="95" y="${17+i*10}" width="7" height="6" rx="1" fill="#4477bb" stroke="#6699cc" stroke-width="0.3"/>`).join('')}
+      ${[0,1,2].map(i=>`<rect x="138" y="${17+i*10}" width="7" height="6" rx="1" fill="#4477bb" stroke="#6699cc" stroke-width="0.3"/>`).join('')}
+      <text x="120" y="38" fill="rgba(80,150,220,0.65)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">H-BRG</text>
+      <!-- trace lines -->
+      <line x1="80" y1="34" x2="100" y2="34" stroke="rgba(60,120,200,0.35)" stroke-width="0.8"/>
+      <!-- capacitors -->
+      ${[0,1,2].map(i=>`
+        <rect x="${162+i*18}" y="20" width="12" height="22" rx="2" fill="#0a0a1a" stroke="#3366aa" stroke-width="0.6"/>
+        <rect x="${162+i*18}" y="20" width="3" height="22" rx="1" fill="#446699"/>
+        <rect x="${171+i*18}" y="20" width="3" height="22" rx="1" fill="#446699"/>
+      `).join('')}
+      <text x="115" y="72" fill="rgba(68,136,220,0.3)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">PWM DECODER + H-BRIDGE</text>
+    </svg>`
+  },
+
+  /* ══ Potentiometer ══ */
+  {
+    id:'pot', name:'Potentiometer — Position Feedback 5kΩ',
+    cat:'feedback',
+    ox:'320px', oy:'320px', x:148, y:163, w:46, h:46, delay:560,
+    desc:'A miniature 5kΩ rotary potentiometer is mechanically coupled to the output shaft, forming the position feedback element. As the shaft turns 0°–180°, the wiper voltage changes from 0V to VCC proportionally. The servo\'s control IC reads this as the "actual position" and compares it against the "commanded position" derived from the PWM pulse width. The motor runs until the error is zero — this is classical closed-loop proportional control. Pot lifetime is rated for ~100,000 cycles in quality servos.',
+    stats:['Type: Rotary pot (wiper)','Resistance: 5kΩ total','Range: 0° to 180°','Output: 0V to VCC','Function: position feedback','Lifetime: ~100k cycles'],
+    svg:`<svg width="46" height="46" viewBox="0 0 46 46">
+      <defs>
+        <radialGradient id="potG" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style="stop-color:#2a2000"/>
+          <stop offset="100%" style="stop-color:#141000"/>
+        </radialGradient>
+      </defs>
+      <rect x="2" y="2" width="42" height="42" rx="6" fill="url(#potG)" stroke="#cc9900" stroke-width="1"/>
+      <circle cx="23" cy="23" r="16" fill="#1a1400" stroke="#aa8800" stroke-width="0.8"/>
+      <!-- resistance track arc -->
+      <path d="M8,32 A18,18 0 1,1 38,32" fill="none" stroke="#ccaa00" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- wiper line -->
+      <line x1="23" y1="23" x2="30" y2="10" stroke="#ffe066" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="23" cy="23" r="6" fill="#0d0900" stroke="#bbaa00" stroke-width="0.8"/>
+      <circle cx="23" cy="23" r="2.5" fill="#ffe066" opacity="0.7"/>
+      <!-- 3 pins -->
+      <rect x="7" y="38" width="5" height="8" rx="1" fill="#888"/>
+      <rect x="21" y="38" width="5" height="8" rx="1" fill="#888"/>
+      <rect x="35" y="38" width="5" height="8" rx="1" fill="#888"/>
+    </svg>`
+  },
+
+  /* ══ Output Shaft ══ */
+  {
+    id:'outshaft', name:'Output Shaft — Splined Nylon/Metal',
+    cat:'output',
+    ox:'320px', oy:'0px', x:138, y:55, w:44, h:30, delay:640,
+    desc:'The servo output shaft protrudes from the top of the case and drives the horn directly. Cheap servos like the SG90 use a plastic (nylon) splined shaft with a 21-tooth spline. Higher-end servos use metal splines for strength. The spline allows the horn to be pressed on at any indexed position and secured with a single M2 screw. The shaft is also the mechanical connection to the potentiometer below — any backlash here shows up as positioning error.',
+    stats:['Material: Nylon (SG90) / Metal (MG90)','Spline: 21-tooth spline','Horn fixing: 1× M2 screw','Diameter: ~4.7mm','Backlash: ~1° nylon, <0.5° metal','Also drives: internal potentiometer'],
+    svg:`<svg width="44" height="30" viewBox="0 0 44 30">
+      <defs>
+        <linearGradient id="osG" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#6633aa"/>
+          <stop offset="50%" style="stop-color:#aa66ff"/>
+          <stop offset="100%" style="stop-color:#6633aa"/>
+        </linearGradient>
+      </defs>
+      <rect x="2" y="8" width="40" height="14" rx="7" fill="url(#osG)" stroke="#9944dd" stroke-width="1"/>
+      <!-- spline teeth -->
+      ${[...Array(10)].map((_,i)=>`<rect x="${5+i*3.5}" y="5" width="2.5" height="5" rx="0.8" fill="#cc88ff"/>`).join('')}
+      ${[...Array(10)].map((_,i)=>`<rect x="${5+i*3.5}" y="20" width="2.5" height="5" rx="0.8" fill="#cc88ff"/>`).join('')}
+      <circle cx="22" cy="15" r="4" fill="#3a1870" stroke="#9944dd" stroke-width="0.6"/>
+    </svg>`
+  },
+
+  /* ══ Servo Horn ══ */
+  {
+    id:'horn', name:'Servo Horn — Single Arm (Cross/Wheel)',
+    cat:'output',
+    ox:'0px', oy:'-340px', x:120, y:30, w:280, h:30, delay:720,
+    desc:'Servo horns (also called servo arms) are the mechanical attachment points for linkages, pushrods, and brackets. The SG90 typically ships with 4 horn styles: single arm, double arm (X/cross), 4-arm, and round disk. The horn presses onto the splined shaft and is secured with a single M2 self-tapping screw in the centre. By removing and repositioning the horn, you can set the servo\'s mechanical neutral point. Material is white nylon.',
+    stats:['Types: single/double/cross/round','Material: White nylon','Fixing: 1× M2 self-tapping','Spline: matches 21-tooth shaft','Multiple: 4 horns included','Customise: neutral repositionable'],
+    svg:`<svg width="280" height="30" viewBox="0 0 280 30">
+      <!-- cross horn top view -->
+      <rect x="128" y="10" width="24" height="10" rx="5" fill="#cc99ff" stroke="#9944dd" stroke-width="0.8"/>
+      <!-- left arm -->
+      <rect x="30" y="12" width="100" height="6" rx="3" fill="#bb88ee" stroke="#8833cc" stroke-width="0.7"/>
+      <!-- right arm -->
+      <rect x="150" y="12" width="100" height="6" rx="3" fill="#bb88ee" stroke="#8833cc" stroke-width="0.7"/>
+      <!-- left tip hole -->
+      <circle cx="32" cy="15" r="4" fill="#0d0018" stroke="rgba(180,80,255,0.5)" stroke-width="0.8"/>
+      <!-- right tip hole -->
+      <circle cx="248" cy="15" r="4" fill="#0d0018" stroke="rgba(180,80,255,0.5)" stroke-width="0.8"/>
+      <!-- mid holes -->
+      <circle cx="80" cy="15" r="3" fill="#0d0018" stroke="rgba(180,80,255,0.4)" stroke-width="0.7"/>
+      <circle cx="200" cy="15" r="3" fill="#0d0018" stroke="rgba(180,80,255,0.4)" stroke-width="0.7"/>
+      <!-- centre spline -->
+      <circle cx="140" cy="15" r="7" fill="#9944dd" stroke="#bb66ff" stroke-width="0.8"/>
+      <circle cx="140" cy="15" r="3" fill="#3a1870" stroke="#aa66ff" stroke-width="0.5"/>
+    </svg>`
+  },
+
+  /* ══ 3-Wire Cable ══ */
+  {
+    id:'wire', name:'3-Wire Cable — Power + Ground + Signal',
+    cat:'control',
+    ox:'0px', oy:'340px', x:180, y:300, w:160, h:36, delay:820,
+    desc:'The servo communicates with the microcontroller via just 3 wires: Brown (GND), Red (VCC +5V), and Orange/Yellow (Signal PWM). The standard colour coding is universal across all hobby servos. The signal wire carries the PWM pulse: 1ms = 0°, 1.5ms = 90° (centre), 2ms = 180°, repeated every 20ms. Some servos accept 3.3V signal from 3.3V microcontrollers even with a 5V power supply. The 3-pin 0.1-inch (2.54mm) pitch connector is a JR/Futaba standard.',
+    stats:['Wires: 3','Brown/Black: GND','Red: VCC (4.8–6V)','Orange/Yellow: PWM signal','Connector: JR 0.1" (2.54mm)','Signal: 3.3V or 5V compatible'],
+    svg:`<svg width="160" height="36" viewBox="0 0 160 36">
+      <!-- brown -->
+      <rect x="2" y="12" width="52" height="8" rx="2" fill="#3a1a00" stroke="#886633" stroke-width="0.6"/>
+      <!-- red -->
+      <rect x="55" y="12" width="52" height="8" rx="2" fill="#880000" stroke="#cc2200" stroke-width="0.6"/>
+      <!-- orange signal -->
+      <rect x="108" y="12" width="50" height="8" rx="2" fill="#aa5500" stroke="#ff8800" stroke-width="0.6"/>
+      <!-- connector left -->
+      <rect x="0" y="6" width="8" height="24" rx="2" fill="#1a0030" stroke="#6633aa" stroke-width="0.8"/>
+      <!-- connector right -->
+      <rect x="152" y="6" width="8" height="24" rx="2" fill="#1a0030" stroke="#6633aa" stroke-width="0.8"/>
+      <text x="80" y="30" fill="rgba(180,100,255,0.32)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">GND  VCC  SIG</text>
+    </svg>`
+  },
+
+  /* ══ Mounting Screws ══ */
+  {
+    id:'screws', name:'M2 Mounting Screws + Horn Screw',
+    cat:'housing',
+    ox:'-320px', oy:'-320px', x:376, y:80, w:72, h:70, delay:900,
+    desc:'The servo ships with three M2 self-tapping screws: two for fixing the servo body into a mount and one for securing the horn onto the splined shaft. The horn centre screw prevents the horn from working loose under vibration — always install it. The mounting screws thread directly into the servo ears without nuts. Use M2×6mm for thin mounts; M2×8mm for thicker plates. Always use a proper M2 screwdriver — stripped M2 heads are the most common servo assembly mistake.',
+    stats:['Type: M2 self-tapping','Length: 6–8mm','Thread: M2','Head: Pan head JIS/Phillips','Horn screw: 1× M2×8mm','Stripping: biggest assembly mistake'],
+    svg:`<svg width="72" height="70" viewBox="0 0 72 70">
+      <!-- 3 screws -->
+      ${[[18,18],[54,18],[36,52]].map(([x,y])=>`
+        <circle cx="${x}" cy="${y}" r="10" fill="#120820" stroke="#8844cc" stroke-width="1.2"/>
+        <circle cx="${x}" cy="${y}" r="6" fill="#1e1030" stroke="#aa66dd" stroke-width="0.7"/>
+        <line x1="${x-4}" y1="${y}" x2="${x+4}" y2="${y}" stroke="#bb88ee" stroke-width="1.4"/>
+        <line x1="${x}" y1="${y-4}" x2="${x}" y2="${y+4}" stroke="#bb88ee" stroke-width="1.4"/>
+      `).join('')}
+    </svg>`
+  },
+
+  /* ══ Idle Gears (intermediate) ══ */
+  {
+    id:'idler', name:'Intermediate Idler Gear — Reduction Stage',
+    cat:'gear',
+    ox:'320px', oy:'320px', x:196, y:148, w:80, h:35, delay:990,
+    desc:'Two compound idler gears bridge the motor pinion to the output gear, each consisting of a large gear and small pinion combined on a single shaft pivot. This double-reduction per stage allows a high overall ratio in a compact space. The idler shafts are fixed steel pins press-fitted into the bottom case. In the SG90, these compound gears are nylon moulded in one piece, reducing part count and cost. Metal-gear upgrades replace these with brass compound gears.',
+    stats:['Type: Compound (large + small)','Count: 2 idler shafts','Shaft: Fixed steel pins','Nylon: moulded in one piece','Metal upgrade: brass','Purpose: speed reduction'],
+    svg:`<svg width="80" height="35" viewBox="0 0 80 35">
+      <!-- idler 1 -->
+      <circle cx="22" cy="17" r="12" fill="#0a1810" stroke="#33aa66" stroke-width="0.8"/>
+      ${[...Array(10)].map((_,i)=>{
+        const a=i*36*(Math.PI/180);
+        const x1=22+9*Math.cos(a),y1=17+9*Math.sin(a);
+        const x2=22+14*Math.cos(a-0.14),y2=17+14*Math.sin(a-0.14);
+        const x3=22+14*Math.cos(a+0.14),y3=17+14*Math.sin(a+0.14);
+        return `<polygon points="${x1},${y1} ${x2},${y2} ${x3},${y3}" fill="#22aa55" stroke="rgba(68,204,120,0.3)" stroke-width="0.3"/>`;
+      }).join('')}
+      <circle cx="22" cy="17" r="5" fill="#050f08" stroke="rgba(68,204,120,0.4)" stroke-width="0.5"/>
+      <!-- idler 2 -->
+      <circle cx="58" cy="17" r="12" fill="#0a1810" stroke="#33aa66" stroke-width="0.8"/>
+      ${[...Array(10)].map((_,i)=>{
+        const a=i*36*(Math.PI/180)+0.18;
+        const x1=58+9*Math.cos(a),y1=17+9*Math.sin(a);
+        const x2=58+14*Math.cos(a-0.14),y2=17+14*Math.sin(a-0.14);
+        const x3=58+14*Math.cos(a+0.14),y3=17+14*Math.sin(a+0.14);
+        return `<polygon points="${x1},${y1} ${x2},${y2} ${x3},${y3}" fill="#1a9944" stroke="rgba(50,180,100,0.3)" stroke-width="0.3"/>`;
+      }).join('')}
+      <circle cx="58" cy="17" r="5" fill="#050f08" stroke="rgba(50,180,100,0.4)" stroke-width="0.5"/>
+    </svg>`
+  },
+
+  /* ══ Bottom Cover ══ */
+  {
+    id:'cover', name:'Bottom Cover — Case Back Plate',
+    cat:'housing',
+    ox:'0px', oy:'340px', x:120, y:280, w:320, h:16, delay:1080,
+    desc:'The bottom cover snaps onto the lower half of the servo case, enclosing the PCB and gear pivot shafts. It is secured by two clips and/or two tiny M2 screws on the underside. Opening the bottom cover is the standard way to service the servo — replace a stripped gear or inspect the PCB. Most SG90 clones use plastic clips rather than screws, making disassembly and reassembly straightforward for hobbyists exploring servo internals.',
+    stats:['Material: Nylon PA','Fastening: clips or 2× M2','Accesses: gears and PCB','Screw pattern: 2× M2 aligned','Closes: gear chamber','Serviceability: good (easily opened)'],
+    svg:`<svg width="320" height="16" viewBox="0 0 320 16">
+      <defs>
+        <linearGradient id="covG" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#2a1050"/>
+          <stop offset="100%" style="stop-color:#150828"/>
+        </linearGradient>
+      </defs>
+      <rect x="40" y="2" width="240" height="12" rx="5" fill="url(#covG)" stroke="#6633aa" stroke-width="1.2"/>
+      <!-- clip notches -->
+      <rect x="55" y="0" width="10" height="4" rx="1.5" fill="#8844cc" stroke="#aa66dd" stroke-width="0.5"/>
+      <rect x="255" y="0" width="10" height="4" rx="1.5" fill="#8844cc" stroke="#aa66dd" stroke-width="0.5"/>
+      <!-- screw holes -->
+      <circle cx="90" cy="8" r="3.5" fill="#0a0018" stroke="rgba(180,80,255,0.35)" stroke-width="0.7"/>
+      <circle cx="230" cy="8" r="3.5" fill="#0a0018" stroke="rgba(180,80,255,0.35)" stroke-width="0.7"/>
+      <text x="160" y="12" fill="rgba(140,60,200,0.28)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace">BOTTOM COVER</text>
+    </svg>`
+  },
+
+];
+
+let assembled=false, arrivedCount=0, selectedId=null, highlightMode=false;
+
+function init(){
+  const stage=document.getElementById('stage');
+  const grid=document.getElementById('partsGrid');
+  document.getElementById('partCounter').textContent=`0 / ${parts.length} PARTS`;
+  parts.forEach(p=>{
+    const el=document.createElement('div');
+    el.className='part'; el.id='part_'+p.id;
+    el.style.setProperty('--ox',p.ox); el.style.setProperty('--oy',p.oy);
+    el.style.left=p.x+'px'; el.style.top=p.y+'px';
+    el.innerHTML=p.svg;
+    el.addEventListener('click',()=>selectPart(p.id));
+    stage.appendChild(el);
+    const dot=document.createElement('div');
+    dot.className='pdot cat-'+p.cat; dot.id='dot_'+p.id; dot.title=p.name;
+    dot.addEventListener('click',()=>selectPart(p.id));
+    grid.appendChild(dot);
+  });
+}
+
+function assemble(){
+  if(assembled)return;
+  assembled=true;
+  document.getElementById('btnAssemble').disabled=true;
+  document.getElementById('status').textContent='ASSEMBLING…';
+  document.getElementById('hint').textContent='▶ Click any component to inspect';
+  let done=0;
+  parts.forEach(p=>{
+    setTimeout(()=>{
+      document.getElementById('part_'+p.id).classList.add('arrived');
+      document.getElementById('dot_'+p.id).classList.add('done');
+      done++; arrivedCount=done;
+      updateProgress(done,parts.length);
+    },p.delay);
+  });
+  const totalDelay=Math.max(...parts.map(p=>p.delay))+900;
+  setTimeout(()=>{
+    document.getElementById('status').textContent='ASSEMBLY COMPLETE';
+    document.getElementById('hint').textContent='✓ Click any component to inspect';
+  },totalDelay);
+}
+
+function doReset(){
+  assembled=false; arrivedCount=0; selectedId=null; highlightMode=false;
+  document.getElementById('btnAssemble').disabled=false;
+  document.getElementById('status').textContent='AWAITING ASSEMBLY';
+  document.getElementById('hint').textContent='▶ Click ASSEMBLE to begin';
+  document.getElementById('partCounter').textContent=`0 / ${parts.length} PARTS`;
+  updateProgress(0,parts.length);
+  document.getElementById('infoCard').classList.remove('active');
+  document.getElementById('infoName').textContent='— SELECT A PART —';
+  document.getElementById('infoDesc').textContent='Assemble the servo first, then click any component to inspect it.';
+  document.getElementById('infoStats').innerHTML='';
+  document.getElementById('doneCount').textContent='0';
+  parts.forEach(p=>{
+    document.getElementById('part_'+p.id).className='part';
+    document.getElementById('dot_'+p.id).classList.remove('done');
+  });
+}
+
+function highlightAll(){
+  if(!assembled)return;
+  highlightMode=!highlightMode; selectedId=null;
+  parts.forEach(p=>{
+    const el=document.getElementById('part_'+p.id);
+    el.classList.remove('dimmed','selected');
+    if(highlightMode&&p.cat!=='housing') el.classList.add('selected');
+  });
+}
+
+function selectPart(id){
+  if(!assembled)return;
+  highlightMode=false;
+  const p=parts.find(x=>x.id===id); if(!p)return;
+  selectedId=id;
+  parts.forEach(q=>{
+    const el=document.getElementById('part_'+q.id);
+    el.classList.remove('dimmed','selected');
+    if(q.id!==id) el.classList.add('dimmed');
+    else el.classList.add('selected');
+  });
+  document.getElementById('infoCard').classList.add('active');
+  document.getElementById('infoName').textContent=p.name.toUpperCase();
+  document.getElementById('infoDesc').textContent=p.desc;
+  const statsEl=document.getElementById('infoStats');
+  statsEl.innerHTML='';
+  (p.stats||[]).forEach(s=>{
+    const chip=document.createElement('div');
+    chip.className='stat-chip'; chip.textContent=s;
+    statsEl.appendChild(chip);
+  });
+}
+
+function updateProgress(done,total){
+  const pct=Math.round(done/total*100);
+  document.getElementById('prog').style.width=pct+'%';
+  document.getElementById('progPct').textContent=pct+'%';
+  document.getElementById('partCounter').textContent=`${done} / ${total} PARTS`;
+  document.getElementById('doneCount').textContent=done;
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  init();
+  document.getElementById('stage').addEventListener('click',e=>{
+    if(!e.target.closest('.part')&&selectedId){
+      selectedId=null;
+      parts.forEach(q=>{
+        const el=document.getElementById('part_'+q.id);
+        el.classList.remove('dimmed','selected');
+      });
+      document.getElementById('infoCard').classList.remove('active');
+      document.getElementById('infoName').textContent='— SELECT A PART —';
+      document.getElementById('infoDesc').textContent='Click any glowing component to inspect it.';
+      document.getElementById('infoStats').innerHTML='';
+    }
+  });
+});
+</script>
+</body>
+</html>

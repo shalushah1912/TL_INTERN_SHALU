@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Light Sensor (LDR / Photodiode) – How It Works</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0e14; color: #e0e0e0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+h1 { font-size: 22px; font-weight: 600; color: #fff; text-align: center; margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: #666; text-align: center; margin-bottom: 16px; }
+.steps { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; justify-content: center; }
+.step { background: #131520; border: 1px solid #1e2030; border-radius: 10px; padding: 10px 14px; text-align: center; min-width: 130px; flex: 1; max-width: 170px; }
+.step.amber { border-color: #7a5500; }
+.step.coral { border-color: #7a3020; }
+.step.purple { border-color: #3a2a6a; }
+.step.blue { border-color: #1a4a7a; }
+.step-num { font-size: 18px; font-weight: 700; margin-bottom: 3px; }
+.step.amber .step-num { color: #EF9F27; }
+.step.coral .step-num { color: #D85A30; }
+.step.purple .step-num { color: #7F77DD; }
+.step.blue .step-num { color: #378ADD; }
+.step-title { font-size: 12px; font-weight: 600; color: #ddd; margin-bottom: 3px; }
+.step-desc { font-size: 10px; color: #777; line-height: 1.4; }
+.formula { background: #131520; border: 1px solid #3a2a00; border-radius: 8px; padding: 9px 18px; text-align: center; font-size: 13px; font-weight: 600; color: #EF9F27; margin-bottom: 16px; }
+canvas { border-radius: 12px; background: #09090f; display: block; max-width: 720px; width: 100%; }
+.legend { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #888; }
+.dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body>
+<h1>☀️ Light Sensor (LDR / Photodiode)</h1>
+<p class="subtitle">Photoelectric effect — converting light into electrical signal</p>
+<div class="steps">
+  <div class="step amber"><div class="step-num">①</div><div class="step-title">Light hits sensor</div><div class="step-desc">Photons strike the semiconductor surface</div></div>
+  <div class="step coral"><div class="step-num">②</div><div class="step-title">Electron excitation</div><div class="step-desc">Photons knock electrons free (photoelectric effect)</div></div>
+  <div class="step purple"><div class="step-num">③</div><div class="step-title">Current flows</div><div class="step-desc">Free electrons create measurable current / resistance change</div></div>
+  <div class="step blue"><div class="step-num">④</div><div class="step-title">Voltage output</div><div class="step-desc">ADC converts to lux reading via voltage divider</div></div>
+</div>
+<div class="formula">LDR: Resistance ↓ as Light ↑ &nbsp;|&nbsp; Photodiode: Current ↑ as Light ↑ &nbsp;|&nbsp; Lux = f(Voltage)</div>
+<canvas id="c" width="720" height="450"></canvas>
+<div class="legend">
+  <div class="legend-item"><span class="dot" style="background:#EF9F27"></span> Photons (light particles)</div>
+  <div class="legend-item"><span class="dot" style="background:#378ADD"></span> Electrons</div>
+  <div class="legend-item"><span class="dot" style="background:#7F77DD"></span> Electric current</div>
+  <div class="legend-item"><span class="dot" style="background:#1D9E75"></span> Voltage output</div>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = 720, H = 450;
+let frame = 0;
+
+function resize() {
+  const w = Math.min(720, window.innerWidth - 40);
+  canvas.style.width = w + 'px';
+  canvas.style.height = (w * 450/720) + 'px';
+}
+resize(); window.addEventListener('resize', resize);
+
+// Photon particles
+const photons = [];
+for (let i = 0; i < 22; i++) {
+  photons.push(newPhoton(i * 8));
+}
+function newPhoton(delay) {
+  return {
+    x: 60 + Math.random() * 120,
+    y: -20 - delay * 6,
+    vy: 1.4 + Math.random() * 0.6,
+    r: 4 + Math.random() * 3,
+    hit: false, hitY: 0, exploded: false, expR: 0
+  };
+}
+
+// Electrons
+const electrons = [];
+function spawnElectron(x, y) {
+  electrons.push({ x, y, vx: (Math.random()-0.5)*1.5, vy: 1+Math.random()*1.2, life: 1, r: 3.5 });
+}
+
+// Current pulses along wire
+const pulses = [];
+let pulseTimer = 0;
+
+function roundRect(x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  if(fill) ctx.fill(); if(stroke) ctx.stroke();
+}
+
+function drawSun(t) {
+  const cx = 140, cy = 55;
+  // Light intensity oscillates
+  const intensity = 0.6 + 0.4 * Math.sin(t * 0.012);
+
+  // Sun rays
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * Math.PI * 2 + t * 0.015;
+    const r1 = 22 + 4 * Math.sin(t * 0.04);
+    const r2 = 36 + 6 * Math.sin(t * 0.04 + i);
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(angle) * r1, cy + Math.sin(angle) * r1);
+    ctx.lineTo(cx + Math.cos(angle) * r2, cy + Math.sin(angle) * r2);
+    ctx.strokeStyle = `rgba(239,159,39,${intensity * 0.7})`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+  // Sun body
+  ctx.beginPath();
+  ctx.arc(cx, cy, 20 + 2*Math.sin(t*0.03), 0, Math.PI*2);
+  const sg = ctx.createRadialGradient(cx-5, cy-5, 2, cx, cy, 22);
+  sg.addColorStop(0, `rgba(255,240,100,${intensity})`);
+  sg.addColorStop(1, `rgba(239,140,20,${intensity*0.8})`);
+  ctx.fillStyle = sg;
+  ctx.fill();
+
+  // Intensity label
+  ctx.fillStyle = '#EF9F27';
+  ctx.font = 'bold 11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText(`Light intensity: ${(intensity * 100).toFixed(0)}%`, 140, 94);
+  return intensity;
+}
+
+function drawLDR() {
+  // LDR body (zigzag symbol + round body)
+  const cx = 140, cy = 200;
+  ctx.fillStyle = '#1a1400';
+  ctx.strokeStyle = '#EF9F27';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 44, 0, Math.PI*2);
+  ctx.fill(); ctx.stroke();
+
+  // LDR zigzag resistance symbol
+  ctx.strokeStyle = '#BA7517';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  const zx = cx - 18, zy = cy - 8;
+  const pts = [[0,0],[6,-12],[12,12],[18,-12],[24,12],[30,-12],[36,0]];
+  pts.forEach(([dx,dy],i) => {
+    if(i===0) ctx.moveTo(zx+dx, zy+dy);
+    else ctx.lineTo(zx+dx, zy+dy);
+  });
+  ctx.stroke();
+
+  // LDR label
+  ctx.fillStyle = '#EF9F27';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('LDR', cx, cy + 28);
+  ctx.fillStyle = '#7a5500';
+  ctx.font = '9px Segoe UI';
+  ctx.fillText('Light Dependent Resistor', cx, cy + 42);
+
+  // Arrow labels for photon entry
+  ctx.fillStyle = '#444';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText('Cadmium sulphide (CdS)', cx, cy - 30);
+}
+
+function drawPhotodiodePanel(t, intensity) {
+  // Cross-section of photodiode semiconductor
+  const px = 330, py = 100, pw = 350, ph = 200;
+  ctx.fillStyle = '#0e1420';
+  ctx.strokeStyle = '#3a4a6a';
+  ctx.lineWidth = 1;
+  roundRect(px, py, pw, ph, 10, true, true);
+
+  ctx.fillStyle = '#378ADD';
+  ctx.font = 'bold 11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Photodiode – cross section', px + pw/2, py + 18);
+
+  // P-type layer
+  ctx.fillStyle = '#2a1a00';
+  ctx.strokeStyle = '#D85A30';
+  ctx.lineWidth = 0.8;
+  roundRect(px+15, py+28, pw-30, 40, 6, true, true);
+  ctx.fillStyle = '#D85A30';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText('P-type semiconductor (holes)', px + pw/2, py + 53);
+
+  // Depletion region
+  const depH = 30 + intensity * 20;
+  ctx.fillStyle = '#1a0a2a';
+  ctx.strokeStyle = '#7F77DD';
+  roundRect(px+15, py+68, pw-30, depH, 4, true, true);
+  ctx.fillStyle = '#9988EE';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText(`Depletion zone (${depH.toFixed(0)}px wide)`, px + pw/2, py+68+depH/2+4);
+
+  // N-type layer
+  ctx.fillStyle = '#001a30';
+  ctx.strokeStyle = '#185FA5';
+  roundRect(px+15, py+68+depH+2, pw-30, 40, 6, true, true);
+  ctx.fillStyle = '#378ADD';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText('N-type semiconductor (electrons)', px + pw/2, py+68+depH+22);
+
+  // Photon arrow into depletion zone
+  ctx.strokeStyle = '#EF9F27';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4,3]);
+  ctx.beginPath();
+  ctx.moveTo(px + pw/2, py+28);
+  ctx.lineTo(px + pw/2, py+68);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // Arrowhead
+  ctx.beginPath();
+  ctx.moveTo(px+pw/2-5,py+62); ctx.lineTo(px+pw/2,py+69); ctx.lineTo(px+pw/2+5,py+62);
+  ctx.fillStyle = '#EF9F27';
+  ctx.fill();
+  ctx.fillStyle = '#EF9F27';
+  ctx.font = '9px Segoe UI';
+  ctx.fillText('photon hν', px+pw/2+30, py+52);
+}
+
+function drawPhotons(t, intensity) {
+  const count = Math.floor(intensity * photons.length);
+  photons.forEach((p, i) => {
+    if (i >= count) { p.y = -20 - Math.random()*200; p.hit = false; return; }
+    if (!p.hit) {
+      p.y += p.vy;
+      // Draw photon
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,200,60,0.85)';
+      ctx.fill();
+      // Glow
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r+3, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,200,60,0.15)';
+      ctx.fill();
+
+      if (p.y > 158) {
+        p.hit = true; p.hitY = p.y;
+        if (Math.random() < 0.6) spawnElectron(p.x, p.y);
+      }
+    } else if (!p.exploded) {
+      p.expR += 2.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.hitY, p.expR, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(255,200,60,${1 - p.expR/30})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      if (p.expR > 28) {
+        p.exploded = true;
+        setTimeout(() => { Object.assign(p, newPhoton(0)); }, 300 + Math.random()*400);
+      }
+    }
+  });
+}
+
+function drawElectrons() {
+  electrons.forEach((e, i) => {
+    e.x += e.vx; e.y += e.vy;
+    e.life -= 0.015;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(55,138,221,${e.life * 0.8})`;
+    ctx.fill();
+    ctx.fillStyle = `rgba(180,220,255,${e.life})`;
+    ctx.font = '8px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('e⁻', e.x, e.y+3);
+    if (e.life <= 0) electrons.splice(i, 1);
+  });
+}
+
+function drawWiring(t, intensity) {
+  const wireColor = '#7F77DD';
+  // Wires from LDR
+  ctx.strokeStyle = wireColor;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(184, 200); ctx.lineTo(260, 200); ctx.lineTo(260, 340); ctx.lineTo(400, 340);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(184, 220); ctx.lineTo(280, 220); ctx.lineTo(280, 360); ctx.lineTo(400, 360);
+  ctx.stroke();
+
+  // Label wires
+  ctx.fillStyle = '#534AB7';
+  ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText('Output signal', 215, 195);
+
+  // Current pulses along wire
+  pulseTimer++;
+  if (pulseTimer > Math.floor(40 / (0.3 + intensity * 0.7))) {
+    pulses.push({ t: 0, path: 'top' });
+    pulseTimer = 0;
+  }
+  pulses.forEach((p, i) => {
+    p.t += 0.025;
+    // Animate along wire path
+    let px, py;
+    if (p.t < 0.33) { px = 184 + (76 * p.t/0.33); py = 200; }
+    else if (p.t < 0.66) { px = 260; py = 200 + (140 * (p.t-0.33)/0.33); }
+    else { px = 260 + (140 * (p.t-0.66)/0.34); py = 340; }
+    ctx.beginPath();
+    ctx.arc(px, py, 4, 0, Math.PI*2);
+    ctx.fillStyle = '#7F77DD';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(px, py, 7, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(127,119,221,0.3)';
+    ctx.fill();
+    if (p.t >= 1) pulses.splice(i, 1);
+  });
+}
+
+function drawReadout(t, intensity) {
+  const lux = (intensity * intensity * 1200).toFixed(0);
+  const resistance = ((1-intensity)*9800 + 200).toFixed(0);
+  const voltage = (intensity * 3.3).toFixed(2);
+
+  ctx.fillStyle = '#0e1620';
+  ctx.strokeStyle = '#1D9E75';
+  ctx.lineWidth = 1;
+  roundRect(400, 300, 300, 130, 10, true, true);
+
+  ctx.fillStyle = '#1D9E75';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Live sensor output', 550, 318);
+
+  const rows = [
+    { label: 'Illuminance', val: `${lux} lux`, color: '#EF9F27' },
+    { label: 'LDR Resistance', val: `${Number(resistance).toLocaleString()} Ω`, color: '#D85A30' },
+    { label: 'Output Voltage', val: `${voltage} V`, color: '#378ADD' },
+    { label: 'ADC Value (0–1023)', val: `${Math.floor(intensity*1023)}`, color: '#7F77DD' },
+  ];
+  rows.forEach((r, i) => {
+    ctx.fillStyle = '#333';
+    ctx.font = '10px Segoe UI';
+    ctx.textAlign = 'left';
+    ctx.fillText(r.label, 415, 340 + i*24);
+    ctx.fillStyle = r.color;
+    ctx.font = 'bold 11px Segoe UI';
+    ctx.textAlign = 'right';
+    ctx.fillText(r.val, 690, 340 + i*24);
+  });
+}
+
+function drawVoltageDivider(t, intensity) {
+  const vout = (intensity * 3.3).toFixed(2);
+  ctx.fillStyle = '#101820';
+  ctx.strokeStyle = '#185FA5';
+  ctx.lineWidth = 1;
+  roundRect(400, 110, 300, 175, 10, true, true);
+
+  ctx.fillStyle = '#378ADD';
+  ctx.font = 'bold 11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Voltage divider circuit', 550, 128);
+
+  // VCC
+  ctx.fillStyle = '#c0392b'; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('VCC (3.3V)', 550, 150);
+
+  // Fixed resistor
+  ctx.strokeStyle = '#555'; ctx.lineWidth = 1;
+  ctx.fillStyle = '#2a2a2a';
+  roundRect(510, 156, 80, 30, 4, true, true);
+  ctx.fillStyle = '#aaa'; ctx.font = '10px Segoe UI';
+  ctx.fillText('R_fixed (10kΩ)', 550, 175);
+
+  // Wire junction + Vout label
+  ctx.strokeStyle = '#555'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(550, 186); ctx.lineTo(550, 218); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(550, 218); ctx.lineTo(620, 218); ctx.stroke();
+  ctx.fillStyle = '#1D9E75';
+  ctx.font = 'bold 11px Segoe UI';
+  ctx.fillText(`Vout = ${vout}V`, 660, 222);
+
+  // LDR symbol
+  ctx.strokeStyle = '#EF9F27'; ctx.lineWidth = 1.5;
+  roundRect(510, 218, 80, 30, 4, true, true);
+  ctx.fillStyle = '#EF9F27'; ctx.font = '10px Segoe UI';
+  ctx.fillText('LDR (variable Ω)', 550, 237);
+
+  // GND
+  ctx.beginPath(); ctx.moveTo(550, 248); ctx.lineTo(550, 268); ctx.stroke();
+  ctx.fillStyle = '#555'; ctx.font = 'bold 11px Segoe UI';
+  ctx.fillText('GND', 550, 282);
+
+  // Formula
+  ctx.fillStyle = '#2a5070';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText('Vout = VCC × R_ldr / (R_fixed + R_ldr)', 550, 273);
+}
+
+function drawBackground() {
+  // Sky gradient behind photon area
+  const g = ctx.createLinearGradient(0, 0, 0, 170);
+  g.addColorStop(0, '#0a0c18');
+  g.addColorStop(1, '#0d1225');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 310, 170);
+
+  // Sensor platform
+  ctx.fillStyle = '#0e121e';
+  ctx.fillRect(0, 170, 310, 270);
+  ctx.strokeStyle = '#1a2035';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, 170); ctx.lineTo(310, 170); ctx.stroke();
+
+  ctx.fillStyle = '#1a2240';
+  ctx.fillRect(0, 390, 310, 60);
+  ctx.fillStyle = '#222c50';
+  ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Circuit board', 155, 418);
+}
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#09090f';
+  ctx.fillRect(0, 0, W, H);
+
+  drawBackground();
+  const intensity = 0.45 + 0.45 * Math.abs(Math.sin(frame * 0.01));
+  drawSun(frame);
+  drawPhotons(frame, intensity);
+  drawElectrons();
+  drawLDR();
+  drawPhotodiodePanel(frame, intensity);
+  drawWiring(frame, intensity);
+  drawVoltageDivider(frame, intensity);
+  drawReadout(frame, intensity);
+
+  frame++;
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>

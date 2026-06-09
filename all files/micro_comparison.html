@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microcontroller vs Microprocessor</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #111827;
+    --border: #1e293b;
+    --mcu-col: #00e5ff;
+    --mpu-col: #ff6b35;
+    --label: #64748b;
+    --text: #e2e8f0;
+    --subtext: #94a3b8;
+    --glow-mcu: 0 0 20px rgba(0,229,255,0.25);
+    --glow-mpu: 0 0 20px rgba(255,107,53,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Syne', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 20px;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(0,229,255,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(255,107,53,0.06) 0%, transparent 60%);
+  }
+
+  .wrapper {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  header .badge {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--label);
+    border: 1px solid var(--border);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+
+  header h1 {
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+
+  header h1 span.mcu { color: var(--mcu-col); }
+  header h1 span.mpu { color: var(--mpu-col); }
+  header h1 span.vs {
+    color: var(--label);
+    font-size: 0.6em;
+    vertical-align: middle;
+    margin: 0 12px;
+  }
+
+  header p {
+    margin-top: 12px;
+    color: var(--subtext);
+    font-size: 15px;
+  }
+
+  /* Column headers */
+  .col-headers {
+    display: grid;
+    grid-template-columns: 220px 1fr 1fr;
+    gap: 0;
+    margin-bottom: 0;
+    padding: 0 0 0 0;
+    animation: fadeUp 0.5s ease 0.2s both;
+  }
+
+  .col-headers .spacer { }
+  .col-label {
+    text-align: center;
+    padding: 16px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-radius: 12px 12px 0 0;
+  }
+  .col-label.mcu {
+    color: var(--mcu-col);
+    background: rgba(0,229,255,0.07);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-bottom: none;
+  }
+  .col-label.mpu {
+    color: var(--mpu-col);
+    background: rgba(255,107,53,0.07);
+    border: 1px solid rgba(255,107,53,0.2);
+    border-bottom: none;
+    margin-left: 8px;
+  }
+
+  /* Table */
+  .table {
+    border-radius: 0 0 16px 16px;
+    overflow: hidden;
+    animation: fadeUp 0.6s ease 0.3s both;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 220px 1fr 1fr;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+
+  .row:last-child { border-bottom: none; }
+  .row:hover { background: rgba(255,255,255,0.02); }
+
+  .row:nth-child(odd) .param { background: rgba(255,255,255,0.015); }
+
+  .param {
+    padding: 18px 20px;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--label);
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .param .icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .cell {
+    padding: 18px 20px;
+    font-size: 14px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    line-height: 1.5;
+  }
+
+  .cell.mcu-cell {
+    background: rgba(0,229,255,0.04);
+    border-right: 1px solid rgba(0,229,255,0.1);
+    border-left: 1px solid rgba(0,229,255,0.1);
+  }
+
+  .cell.mpu-cell {
+    background: rgba(255,107,53,0.04);
+    border-right: 1px solid rgba(255,107,53,0.1);
+    margin-left: 8px;
+    border-left: 1px solid rgba(255,107,53,0.1);
+  }
+
+  .chip {
+    display: inline-block;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    padding: 3px 9px;
+    border-radius: 5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .chip-green { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .chip-red { background: rgba(239,68,68,0.15); color: #f87171; }
+  .chip-yellow { background: rgba(234,179,8,0.15); color: #facc15; }
+  .chip-cyan { background: rgba(0,229,255,0.15); color: var(--mcu-col); }
+  .chip-orange { background: rgba(255,107,53,0.15); color: var(--mpu-col); }
+
+  /* Footer legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 36px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s ease 0.5s both;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--subtext);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  /* Use-case cards */
+  .use-cases {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 40px;
+    animation: fadeUp 0.6s ease 0.6s both;
+  }
+
+  .use-card {
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid;
+  }
+
+  .use-card.mcu-card {
+    background: rgba(0,229,255,0.05);
+    border-color: rgba(0,229,255,0.2);
+  }
+
+  .use-card.mpu-card {
+    background: rgba(255,107,53,0.05);
+    border-color: rgba(255,107,53,0.2);
+  }
+
+  .use-card h3 {
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .use-card.mcu-card h3 { color: var(--mcu-col); }
+  .use-card.mpu-card h3 { color: var(--mpu-col); }
+
+  .use-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .use-card ul li {
+    font-size: 13px;
+    color: var(--subtext);
+    padding-left: 16px;
+    position: relative;
+  }
+  .use-card ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    font-size: 11px;
+  }
+  .use-card.mcu-card ul li::before { color: var(--mcu-col); }
+  .use-card.mpu-card ul li::before { color: var(--mpu-col); }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 640px) {
+    .col-headers, .row {
+      grid-template-columns: 110px 1fr 1fr;
+    }
+    .param { font-size: 10px; padding: 14px 10px; }
+    .cell { font-size: 12px; padding: 14px 10px; }
+    .use-cases { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="badge">Embedded Systems · Quick Reference</div>
+    <h1>
+      <span class="mcu">Microcontroller</span>
+      <span class="vs">VS</span>
+      <span class="mpu">Microprocessor</span>
+    </h1>
+    <p>A side-by-side technical comparison of MCU and MPU architectures</p>
+  </header>
+
+  <div class="col-headers">
+    <div class="spacer"></div>
+    <div class="col-label mcu">⚡ MCU</div>
+    <div class="col-label mpu">🖥 MPU</div>
+  </div>
+
+  <div class="table">
+
+    <div class="row">
+      <div class="param"><span class="icon">🔬</span>Definition</div>
+      <div class="cell mcu-cell">A self-contained chip with CPU, memory & I/O peripherals integrated</div>
+      <div class="cell mpu-cell">A CPU-only chip; requires external RAM, ROM & peripheral ICs</div>
+    </div>
+
+    <div class="row">
+      <div class="param"><span class="icon">🧠</span>CPU Power</div>
+      <div class="cell mcu-cell"><span class="chip chip-yellow">Low – Medium</span>&nbsp; 8 / 16 / 32-bit cores</div>
+      <div class="cell mpu-cell"><span class="chip chip-cyan">High</span>&nbsp; 32 / 64-bit, multi-core possible</div>
+    </div>
+
+    <div class="row">
+      <div class="param"><span class="icon">💾</span>Memory</div>
+      <div class="cell mcu-cell">Built-in Flash (KB–MB) + SRAM (KB). No external RAM needed</div>
+      <div class="cell mpu-cell">Needs external RAM (DDR) & storage (eMMC, SD). GBs possible</div>
+    </div>
+
+    <div class="row">
+      <div class="param"><span class="icon">🔌</span>Peripherals</div>
+      <div class="cell mcu-cell"><span class="chip chip-green">On-chip</span>&nbsp; GPIO, UART, SPI, I²C, ADC, PWM, timers</div>
+      <div class="cell mpu-cell"><span class="chip chip-red">External</span>&nbsp; Needs separate peripheral ICs on PCB</div>
+    </div>
+
+    <div class="row">
+      <div class="param"><span class="icon">⚡</span>Power Usage</div>
+      <div class="cell mcu-cell"><span class="chip chip-green">Very Low</span>&nbsp; µA in sleep, mA active. Battery-friendly</div>
+      <div class="cell mpu-cell"><span class="chip chip-red">High</span>&nbsp; Hundreds of mA to Watts. Needs heatsink</div>
+    </div>
+
+    <div class="row">
+      <div class="param"><span class="icon">💲</span>Cost</div>
+      <div class="cell mcu-cell"><span class="chip chip-green">Low</span>&nbsp; $0.30 – $10 typically</div>
+      <div class="cell mpu-cell"><span class="chip chip-red">Higher</span>&nbsp; $5 – $100+ plus external components</div>
+    </div>
+
+    <div class="row">
+      <div class="param"><span class="icon">🖥</span>Operating System</div>
+      <div class="cell mcu-cell">Bare-metal or lightweight RTOS (FreeRTOS, Zephyr)</div>
+      <div class="cell mpu-cell">Full OS capable — Linux, Android, Windows IoT</div>
+    </div>
+
+    <div class="row">
+      <div class="param"><span class="icon">⏱</span>Real-Time</div>
+      <div class="cell mcu-cell"><span class="chip chip-green">Excellent</span>&nbsp; Deterministic, hard real-time control</div>
+      <div class="cell mpu-cell"><span class="chip chip-yellow">Limited</span>&nbsp; Soft real-time; OS introduces latency</div>
+    </div>
+
+    <div class="row">
+      <div class="param"><span class="icon">📐</span>PCB Size</div>
+      <div class="cell mcu-cell"><span class="chip chip-green">Compact</span>&nbsp; Single chip solution, minimal BOM</div>
+      <div class="cell mpu-cell"><span class="chip chip-red">Large</span>&nbsp; Many external ICs required on board</div>
+    </div>
+
+    <div class="row">
+      <div class="param"><span class="icon">🚀</span>Boot Time</div>
+      <div class="cell mcu-cell"><span class="chip chip-green">Fast</span>&nbsp; Milliseconds (instant-on)</div>
+      <div class="cell mpu-cell"><span class="chip chip-yellow">Slow</span>&nbsp; Seconds (OS boot sequence)</div>
+    </div>
+
+    <div class="row">
+      <div class="param"><span class="icon">📡</span>Connectivity</div>
+      <div class="cell mcu-cell">Basic serial protocols; some have built-in Wi-Fi/BT (ESP32)</div>
+      <div class="cell mpu-cell">Full Ethernet, USB host, PCIe, HDMI via external interfaces</div>
+    </div>
+
+    <div class="row">
+      <div class="param"><span class="icon">🛠</span>Examples</div>
+      <div class="cell mcu-cell">Arduino (ATmega), STM32, ESP32, PIC, nRF52</div>
+      <div class="cell mpu-cell">Raspberry Pi (BCM), Intel i7, ARM Cortex-A53, i.MX6</div>
+    </div>
+
+  </div>
+
+  <!-- Use Cases -->
+  <div class="use-cases">
+    <div class="use-card mcu-card">
+      <h3>⚡ MCU Best For</h3>
+      <ul>
+        <li>Embedded control systems</li>
+        <li>IoT sensor nodes & wearables</li>
+        <li>Motor & servo control</li>
+        <li>Battery-powered devices</li>
+        <li>Home automation & appliances</li>
+        <li>Automotive ECUs</li>
+      </ul>
+    </div>
+    <div class="use-card mpu-card">
+      <h3>🖥 MPU Best For</h3>
+      <ul>
+        <li>Single-board computers (SBCs)</li>
+        <li>Image & video processing</li>
+        <li>Machine learning inference</li>
+        <li>Web servers & networking</li>
+        <li>HMI / display-rich interfaces</li>
+        <li>Desktop & laptop systems</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--mcu-col)"></div>
+      Microcontroller (MCU)
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--mpu-col)"></div>
+      Microprocessor (MPU)
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#4ade80"></div>
+      Advantage
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#f87171"></div>
+      Limitation
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

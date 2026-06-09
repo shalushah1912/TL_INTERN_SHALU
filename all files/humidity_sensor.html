@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Humidity Sensor (DHT11) – How It Works</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d1117; color: #e0e0e0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+h1 { font-size: 22px; font-weight: 600; color: #fff; text-align: center; margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: #666; text-align: center; margin-bottom: 16px; }
+.steps { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; justify-content: center; }
+.step { background: #141824; border: 1px solid #1e2540; border-radius: 10px; padding: 10px 14px; text-align: center; min-width: 130px; flex: 1; max-width: 170px; }
+.step.blue { border-color: #1a5fa8; }
+.step.teal { border-color: #0a5a46; }
+.step.amber { border-color: #7a4d08; }
+.step.green { border-color: #2a5e1a; }
+.step-num { font-size: 18px; font-weight: 700; margin-bottom: 3px; }
+.step.blue .step-num { color: #378ADD; }
+.step.teal .step-num { color: #1D9E75; }
+.step.amber .step-num { color: #EF9F27; }
+.step.green .step-num { color: #639922; }
+.step-title { font-size: 12px; font-weight: 600; color: #ddd; margin-bottom: 3px; }
+.step-desc { font-size: 10px; color: #777; line-height: 1.4; }
+.formula { background: #141824; border: 1px solid #1a4a3a; border-radius: 8px; padding: 9px 18px; text-align: center; font-size: 13px; font-weight: 600; color: #1D9E75; margin-bottom: 16px; }
+canvas { border-radius: 12px; background: #0a0d14; display: block; max-width: 720px; width: 100%; }
+.legend { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #888; }
+.dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body>
+<h1>💧 Humidity Sensor (DHT11)</h1>
+<p class="subtitle">Capacitive sensing — measuring moisture in air</p>
+<div class="steps">
+  <div class="step blue"><div class="step-num">①</div><div class="step-title">Air intake</div><div class="step-desc">Humid air enters through sensor mesh grill</div></div>
+  <div class="step teal"><div class="step-num">②</div><div class="step-title">Absorption</div><div class="step-desc">Polymer film absorbs water molecules from air</div></div>
+  <div class="step amber"><div class="step-num">③</div><div class="step-title">Capacitance change</div><div class="step-desc">More moisture → higher dielectric → more capacitance</div></div>
+  <div class="step green"><div class="step-num">④</div><div class="step-title">Digital output</div><div class="step-desc">IC converts reading to digital signal on DATA pin</div></div>
+</div>
+<div class="formula">Relative Humidity (%) &nbsp;=&nbsp; (Capacitance measured) &nbsp;→&nbsp; mapped 0–100% RH</div>
+<canvas id="c" width="720" height="430"></canvas>
+<div class="legend">
+  <div class="legend-item"><span class="dot" style="background:#378ADD"></span> Water molecules</div>
+  <div class="legend-item"><span class="dot" style="background:#1D9E75"></span> Polymer film (hygroscopic)</div>
+  <div class="legend-item"><span class="dot" style="background:#EF9F27"></span> Electric field lines</div>
+  <div class="legend-item"><span class="dot" style="background:#639922"></span> Digital data signal</div>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = 720, H = 430;
+let frame = 0;
+
+function resize() {
+  const w = Math.min(720, window.innerWidth - 40);
+  canvas.style.width = w + 'px';
+  canvas.style.height = (w * 430/720) + 'px';
+}
+resize(); window.addEventListener('resize', resize);
+
+// Molecules
+const molecules = [];
+for (let i = 0; i < 28; i++) {
+  molecules.push({
+    x: 60 + Math.random() * 160,
+    y: 60 + Math.random() * 300,
+    vx: (Math.random() - 0.5) * 0.7,
+    vy: (Math.random() - 0.5) * 0.7,
+    r: 5 + Math.random() * 4,
+    inside: false,
+    progress: 0
+  });
+}
+
+// Digital signal bits
+const bits = [1,0,1,1,0,1,0,0,1,1,0,1,1,0,1,0];
+let bitScroll = 0;
+
+function roundRect(x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  if(fill) ctx.fill();
+  if(stroke) ctx.stroke();
+}
+
+function drawSensor() {
+  // Main sensor body
+  ctx.fillStyle = '#1a2035';
+  ctx.strokeStyle = '#3a4a6a';
+  ctx.lineWidth = 1.5;
+  roundRect(80, 80, 180, 280, 14, true, true);
+
+  // Label
+  ctx.fillStyle = '#4a6090';
+  ctx.font = 'bold 13px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('DHT11', 170, 330);
+  ctx.fillStyle = '#334';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText('Humidity & Temp', 170, 346);
+
+  // Mesh grill (top intake)
+  ctx.strokeStyle = '#2a3a5a';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 6; i++) {
+    ctx.beginPath();
+    ctx.moveTo(95 + i * 28, 82);
+    ctx.lineTo(95 + i * 28, 140);
+    ctx.stroke();
+  }
+  for (let j = 0; j < 4; j++) {
+    ctx.beginPath();
+    ctx.moveTo(82, 96 + j * 15);
+    ctx.lineTo(258, 96 + j * 15);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#0d1219';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText('Mesh grill / air inlet', 170, 155);
+
+  // Polymer film layer
+  ctx.fillStyle = '#0a2a20';
+  ctx.strokeStyle = '#0F6E56';
+  ctx.lineWidth = 1;
+  roundRect(95, 165, 150, 55, 6, true, true);
+  ctx.fillStyle = '#1D9E75';
+  ctx.font = 'bold 11px Segoe UI';
+  ctx.fillText('Polymer film', 170, 185);
+  ctx.fillStyle = '#0d5a40';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText('(hygroscopic layer)', 170, 200);
+  ctx.fillText('absorbs H₂O', 170, 213);
+
+  // Electrodes
+  ctx.fillStyle = '#2a1a00';
+  ctx.strokeStyle = '#EF9F27';
+  ctx.lineWidth = 1;
+  roundRect(95, 230, 150, 12, 3, true, true);
+  ctx.fillStyle = '#EF9F27';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText('Gold electrode (upper)', 170, 240);
+
+  roundRect(95, 255, 150, 12, 3, true, true);
+  ctx.fillStyle = '#EF9F27';
+  ctx.fillText('Gold electrode (lower)', 170, 265);
+
+  // NTC / IC chip
+  ctx.fillStyle = '#222';
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 1;
+  roundRect(120, 278, 100, 28, 4, true, true);
+  ctx.fillStyle = '#aaa';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText('ADC + IC chip', 170, 296);
+
+  // Pins at bottom
+  const pins = ['VCC', 'DATA', 'NC', 'GND'];
+  pins.forEach((p, i) => {
+    ctx.fillStyle = '#888';
+    ctx.fillRect(105 + i * 36, 358, 10, 30);
+    ctx.fillStyle = '#666';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(p, 110 + i * 36, 402);
+  });
+}
+
+function drawMolecules(t) {
+  // Humidity level oscillates
+  const humidity = 55 + 30 * Math.sin(t * 0.008);
+  const count = Math.floor(molecules.length * humidity / 100);
+
+  molecules.forEach((m, i) => {
+    m.x += m.vx; m.y += m.vy;
+    if (m.x < 40) m.vx = Math.abs(m.vx);
+    if (m.x > 300) m.vx = -Math.abs(m.vx);
+    if (m.y < 40) m.vy = Math.abs(m.vy);
+    if (m.y > 380) m.vy = -Math.abs(m.vy);
+
+    const active = i < count;
+    // Color: water blue
+    ctx.beginPath();
+    ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+    ctx.fillStyle = active ? 'rgba(55,138,221,0.7)' : 'rgba(55,138,221,0.15)';
+    ctx.fill();
+    ctx.strokeStyle = active ? '#185FA5' : '#0d3060';
+    ctx.lineWidth = 0.7;
+    ctx.stroke();
+    // H2O label
+    if (active && m.r > 7) {
+      ctx.fillStyle = '#aad4ff';
+      ctx.font = '8px Segoe UI';
+      ctx.textAlign = 'center';
+      ctx.fillText('H₂O', m.x, m.y + 3);
+    }
+  });
+
+  // Humidity label
+  ctx.fillStyle = '#185FA5';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Ambient RH: ${humidity.toFixed(1)}%`, 42, 50);
+  ctx.fillStyle = '#334';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText('↑ molecules represent water vapour density', 42, 64);
+}
+
+function drawElectricField(t) {
+  // Pulsing field lines between electrodes
+  const pulse = 0.5 + 0.5 * Math.sin(t * 0.05);
+  for (let i = 0; i < 7; i++) {
+    const x = 100 + i * 22;
+    ctx.beginPath();
+    ctx.moveTo(x, 242);
+    const midY = 248 + Math.sin(t * 0.04 + i * 0.9) * 2;
+    ctx.quadraticCurveTo(x + 5, midY, x, 255);
+    ctx.strokeStyle = `rgba(239,159,39,${0.3 + pulse * 0.5})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // Arrow tip
+    ctx.beginPath();
+    ctx.moveTo(x-3, 252); ctx.lineTo(x, 256); ctx.lineTo(x+3, 252);
+    ctx.strokeStyle = `rgba(239,159,39,${0.4 + pulse * 0.4})`;
+    ctx.stroke();
+  }
+}
+
+function drawDigitalSignal(t) {
+  // Signal wire from DATA pin
+  ctx.strokeStyle = '#639922';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(147, 388); ctx.lineTo(147, 415); ctx.lineTo(350, 415);
+  ctx.stroke();
+
+  // DATA label
+  ctx.fillStyle = '#639922';
+  ctx.font = 'bold 11px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText('DATA pin output →', 355, 419);
+
+  // Scrolling binary waveform
+  const startX = 510, waveY = 400, bW = 18, bH = 22;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(510, 380, 200, 40);
+  ctx.clip();
+
+  const scroll = (frame * 0.3) % bW;
+  bits.concat(bits).forEach((b, i) => {
+    const x = startX + i * bW - scroll;
+    const y = b === 1 ? waveY - bH : waveY;
+    if (i === 0) { ctx.beginPath(); ctx.moveTo(x, y); }
+    else {
+      const prev = bits.concat(bits)[i-1];
+      const prevY = prev === 1 ? waveY - bH : waveY;
+      ctx.lineTo(x, prevY);
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(x + bW, y);
+  });
+  ctx.strokeStyle = '#639922';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawReadout(t) {
+  const humidity = 55 + 30 * Math.sin(t * 0.008);
+  const temp = 28 + 5 * Math.sin(t * 0.006 + 1);
+
+  // Readout panel
+  ctx.fillStyle = '#101820';
+  ctx.strokeStyle = '#1D9E75';
+  ctx.lineWidth = 1;
+  roundRect(320, 60, 380, 170, 12, true, true);
+
+  ctx.fillStyle = '#1D9E75';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Sensor Readings', 510, 84);
+
+  // Humidity gauge
+  ctx.fillStyle = '#0d1e30';
+  roundRect(340, 96, 160, 60, 8, true, false);
+  ctx.fillStyle = '#185FA5';
+  ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Humidity', 420, 112);
+  ctx.fillStyle = '#378ADD';
+  ctx.font = 'bold 24px Segoe UI';
+  ctx.fillText(`${humidity.toFixed(1)}%`, 420, 140);
+  ctx.fillStyle = '#2a5080';
+  ctx.font = '9px Segoe UI';
+  ctx.fillText('Relative Humidity', 420, 153);
+
+  // Bar
+  ctx.fillStyle = '#0d1e30';
+  roundRect(340, 160, 160, 10, 4, true, false);
+  ctx.fillStyle = '#378ADD';
+  roundRect(340, 160, 160 * humidity / 100, 10, 4, true, false);
+
+  // Temp gauge
+  ctx.fillStyle = '#1a1220';
+  roundRect(520, 96, 160, 60, 8, true, false);
+  ctx.fillStyle = '#9E3A75';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText('Temperature', 600, 112);
+  ctx.fillStyle = '#D46CA0';
+  ctx.font = 'bold 24px Segoe UI';
+  ctx.fillText(`${temp.toFixed(1)}°C`, 600, 140);
+  ctx.fillStyle = '#6a2050';
+  ctx.font = '9px Segoe UI';
+  ctx.fillText('± 0.5°C accuracy', 600, 153);
+
+  // Bar
+  ctx.fillStyle = '#1a1220';
+  roundRect(520, 160, 160, 10, 4, true, false);
+  ctx.fillStyle = '#D46CA0';
+  roundRect(520, 160, 160 * (temp / 50), 10, 4, true, false);
+
+  // How it works note
+  ctx.fillStyle = '#333';
+  ctx.font = '11px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText('How capacitance sensing works:', 330, 198);
+  ctx.fillStyle = '#555';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText('• Polymer film between two gold electrodes acts as a capacitor', 330, 213);
+  ctx.fillText('• Water molecules change dielectric constant of the film', 330, 227);
+  ctx.fillText('• More humidity → higher capacitance → IC reads & converts to RH%', 330, 241);
+}
+
+function drawCapacitorDiagram(t) {
+  // Mini animated capacitor diagram
+  const humidity = 55 + 30 * Math.sin(t * 0.008);
+  const fill = humidity / 100;
+
+  ctx.fillStyle = '#1a2a20';
+  ctx.strokeStyle = '#0F6E56';
+  ctx.lineWidth = 1;
+  roundRect(330, 260, 350, 155, 10, true, true);
+
+  ctx.fillStyle = '#1D9E75';
+  ctx.font = 'bold 11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Capacitor model (inside sensor)', 505, 278);
+
+  // Electrode plates
+  ctx.fillStyle = '#4a3500';
+  ctx.strokeStyle = '#EF9F27';
+  ctx.lineWidth = 1;
+  roundRect(360, 290, 290, 14, 3, true, true);
+  roundRect(360, 370, 290, 14, 3, true, true);
+  ctx.fillStyle = '#EF9F27';
+  ctx.font = '10px Segoe UI';
+  ctx.fillText('+ Electrode', 505, 301);
+  ctx.fillText('– Electrode', 505, 381);
+
+  // Polymer fill visualised
+  ctx.save();
+  ctx.beginPath(); ctx.rect(360, 304, 290, 66); ctx.clip();
+  const grad = ctx.createLinearGradient(360, 304, 360, 370);
+  grad.addColorStop(0, `rgba(29,158,117,${fill * 0.6})`);
+  grad.addColorStop(1, `rgba(29,158,117,${fill * 0.2})`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(360, 304, 290, 66);
+  ctx.restore();
+
+  // Floating molecules inside capacitor
+  for (let i = 0; i < Math.floor(fill * 12); i++) {
+    const mx = 370 + (i % 6) * 46 + Math.sin(t * 0.04 + i) * 5;
+    const my = 315 + Math.floor(i / 6) * 28 + Math.cos(t * 0.03 + i * 1.3) * 5;
+    ctx.beginPath();
+    ctx.arc(mx, my, 5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(55,138,221,0.7)';
+    ctx.fill();
+  }
+
+  ctx.fillStyle = '#0d5a40';
+  ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText(`Capacitance ∝ moisture: ${(humidity * 0.18 + 10).toFixed(1)} pF`, 505, 398);
+  ctx.fillText('Polymer layer (dielectric)', 505, 337);
+}
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0a0d14';
+  ctx.fillRect(0, 0, W, H);
+
+  drawMolecules(frame);
+  drawSensor();
+  drawElectricField(frame);
+  drawCapacitorDiagram(frame);
+  drawDigitalSignal(frame);
+  drawReadout(frame);
+
+  frame++;
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
