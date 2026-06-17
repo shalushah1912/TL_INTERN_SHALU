@@ -2686,6 +2686,751 @@ An Ultrasonic Sensor is an electronic device that measures the distance to an ob
 
 <!-- /journal -->
  
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Session Documentation Report – Tinkerers' Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --white:      #ffffff;
+    --off-white:  #f8f9fb;
+    --light:      #f0f2f6;
+    --border:     #e2e6ee;
+    --muted:      #8a93a8;
+    --body:       #3b4254;
+    --heading:    #111827;
+    --accent-1:   #1a56db;   /* Design Thinking – blue */
+    --accent-2:   #0f7b6c;   /* Edge Impulse – teal */
+    --accent-3:   #7c3aed;   /* IPR – violet */
+    --accent-4:   #c2440e;   /* Digital Visibility – amber-red */
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--white);
+    color: var(--body);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* ── HEADER ────────────────────────────────── */
+  .site-header {
+    background: var(--white);
+    border-bottom: 2px solid var(--border);
+    padding: 48px 0 36px;
+    text-align: center;
+    position: relative;
+  }
+  .site-header .logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .logo-icon {
+    width: 52px; height: 52px;
+    background: var(--heading);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: #fff;
+  }
+  .site-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--heading);
+    letter-spacing: -0.02em;
+  }
+  .site-header .subtitle {
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-top: 6px;
+  }
+  .badge-row {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 5px 14px;
+    border-radius: 100px;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+  }
+
+  /* ── NAV ────────────────────────────────────── */
+  .toc {
+    display: flex; flex-wrap: wrap; gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--white);
+    position: sticky; top: 0; z-index: 100;
+    padding: 0 max(24px, 5vw);
+    overflow-x: auto;
+  }
+  .toc a {
+    padding: 14px 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border-bottom: 2.5px solid transparent;
+    white-space: nowrap;
+    transition: color .2s, border-color .2s;
+  }
+  .toc a:hover { color: var(--heading); }
+  .toc a.c1 { border-color: var(--accent-1); color: var(--accent-1); }
+  .toc a.c2 { border-color: var(--accent-2); color: var(--accent-2); }
+  .toc a.c3 { border-color: var(--accent-3); color: var(--accent-3); }
+  .toc a.c4 { border-color: var(--accent-4); color: var(--accent-4); }
+
+  /* ── WRAPPER ────────────────────────────────── */
+  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── SESSION SECTION ────────────────────────── */
+  .session {
+    padding: 72px 0 56px;
+    border-bottom: 1px solid var(--border);
+  }
+  .session:last-child { border-bottom: none; }
+
+  .session-eyebrow {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 18px;
+  }
+  .session-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .session-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .session h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--heading);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin-bottom: 6px;
+  }
+  .session .tagline {
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 36px;
+  }
+
+  /* Speaker card */
+  .speaker-card {
+    display: flex; gap: 20px; align-items: flex-start;
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin-bottom: 36px;
+  }
+  .speaker-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+  }
+  .speaker-card h3 { font-size: 1rem; font-weight: 700; color: var(--heading); }
+  .speaker-card .desig { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+  .speaker-card .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .speaker-card .tag {
+    font-size: 0.7rem; padding: 3px 10px;
+    border-radius: 100px; border: 1px solid var(--border);
+    color: var(--muted); background: var(--white);
+  }
+
+  /* Details table */
+  .detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 36px;
+    font-size: 0.85rem;
+  }
+  .detail-table th, .detail-table td {
+    padding: 11px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-table th {
+    font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-size: 0.72rem; background: var(--off-white);
+    width: 32%;
+  }
+  .detail-table td { color: var(--heading); font-weight: 500; }
+  .detail-table tr:first-child th, .detail-table tr:first-child td {
+    border-top: 1px solid var(--border);
+  }
+
+  /* Two-column grid */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 36px; }
+  @media(max-width:640px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* Card block */
+  .card {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 22px;
+  }
+  .card h4 {
+    font-size: 0.8rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.09em;
+    margin-bottom: 12px;
+    color: var(--heading);
+  }
+  .card ul { padding-left: 18px; }
+  .card ul li { margin-bottom: 6px; font-size: 0.87rem; }
+
+  /* Accent-left strip */
+  .strip {
+    border-left: 3px solid;
+    padding-left: 16px;
+    margin-bottom: 10px;
+  }
+
+  /* Topics accordion-style list */
+  .topic-list { list-style: none; margin-bottom: 36px; }
+  .topic-list li {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+  .topic-list li:last-child { border-bottom: none; }
+  .topic-num {
+    font-size: 0.7rem; font-weight: 700; width: 24px; height: 24px;
+    border-radius: 6px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px; color: #fff;
+  }
+  .topic-list b { display: block; color: var(--heading); font-weight: 600; margin-bottom: 2px; }
+
+  /* Quote */
+  .quote-block {
+    border-radius: 10px;
+    padding: 28px 30px;
+    text-align: center;
+    margin-top: 36px;
+  }
+  .quote-block p {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-style: italic;
+    color: var(--heading);
+    line-height: 1.5;
+  }
+  .quote-block small {
+    display: block; margin-top: 10px;
+    font-size: 0.75rem; text-transform: uppercase;
+    letter-spacing: 0.09em; color: var(--muted);
+  }
+
+  /* Outcome pills */
+  .outcome-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 36px; }
+  .outcome-pill {
+    font-size: 0.8rem; padding: 7px 14px;
+    border-radius: 8px; border: 1px solid var(--border);
+    background: var(--white); color: var(--body);
+  }
+
+  /* Footer */
+  .site-footer {
+    background: var(--heading);
+    color: rgba(255,255,255,0.55);
+    text-align: center;
+    padding: 36px 24px;
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+  }
+  .site-footer strong { color: #fff; }
+
+  /* Color helpers per session */
+  .s1 { --ac: var(--accent-1); }
+  .s2 { --ac: var(--accent-2); }
+  .s3 { --ac: var(--accent-3); }
+  .s4 { --ac: var(--accent-4); }
+
+  .accent-bg { background: var(--ac) !important; }
+  .accent-text { color: var(--ac) !important; }
+  .accent-border { border-color: var(--ac) !important; }
+  .accent-light { background: color-mix(in srgb, var(--ac) 8%, white) !important; border-color: color-mix(in srgb, var(--ac) 18%, white) !important; }
+
+  /* Divider */
+  hr.soft { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  /* Section heading */
+  .section-heading {
+    font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--muted); margin-bottom: 14px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<header class="site-header">
+  <div class="container">
+    <div class="logo-row">
+      <div class="logo-icon">🔬</div>
+      <div>
+        <h1>Tinkerers' Lab</h1>
+        <p class="subtitle">Sanjivani University &nbsp;·&nbsp; Summer Internship Program 2026</p>
+      </div>
+    </div>
+    <div class="badge-row">
+      <span class="badge">Session Documentation Report</span>
+      <span class="badge">May – June 2026</span>
+      <span class="badge">4 Expert Sessions</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════ NAV ═══════════════════════ -->
+<nav class="toc">
+  <a href="#dt" class="c1">Design Thinking</a>
+  <a href="#ei" class="c2">Edge Impulse</a>
+  <a href="#ipr" class="c3">IPR</a>
+  <a href="#dv" class="c4">Digital Visibility</a>
+</nav>
+
+<!-- ══════════════════════════════════════════════
+     SESSION 1 – DESIGN THINKING
+══════════════════════════════════════════════════ -->
+<section class="session s1" id="dt">
+  <div class="container">
+    <div class="session-eyebrow">
+      <span class="session-num accent-bg">1</span>
+      <span class="session-label accent-text">Session One</span>
+    </div>
+    <h2>Design Thinking</h2>
+    <p class="tagline">Human-Centered Innovation &amp; Problem Solving</p>
+
+    <!-- Speaker -->
+    <div class="speaker-card">
+      <div class="speaker-avatar accent-bg">SG</div>
+      <div>
+        <h3>Prof. Srilalitha Girija Kumari Sagi</h3>
+        <p class="desig">Director – Executive Education &amp; MDPs · School of Commerce &amp; Management, Sanjivani University</p>
+        <div class="tags">
+          <span class="tag">International Business Strategist</span>
+          <span class="tag">Cross-Cultural Management</span>
+          <span class="tag">Innovation &amp; Entrepreneurship</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details -->
+    <p class="section-heading">Session Details</p>
+
+    <table class="detail-table">
+      <tr><th>Date</th><td>26 May 2026</td></tr>
+      <tr><th>Venue</th><td>Tinkerers' Lab, Sanjivani University</td></tr>
+      <tr><th>Participants</th><td>Summer Internship Program 2026 Participants</td></tr>
+    </table>
+    <img src="session_img/seesion 1.jpeg" alt="." width="600"
+
+    <!-- Topics -->
+    <p class="section-heading">Topics Covered</p>
+
+    <ul class="topic-list">
+      <li>
+        <span class="topic-num accent-bg">1</span>
+        <div><b>Understanding Design Thinking</b>Introduction to principles, importance of innovation, and human-centered approach to problem-solving.</div>
+      </li>
+      <li>
+        <span class="topic-num accent-bg">2</span>
+        <div><b>Empathy &amp; User Understanding</b>Understanding user needs, conducting observations and interviews, building empathy for effective solutions.</div>
+      </li>
+      <li>
+        <span class="topic-num accent-bg">3</span>
+        <div><b>Problem Identification</b>Defining real-world problems, analyzing root causes, framing problem statements effectively.</div>
+      </li>
+      <li>
+        <span class="topic-num accent-bg">4</span>
+        <div><b>Idea Generation</b>Brainstorming techniques, encouraging creativity, generating multiple solution approaches.</div>
+      </li>
+      <li>
+        <span class="topic-num accent-bg">5</span>
+        <div><b>Prototyping &amp; Testing</b>Developing simple prototypes, gathering user feedback, improving solutions through iteration.</div>
+      </li>
+      <li>
+        <span class="topic-num accent-bg">6</span>
+        <div><b>Innovation &amp; Entrepreneurship</b>Transforming ideas into practical solutions, developing an innovation mindset for startups and businesses.</div>
+      </li>
+    </ul>
+
+    <!-- Two columns -->
+    <div class="two-col">
+      <div class="card accent-light">
+        <h4>Core Principles</h4>
+        <ul>
+          <li><strong>Innovate</strong> — Generate meaningful, impactful ideas and encourage experimentation.</li>
+          <li><strong>Empathize</strong> — Understand people and solve real-world problems through user-centered design.</li>
+          <li><strong>Implement</strong> — Convert ideas into actionable solutions that create impact.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li>Innovation begins with understanding people.</li>
+          <li>Creativity can be developed through structured thinking.</li>
+          <li>Design Thinking encourages collaboration and experimentation.</li>
+          <li>Failure is an opportunity for learning and improvement.</li>
+          <li>Applicable in academics, business, engineering, and entrepreneurship.</li>
+        </ul>
+      </div>
+    </div>
+   <br> <img src="session_img/s 1-0.jpeg" alt="." width="600"</br>
+   <br> <img src="session_img/s 1 -1.jpeg" alt="." width="600"</br>
+<br><img src="session_img/s 1-2.jpeg" alt="." width="600"</br>
+<br><img src="session_img/s 1-4.jpeg" alt="." width="600"</br>
+    <!-- Outcomes -->
+    <p class="section-heading">Learning Outcomes</p>
+    <div class="outcome-grid">
+      <span class="outcome-pill">Understand the Design Thinking process</span>
+      <span class="outcome-pill">Apply empathy-based problem solving</span>
+      <span class="outcome-pill">Develop innovative solutions</span>
+      <span class="outcome-pill">Enhance teamwork &amp; collaboration</span>
+      <span class="outcome-pill">Improve critical &amp; analytical thinking</span>
+      <span class="outcome-pill">Build confidence for real-world challenges</span>
+    </div>
+    
+    <div class="quote-block accent-light accent-border" style="border:1.5px solid;">
+      <p>"Innovation begins when we understand people, think creatively, and act courageously."</p>
+      <small>Theme: Learn by Doing. Lead by Innovating.</small>
+    </div>
+  </div>
+</session>
+
+<!-- ══════════════════════════════════════════════
+     SESSION 2 – EDGE IMPULSE
+══════════════════════════════════════════════════ -->
+<section class="session s2" id="ei">
+  <div class="container">
+
+    <div class="session-eyebrow">
+      <span class="session-num accent-bg">2</span>
+      <span class="session-label accent-text">Session Two</span>
+    </div>
+    <h2>Edge Impulse</h2>
+    <p class="tagline">Build Smart, Deploy Anywhere — ML at the Edge</p>
+
+    <!-- Speaker -->
+    <div class="speaker-card">
+      <div class="speaker-avatar accent-bg">JA</div>
+      <div>
+        <h3>Mr. Jaydeep Ashtekar</h3>
+        <p class="desig">Assistant Professor · Department of Data Science &amp; Business Analytics, Sanjivani College of Engineering, Kopargaon</p>
+        <div class="tags">
+          <span class="tag">M.Tech – Mechanical Engineering</span>
+          <span class="tag">Data Science Professional</span>
+          <span class="tag">Industry-Oriented Educator</span>
+          <span class="tag">Passionate Innovator</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details -->
+    <p class="section-heading">Session Details</p>
+    <table class="detail-table">
+      <tr><th>Time</th><td>02:00 PM</td></tr>
+      <tr><th>Venue</th><td>Tinkerers' Lab, Sanjivani University</td></tr>
+      <tr><th>Participants</th><td>Summer Internship Program 2026 Participants</td></tr>
+    </table>
+<img src="session_img/session 4.jpeg" alt="." width="600"
+    <!-- Topics -->
+    <p class="section-heading">Topics Covered</p>
+    <ul class="topic-list">
+      <li>
+        <span class="topic-num accent-bg">1</span>
+        <div><b>Introduction to Edge AI</b>What is Edge AI, advantages of edge computing, and real-world Edge AI applications.</div>
+      </li>
+      <li>
+        <span class="topic-num accent-bg">2</span>
+        <div><b>Edge Impulse Platform</b>Platform features, dataset collection and management, model training workflow overview.</div>
+      </li>
+      <li>
+        <span class="topic-num accent-bg">3</span>
+        <div><b>Building ML Models</b>Data acquisition, preprocessing, feature extraction, model training, and evaluation.</div>
+      </li>
+      <li>
+        <span class="topic-num accent-bg">4</span>
+        <div><b>Deployment on Embedded Devices</b>Supported hardware platforms, model optimization techniques, and deployment process.</div>
+      </li>
+      <li>
+        <span class="topic-num accent-bg">5</span>
+        <div><b>Real-World Applications &amp; Demonstrations</b>Smart monitoring, predictive maintenance, IoT-based AI solutions, and live demos.</div>
+      </li>
+    </ul>
+
+    <!-- Two columns -->
+    <div class="two-col">
+      <div class="card accent-light">
+        <h4>Session Highlights</h4>
+        <ul>
+          <li>Interactive hands-on learning experience.</li>
+          <li>Live demonstrations of Edge Impulse.</li>
+          <li>Practical understanding of Edge AI deployment.</li>
+          <li>Industry-oriented AI development workflows.</li>
+          <li>Discussion on future opportunities in Edge Computing.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Learning Outcomes</h4>
+        <ul>
+          <li>Understand fundamentals of Edge AI.</li>
+          <li>Use Edge Impulse for AI development.</li>
+          <li>Build ML models for embedded devices.</li>
+          <li>Deploy trained models on hardware platforms.</li>
+          <li>Identify practical applications of Edge AI.</li>
+        </ul>
+      </div>
+    </div>
+     <br> <img src="session_img/s 2-1.jpeg" alt="." width="600"</br>
+    <br><img src="session_img/s 2-2.jpeg" alt="." width="600"</br>
+    
+
+    <div class="quote-block accent-light accent-border" style="border:1.5px solid;">
+      <p>"The future of AI is not just in the cloud — it's at the edge, where intelligence meets the real world."</p>
+      <small>Theme: Learn. Build. Innovate. &nbsp;·&nbsp; Be a Tinkerer. Build the Future.</small>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SESSION 3 – IPR
+══════════════════════════════════════════════════ -->
+<section class="session s3" id="ipr">
+  <div class="container">
+
+    <div class="session-eyebrow">
+      <span class="session-num accent-bg">3</span>
+      <span class="session-label accent-text">Session Three</span>
+    </div>
+    <h2>Intellectual Property Rights</h2>
+    <p class="tagline">Protect Your Innovations. Own Your Ideas. Grow with Them.</p>
+
+    <!-- Speaker -->
+    <div class="speaker-card">
+      <div class="speaker-avatar accent-bg">MS</div>
+      <div>
+        <h3>Dr. M. Sujith</h3>
+        <p class="desig">Innovation Leader &amp; IPR Expert</p>
+        <div class="tags">
+          <span class="tag">Intellectual Property Rights</span>
+          <span class="tag">Innovation Management</span>
+          <span class="tag">Patent Filing</span>
+          <span class="tag">Technology Transfer</span>
+          <span class="tag">Entrepreneurship Development</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details -->
+    <p class="section-heading">Session Details</p>
+    <table class="detail-table">
+      <tr><th>Date</th><td>10 June 2026</td></tr>
+      <tr><th>Time</th><td>12:30 PM Onwards</td></tr>
+      <tr><th>Venue</th><td>Tinkerers' Lab, Sanjivani University</td></tr>
+      <tr><th>Participants</th><td>Students, Faculty Members, Innovators</td></tr>
+    </table>
+
+    <!-- IPR Types -->
+    <p class="section-heading">Types of Intellectual Property Rights</p>
+    <div class="two-col">
+      <div>
+        <div class="strip accent-border" style="margin-bottom:16px;">
+          <strong style="color:var(--heading);">Patents</strong>
+          <p style="font-size:0.85rem;margin-top:4px;">Protect new inventions and technological innovations. Provide exclusive rights to inventors for a specific period.</p>
+        </div>
+        <div class="strip accent-border" style="margin-bottom:16px;">
+          <strong style="color:var(--heading);">Copyrights</strong>
+          <p style="font-size:0.85rem;margin-top:4px;">Protect literary, artistic, musical, and software creations. Prevent unauthorized copying and distribution.</p>
+        </div>
+        <div class="strip accent-border">
+          <strong style="color:var(--heading);">Trademarks</strong>
+          <p style="font-size:0.85rem;margin-top:4px;">Protect brand names, logos, symbols, and slogans. Help distinguish products and services in the market.</p>
+        </div>
+      </div>
+      <div>
+        <div class="strip accent-border" style="margin-bottom:16px;">
+          <strong style="color:var(--heading);">Industrial Designs</strong>
+          <p style="font-size:0.85rem;margin-top:4px;">Protect the visual appearance and aesthetic design of products.</p>
+        </div>
+        <div class="strip accent-border">
+          <strong style="color:var(--heading);">Trade Secrets</strong>
+          <p style="font-size:0.85rem;margin-top:4px;">Protect confidential business information and proprietary processes.</p>
+        </div>
+      </div>
+    </div>
+    <img src="session_img/session 2.jpeg" alt="." width="600"
+
+    <!-- Topics -->
+    <p class="section-heading">Topics Covered</p>
+    <ul class="topic-list">
+      <li><span class="topic-num accent-bg">1</span><div><b>IPR Fundamentals</b>Meaning, significance, and the need for protecting innovative ideas.</div></li>
+      <li><span class="topic-num accent-bg">2</span><div><b>Patent Filing Process</b>Steps involved in patent registration, documentation, and eligibility requirements.</div></li>
+      <li><span class="topic-num accent-bg">3</span><div><b>Copyright Protection</b>Rights of creators and authors; protection of digital and creative content.</div></li>
+      <li><span class="topic-num accent-bg">4</span><div><b>Trademark Registration</b>Importance of branding and the trademark application process.</div></li>
+      <li><span class="topic-num accent-bg">5</span><div><b>Innovation &amp; Entrepreneurship</b>Commercialization of inventions and the role of IPR in startups.</div></li>
+      <li><span class="topic-num accent-bg">6</span><div><b>Legal Protection &amp; Compliance</b>Preventing infringement and understanding intellectual property laws.</div></li>
+    </ul>
+  
+
+    <!-- Two columns -->
+    <div class="two-col">
+      <div class="card accent-light">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li>Ideas and innovations are valuable assets.</li>
+          <li>IPR protects creators and innovators.</li>
+          <li>Patents help secure technological inventions.</li>
+          <li>Trademarks strengthen brand identity.</li>
+          <li>IPR management can generate business opportunities.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Q&amp;A Highlights</h4>
+        <ul>
+          <li>How to apply for a patent.</li>
+          <li>Patentability criteria for student projects.</li>
+          <li>Copyright for software and digital content.</li>
+          <li>Trademark registration procedures.</li>
+          <li>IP ownership in collaborative projects.</li>
+          <li>Costs and timelines of patent filing.</li>
+        </ul>
+      </div>
+    </div>
+    <br> <img src="session_img/s 3-1.jpeg" alt="." width="600"</br>
+    <br><img src="session_img/s 3-2.jpeg" alt="." width="600"</br>
+
+
+    <div class="quote-block accent-light accent-border" style="border:1.5px solid;">
+      <p>"Ideas are powerful. Protect them. Own them. Grow with them."</p>
+      <small>Theme: Be an Innovator. Be IP Smart.</small>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SESSION 4 – DIGITAL VISIBILITY
+══════════════════════════════════════════════════ -->
+<section class="session s4" id="dv">
+  <div class="container">
+
+    <div class="session-eyebrow">
+      <span class="session-num accent-bg">4</span>
+      <span class="session-label accent-text">Session Four</span>
+    </div>
+    <h2>Digital Visibility</h2>
+    <p class="tagline">Your Visibility Today Shapes Your Opportunities Tomorrow</p>
+
+    <!-- Speaker -->
+    <div class="speaker-card">
+      <div class="speaker-avatar accent-bg">DK</div>
+      <div>
+        <h3>Dhananjay Kumbhar</h3>
+        <p class="desig">Assistant Professor &amp; Director – Training and Placement · Sanjivani University</p>
+        <div class="tags">
+          <span class="tag">Digital Communication</span>
+          <span class="tag">Career Development</span>
+          <span class="tag">Training &amp; Placement</span>
+          <span class="tag">Personal Branding</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details -->
+    <p class="section-heading">Session Details</p>
+    <table class="detail-table">
+      <tr><th>Date</th><td>11 June 2026</td></tr>
+      <tr><th>Time</th><td>10:30 AM</td></tr>
+      <tr><th>Venue</th><td>Tinkerers' Lab, Sanjivani University</td></tr>
+      <tr><th>Participants</th><td>Students and Faculty Members</td></tr>
+    </table>
+    <img src="session_img/session 3.jpeg" alt="." width="600"
+
+    <!-- Topics -->
+    <p class="section-heading">Topics Covered</p>
+    <ul class="topic-list">
+      <li><span class="topic-num accent-bg">1</span><div><b>Understanding Digital Visibility</b>Meaning and importance; building a professional online identity and creating a positive digital footprint.</div></li>
+      <li><span class="topic-num accent-bg">2</span><div><b>Personal Branding</b>Showcasing skills, projects, and achievements; developing a professional profile that stands out.</div></li>
+      <li><span class="topic-num accent-bg">3</span><div><b>Professional Networking</b>Using networking platforms, building meaningful industry connections, and maintaining professional communication.</div></li>
+      <li><span class="topic-num accent-bg">4</span><div><b>Content Creation</b>Creating valuable and relevant content, sharing achievements, and engaging with online communities.</div></li>
+      <li><span class="topic-num accent-bg">5</span><div><b>Career Growth Through Digital Presence</b>Impact on employment opportunities, digital portfolios, and building credibility and trust online.</div></li>
+    </ul>
+
+    <!-- Two columns -->
+    <div class="two-col">
+      <div class="card accent-light">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li>Digital visibility plays a vital role in career development.</li>
+          <li>Strong online presence enhances professional opportunities.</li>
+          <li>Personal branding helps individuals stand out.</li>
+          <li>Consistent content creation increases visibility.</li>
+          <li>Professional networking opens doors to opportunities.</li>
+          <li>Authenticity and professionalism are essential for digital success.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Q&amp;A Highlights</h4>
+        <ul>
+          <li>Building a professional LinkedIn profile.</li>
+          <li>Creating an online portfolio.</li>
+          <li>Managing personal and professional social media.</li>
+          <li>Career opportunities through digital networking.</li>
+          <li>Best practices for content sharing and engagement.</li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- Outcomes -->
+    <p class="section-heading">Learning Outcomes</p>
+    <div class="outcome-grid">
+      <span class="outcome-pill">Understand digital visibility</span>
+      <span class="outcome-pill">Maintain a professional online presence</span>
+      <span class="outcome-pill">Learn personal branding techniques</span>
+      <span class="outcome-pill">Explore digital networking tools</span>
+      <span class="outcome-pill">Create strategies for digital identity</span>
+      <span class="outcome-pill">Improve professional profiles &amp; portfolios</span>
+    </div>
+
+    <div class="quote-block accent-light accent-border" style="border:1.5px solid;">
+      <p>"Your visibility today shapes your opportunities tomorrow."</p>
+      <small>Tinkerers' Lab · Sanjivani University · 11 June 2026</small>
+    </div>
+  </div>
+</section>
+
+
+
+ 
 
 
 <!--══════════════════════════════════════════
