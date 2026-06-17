@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Session Documentation Report — Tinkerers' Lab · Sanjivani University</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600&family=Space+Mono:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:        #04091a;
+  --bg2:       #070e24;
+  --bg3:       #0b1530;
+  --bg4:       #0e1c3a;
+  --cyan:      #00f0ff;
+  --purple:    #9b4dff;
+  --pink:      #ff2d78;
+  --gold:      #ffc947;
+  --green:     #00ff88;
+  --teal:      #00e5b0;
+  --text:      #c0d4f0;
+  --text-dim:  #5a7aa8;
+  --card:      rgba(11,21,48,0.88);
+  --border:    rgba(0,240,255,0.12);
+  --border2:   rgba(155,77,255,0.12);
+  --glow-c:    0 0 18px rgba(0,240,255,0.55),0 0 60px rgba(0,240,255,0.18);
+  --glow-p:    0 0 18px rgba(155,77,255,0.55),0 0 60px rgba(155,77,255,0.18);
+  --fh:        'Orbitron',monospace;
+  --fb:        'Rajdhani',sans-serif;
+  --fm:        'Space Mono',monospace;
+  --r:         14px;
+
+  /* Session accent colours */
+  --dt-color:  #4f8eff;   /* Design Thinking — blue */
+  --ipr-color: #00e5b0;   /* IPR — teal/green */
+  --dv-color:  #ffc947;   /* Digital Visibility — gold */
+}
+
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--fb);
+  font-size:16px;
+  line-height:1.7;
+  overflow-x:hidden;
+}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--cyan),var(--purple));border-radius:3px;}
+
+/* ── BACKGROUND ── */
+.grid-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,240,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,240,255,0.025) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.star{
+  position:absolute;border-radius:50%;background:#fff;
+  animation:twinkle var(--dur,3s) ease-in-out infinite;
+  animation-delay:var(--del,0s);
+}
+@keyframes twinkle{0%,100%{opacity:0.1}50%{opacity:var(--op,0.6)}}
+
+/* ── CURSOR ── */
+.cursor{
+  width:18px;height:18px;border:2px solid var(--cyan);border-radius:50%;
+  position:fixed;top:0;left:0;pointer-events:none;z-index:9999;
+  transition:transform 0.15s,background 0.2s,border-color 0.2s;
+  transform:translate(-50%,-50%);
+}
+.cursor-dot{
+  width:5px;height:5px;background:var(--cyan);border-radius:50%;
+  position:fixed;top:0;left:0;pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);box-shadow:0 0 8px var(--cyan);
+}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 60px;
+  background:rgba(4,9,26,0.92);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{font-family:var(--fh);font-size:0.95rem;color:var(--cyan);letter-spacing:4px;text-shadow:var(--glow-c);}
+.nav-logo em{color:var(--purple);font-style:normal;}
+.nav-links{display:flex;gap:28px;list-style:none;}
+.nav-links a{
+  color:var(--text-dim);text-decoration:none;
+  font-family:var(--fm);font-size:0.68rem;
+  letter-spacing:2px;text-transform:uppercase;
+  transition:color 0.3s;position:relative;
+}
+.nav-links a::after{content:'';position:absolute;bottom:-3px;left:0;width:0;height:1px;background:var(--cyan);transition:width 0.3s;}
+.nav-links a:hover{color:var(--cyan);}
+.nav-links a:hover::after{width:100%;}
+
+/* ── PAGE HERO ── */
+.page-hero{
+  position:relative;z-index:1;
+  padding:130px 60px 70px;
+  text-align:center;
+  border-bottom:1px solid var(--border);
+  overflow:hidden;
+}
+.hero-orb{
+  position:absolute;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle at 40% 40%,rgba(155,77,255,0.10),rgba(0,240,255,0.05),transparent 70%);
+  filter:blur(60px);top:50%;left:50%;transform:translate(-50%,-50%);
+  pointer-events:none;animation:orbPulse 7s ease-in-out infinite;
+}
+@keyframes orbPulse{
+  0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.5;}
+  50%{transform:translate(-50%,-50%) scale(1.15);opacity:1;}
+}
+.hero-eyebrow{
+  font-family:var(--fm);font-size:0.68rem;letter-spacing:5px;
+  color:var(--cyan);text-transform:uppercase;
+  border:1px solid var(--border);padding:6px 20px;
+  border-radius:20px;display:inline-block;margin-bottom:24px;
+  animation:fadeUp 0.8s 0.2s both;
+}
+.hero-title{
+  font-family:var(--fh);font-size:clamp(1.8rem,4vw,3.2rem);
+  font-weight:900;line-height:1.1;margin-bottom:12px;
+  color:#fff;animation:fadeUp 0.8s 0.4s both;
+}
+.hero-title span{color:var(--cyan);text-shadow:var(--glow-c);}
+.hero-sub{
+  font-family:var(--fm);font-size:0.78rem;letter-spacing:3px;
+  color:var(--purple);margin-bottom:16px;
+  animation:fadeUp 0.8s 0.55s both;
+}
+.hero-desc{
+  max-width:540px;margin:0 auto 40px;color:var(--text-dim);
+  font-size:0.95rem;animation:fadeUp 0.8s 0.7s both;
+}
+.hero-badges{
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
+  animation:fadeUp 0.8s 0.85s both;
+}
+.hero-badge{
+  font-family:var(--fm);font-size:0.62rem;letter-spacing:2px;
+  padding:5px 16px;border-radius:20px;
+  border:1px solid var(--border);color:var(--text-dim);
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── TOC NAV BAR ── */
+.toc-bar{
+  position:sticky;top:56px;z-index:200;
+  display:flex;flex-wrap:wrap;gap:0;
+  background:rgba(4,9,26,0.96);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 60px;
+  overflow-x:auto;
+}
+.toc-bar a{
+  padding:13px 22px;
+  font-family:var(--fm);font-size:0.66rem;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--text-dim);text-decoration:none;
+  border-bottom:2px solid transparent;
+  white-space:nowrap;transition:color 0.25s,border-color 0.25s;
+}
+.toc-bar a:hover{color:var(--cyan);}
+.toc-dt  {border-color:var(--dt-color)!important;color:var(--dt-color)!important;}
+.toc-ipr {border-color:var(--ipr-color)!important;color:var(--ipr-color)!important;}
+.toc-dv  {border-color:var(--dv-color)!important;color:var(--dv-color)!important;}
+
+/* ── WRAPPER ── */
+.wrapper{max-width:900px;margin:0 auto;padding:0 40px;}
+
+/* ── SESSION SECTION ── */
+.session{
+  position:relative;z-index:1;
+  padding:80px 0 60px;
+  border-bottom:1px solid rgba(0,240,255,0.06);
+}
+.session:last-of-type{border-bottom:none;}
+
+.session-eyebrow{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.session-num{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fm);font-size:0.68rem;font-weight:700;
+  color:var(--bg);flex-shrink:0;
+}
+.session-label{font-family:var(--fm);font-size:0.68rem;letter-spacing:4px;text-transform:uppercase;}
+
+.session-title{
+  font-family:var(--fh);font-size:clamp(1.5rem,3vw,2.2rem);
+  font-weight:700;color:#fff;margin-bottom:6px;letter-spacing:1px;
+}
+.session-tagline{font-size:0.92rem;color:var(--text-dim);font-style:italic;margin-bottom:36px;}
+
+/* ── SPEAKER CARD ── */
+.speaker-card{
+  display:flex;gap:18px;align-items:flex-start;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px 24px;margin-bottom:32px;
+  backdrop-filter:blur(10px);transition:transform 0.3s;
+}
+.speaker-card:hover{transform:translateY(-3px);}
+.speaker-avatar{
+  width:52px;height:52px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fh);font-size:0.75rem;font-weight:700;
+  color:var(--bg);flex-shrink:0;
+}
+.sp-name{font-family:var(--fh);font-size:0.85rem;color:#fff;letter-spacing:1px;margin-bottom:3px;}
+.sp-role{font-size:0.82rem;color:var(--text-dim);}
+.sp-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.sp-tag{
+  font-family:var(--fm);font-size:0.62rem;
+  padding:3px 10px;border-radius:20px;
+  border:1px solid var(--border);color:var(--text-dim);letter-spacing:1px;
+}
+
+/* ── META BAR ── */
+.meta-bar{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:1px;border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;background:var(--border);margin-bottom:32px;
+}
+.meta-cell{
+  background:var(--card);backdrop-filter:blur(8px);
+  padding:14px 18px;
+}
+.meta-cell label{
+  display:block;font-family:var(--fm);font-size:0.6rem;
+  letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:4px;
+}
+.meta-cell span{font-family:var(--fb);font-size:0.9rem;font-weight:600;color:#fff;}
+
+/* ── SECTION LABEL ── */
+.sec-lbl{
+  font-family:var(--fm);font-size:0.62rem;letter-spacing:4px;
+  text-transform:uppercase;color:var(--text-dim);margin-bottom:14px;
+}
+
+/* ── TOPIC GRID ── */
+.topic-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
+  gap:10px;margin-bottom:28px;
+}
+.topic-chip{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:14px 14px;
+  transition:border-color 0.3s,transform 0.3s;
+  backdrop-filter:blur(8px);
+}
+.topic-chip:hover{transform:translateY(-3px);}
+.chip-num{font-family:var(--fm);font-size:0.6rem;margin-bottom:5px;}
+.chip-text{font-size:0.85rem;color:var(--text);line-height:1.4;}
+
+/* ── TWO COL ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
+@media(max-width:580px){.two-col{grid-template-columns:1fr;}}
+
+.info-box{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:18px 20px;backdrop-filter:blur(8px);
+}
+.info-box h4{
+  font-family:var(--fm);font-size:0.62rem;letter-spacing:3px;
+  text-transform:uppercase;margin-bottom:14px;
+}
+.blist{list-style:none;}
+.blist li{
+  display:flex;align-items:flex-start;gap:10px;
+  font-size:0.88rem;color:var(--text-dim);
+  padding:6px 0;border-bottom:1px solid rgba(0,240,255,0.04);
+  line-height:1.5;
+}
+.blist li:last-child{border-bottom:none;}
+.blist-dot{
+  width:6px;height:6px;border-radius:50%;
+  flex-shrink:0;margin-top:6px;
+}
+
+/* ── OUTCOMES ── */
+.outcomes-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  margin-bottom:24px;
+}
+@media(max-width:500px){.outcomes-grid{grid-template-columns:1fr;}}
+.oc-item{
+  display:flex;align-items:flex-start;gap:10px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px;
+  font-size:0.85rem;color:var(--text-dim);line-height:1.4;
+  backdrop-filter:blur(8px);
+}
+.oc-check{font-size:0.9rem;flex-shrink:0;margin-top:1px;}
+
+/* ── QUOTE ── */
+.quote-block{
+  border-radius:10px;padding:24px 28px;
+  background:var(--card);border:1px solid var(--border);
+  border-left:3px solid;
+  backdrop-filter:blur(10px);
+  margin-top:28px;
+}
+.quote-text{
+  font-family:'Rajdhani',sans-serif;font-size:1.05rem;
+  font-style:italic;color:var(--text);line-height:1.7;
+}
+.quote-theme{
+  font-family:var(--fm);font-size:0.62rem;letter-spacing:3px;
+  text-transform:uppercase;color:var(--text-dim);margin-top:10px;
+}
+
+/* ── SESSION DIVIDER ── */
+.session-divider{
+  position:relative;z-index:1;
+  display:flex;align-items:center;gap:16px;
+  padding:0 0 0 40px;margin:0;
+}
+.session-divider span{
+  font-family:var(--fm);font-size:0.62rem;letter-spacing:3px;
+  color:var(--text-dim);text-transform:uppercase;white-space:nowrap;
+}
+.session-divider::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,var(--border),transparent);
+}
+
+/* ── REVEAL ── */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity 0.65s,transform 0.65s;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+
+/* ── FOOTER ── */
+footer{
+  position:relative;z-index:1;
+  text-align:center;padding:32px;
+  border-top:1px solid var(--border);
+  font-family:var(--fm);font-size:0.68rem;
+  color:var(--text-dim);letter-spacing:2px;
+}
+footer span{color:var(--cyan);}
+
+/* ── SESSION COLOUR HELPERS ── */
+/* DT = blue */
+.dt .session-num{background:var(--dt-color);box-shadow:0 0 12px rgba(79,142,255,0.5);}
+.dt .session-label{color:var(--dt-color);}
+.dt .session-title{text-shadow:0 0 30px rgba(79,142,255,0.2);}
+.dt .topic-chip:hover{border-color:var(--dt-color);}
+.dt .chip-num,.dt .info-box h4{color:var(--dt-color);}
+.dt .blist-dot{background:var(--dt-color);box-shadow:0 0 6px rgba(79,142,255,0.5);}
+.dt .oc-check,.dt .sec-lbl{color:var(--dt-color);}
+.dt .quote-block{border-left-color:var(--dt-color);}
+.dt .speaker-avatar{background:var(--dt-color);}
+.dt .meta-cell span{color:var(--dt-color);}
+
+/* IPR = teal */
+.ipr .session-num{background:var(--ipr-color);box-shadow:0 0 12px rgba(0,229,176,0.5);}
+.ipr .session-label{color:var(--ipr-color);}
+.ipr .topic-chip:hover{border-color:var(--ipr-color);}
+.ipr .chip-num,.ipr .info-box h4{color:var(--ipr-color);}
+.ipr .blist-dot{background:var(--ipr-color);box-shadow:0 0 6px rgba(0,229,176,0.5);}
+.ipr .oc-check,.ipr .sec-lbl{color:var(--ipr-color);}
+.ipr .quote-block{border-left-color:var(--ipr-color);}
+.ipr .speaker-avatar{background:var(--ipr-color);}
+.ipr .meta-cell span{color:var(--ipr-color);}
+
+/* DV = gold */
+.dv .session-num{background:var(--dv-color);box-shadow:0 0 12px rgba(255,201,71,0.5);}
+.dv .session-label{color:var(--dv-color);}
+.dv .topic-chip:hover{border-color:var(--dv-color);}
+.dv .chip-num,.dv .info-box h4{color:var(--dv-color);}
+.dv .blist-dot{background:var(--dv-color);box-shadow:0 0 6px rgba(255,201,71,0.5);}
+.dv .oc-check,.dv .sec-lbl{color:var(--dv-color);}
+.dv .quote-block{border-left-color:var(--dv-color);}
+.dv .speaker-avatar{background:var(--dv-color);color:#111;}
+.dv .meta-cell span{color:var(--dv-color);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  nav{padding:14px 20px;}
+  .nav-links{display:none;}
+  .page-hero{padding:110px 22px 56px;}
+  .wrapper{padding:0 22px;}
+  .toc-bar{padding:0 20px;}
+  .session{padding:60px 0 40px;}
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="stars" id="stars"></div>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-logo">S<em>.</em>SHAH</div>
+  <ul class="nav-links">
+    <li><a href="#dt">Design Thinking</a></li>
+    <li><a href="#ipr">IPR</a></li>
+    <li><a href="#dv">Digital Visibility</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="hero-orb"></div>
+  <div class="hero-eyebrow">🔬 Tinkerers' Lab · Session Documentation</div>
+  <h1 class="hero-title">Expert <span>Sessions</span></h1>
+  <p class="hero-sub">Summer Internship Program 2026 — Sanjivani University</p>
+  <p class="hero-desc">Three expert-led sessions on Design Thinking, Intellectual Property Rights, and Digital Visibility — captured and documented from the Tinkerers' Lab.</p>
+  <div class="hero-badges">
+    <span class="hero-badge">3 Expert Sessions</span>
+    <span class="hero-badge">May – June 2026</span>
+    <span class="hero-badge">Tinkerers' Lab</span>
+    <span class="hero-badge">SIP 2026 Batch</span>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="toc-bar">
+  <a href="#dt" class="toc-dt">💡 Design Thinking</a>
+  <a href="#ipr" class="toc-ipr">🛡️ IPR</a>
+  <a href="#dv" class="toc-dv">🌐 Digital Visibility</a>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SESSION 1 — DESIGN THINKING
+══════════════════════════════════════════ -->
+<div class="wrapper">
+  <section class="session dt" id="dt">
+
+    <div class="session-eyebrow reveal">
+      <div class="session-num">1</div>
+      <div class="session-label">Session One &nbsp;·&nbsp; 1 of 3</div>
+    </div>
+
+    <h2 class="session-title reveal">Design Thinking</h2>
+    <p class="session-tagline reveal">Human-centered approach to innovation and creative problem-solving</p>
+
+    <!-- Speaker -->
+    <div class="speaker-card reveal">
+      <div class="speaker-avatar">SG</div>
+      <div>
+        <div class="sp-name">Prof. Srilalitha Girija Kumari Sagi</div>
+        <div class="sp-role">Director – Executive Education &amp; MDPs · School of Commerce &amp; Management, Sanjivani University</div>
+        <div class="sp-tags">
+          <span class="sp-tag">International Business Strategist</span>
+          <span class="sp-tag">Cross-Cultural Management</span>
+          <span class="sp-tag">Innovation Mentor</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meta -->
+    <div class="meta-bar reveal">
+      <div class="meta-cell"><label>Date</label><span>26 May 2026</span></div>
+      <div class="meta-cell"><label>Venue</label><span>Tinkerers' Lab</span></div>
+      <div class="meta-cell"><label>Participants</label><span>SIP 2026 Batch</span></div>
+    </div>
+
+    <!-- Topics -->
+    <p class="sec-lbl reveal">// Topics Covered</p>
+    <div class="topic-grid reveal">
+      <div class="topic-chip"><div class="chip-num">01</div><div class="chip-text">Design thinking principles</div></div>
+      <div class="topic-chip"><div class="chip-num">02</div><div class="chip-text">Empathy &amp; user understanding</div></div>
+      <div class="topic-chip"><div class="chip-num">03</div><div class="chip-text">Problem identification &amp; framing</div></div>
+      <div class="topic-chip"><div class="chip-num">04</div><div class="chip-text">Idea generation &amp; brainstorming</div></div>
+      <div class="topic-chip"><div class="chip-num">05</div><div class="chip-text">Prototyping &amp; testing</div></div>
+      <div class="topic-chip"><div class="chip-num">06</div><div class="chip-text">Innovation &amp; entrepreneurship</div></div>
+    </div>
+
+    <!-- Two col -->
+    <div class="two-col reveal">
+      <div class="info-box">
+        <h4>Core Principles</h4>
+        <ul class="blist">
+          <li><span class="blist-dot"></span>Innovate — generate meaningful, impactful ideas</li>
+          <li><span class="blist-dot"></span>Empathize — understand real user needs</li>
+          <li><span class="blist-dot"></span>Implement — convert ideas into actionable solutions</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <h4>Key Takeaways</h4>
+        <ul class="blist">
+          <li><span class="blist-dot"></span>Innovation begins with understanding people</li>
+          <li><span class="blist-dot"></span>Creativity develops through structured thinking</li>
+          <li><span class="blist-dot"></span>Failure is an opportunity for learning</li>
+          <li><span class="blist-dot"></span>Collaboration drives better solutions</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Outcomes -->
+    <p class="sec-lbl reveal">// Learning Outcomes</p>
+    <div class="outcomes-grid reveal">
+      <div class="oc-item"><span class="oc-check">✔</span>Understand the design thinking process</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Apply empathy-based problem-solving</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Develop innovative and creative solutions</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Enhance teamwork and collaboration</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Improve critical and analytical thinking</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Build confidence in real-world challenges</div>
+    </div>
+
+    <!-- Quote -->
+    <div class="quote-block reveal">
+      <p class="quote-text">"Innovation begins when we understand people, think creatively, and act courageously."</p>
+      <p class="quote-theme">Theme — Learn by Doing. Lead by Innovating.</p>
+    </div>
+
+  </section>
+</div>
+
+<div class="session-divider"><span>Session 2 of 3</span></div>
+
+<!-- ══════════════════════════════════════════
+     SESSION 2 — IPR
+══════════════════════════════════════════ -->
+<div class="wrapper">
+  <section class="session ipr" id="ipr">
+
+    <div class="session-eyebrow reveal">
+      <div class="session-num">2</div>
+      <div class="session-label">Session Two &nbsp;·&nbsp; 2 of 3</div>
+    </div>
+
+    <h2 class="session-title reveal">Intellectual Property Rights</h2>
+    <p class="session-tagline reveal">Protecting innovations, inventions, and creative works through legal frameworks</p>
+
+    <!-- Speaker -->
+    <div class="speaker-card reveal">
+      <div class="speaker-avatar">MS</div>
+      <div>
+        <div class="sp-name">Dr. M. Sujith</div>
+        <div class="sp-role">Innovation Leader &amp; IPR Expert</div>
+        <div class="sp-tags">
+          <span class="sp-tag">Patent Filing</span>
+          <span class="sp-tag">Technology Transfer</span>
+          <span class="sp-tag">Entrepreneurship Development</span>
+          <span class="sp-tag">Innovation Management</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meta -->
+    <div class="meta-bar reveal">
+      <div class="meta-cell"><label>Date</label><span>10 June 2026</span></div>
+      <div class="meta-cell"><label>Time</label><span>12:30 PM onwards</span></div>
+      <div class="meta-cell"><label>Venue</label><span>Tinkerers' Lab</span></div>
+      <div class="meta-cell"><label>Participants</label><span>Students &amp; Faculty</span></div>
+    </div>
+
+    <!-- Topics -->
+    <p class="sec-lbl reveal">// Topics Covered</p>
+    <div class="topic-grid reveal">
+      <div class="topic-chip"><div class="chip-num">01</div><div class="chip-text">Patents — protecting inventions</div></div>
+      <div class="topic-chip"><div class="chip-num">02</div><div class="chip-text">Copyrights — creative works</div></div>
+      <div class="topic-chip"><div class="chip-num">03</div><div class="chip-text">Trademarks — brand identity</div></div>
+      <div class="topic-chip"><div class="chip-num">04</div><div class="chip-text">Industrial designs</div></div>
+      <div class="topic-chip"><div class="chip-num">05</div><div class="chip-text">Trade secrets</div></div>
+      <div class="topic-chip"><div class="chip-num">06</div><div class="chip-text">Innovation &amp; commercialization</div></div>
+    </div>
+
+    <!-- Two col -->
+    <div class="two-col reveal">
+      <div class="info-box">
+        <h4>Student Q&amp;A Topics</h4>
+        <ul class="blist">
+          <li><span class="blist-dot"></span>How to apply for a patent</li>
+          <li><span class="blist-dot"></span>Patentability criteria for student projects</li>
+          <li><span class="blist-dot"></span>Copyright for software &amp; digital content</li>
+          <li><span class="blist-dot"></span>IP ownership in collaborative projects</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <h4>Key Takeaways</h4>
+        <ul class="blist">
+          <li><span class="blist-dot"></span>Ideas and innovations are valuable assets</li>
+          <li><span class="blist-dot"></span>Patents help secure technological inventions</li>
+          <li><span class="blist-dot"></span>Trademarks strengthen brand identity</li>
+          <li><span class="blist-dot"></span>IPR management creates business opportunities</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Outcomes -->
+    <p class="sec-lbl reveal">// Learning Outcomes</p>
+    <div class="outcomes-grid reveal">
+      <div class="oc-item"><span class="oc-check">✔</span>Understand fundamentals of IPR</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Differentiate patents, copyrights &amp; trademarks</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Learn the process of protecting ideas</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Recognize legal ownership of creations</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Explore patenting of student projects</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Develop awareness of IP laws</div>
+    </div>
+
+    <!-- Quote -->
+    <div class="quote-block reveal">
+      <p class="quote-text">"Ideas are powerful. Protect them. Own them. Grow with them."</p>
+      <p class="quote-theme">Theme — Be an Innovator. Be IP Smart.</p>
+    </div>
+
+  </section>
+</div>
+
+<div class="session-divider"><span>Session 3 of 3</span></div>
+
+<!-- ══════════════════════════════════════════
+     SESSION 3 — DIGITAL VISIBILITY
+══════════════════════════════════════════ -->
+<div class="wrapper">
+  <section class="session dv" id="dv">
+
+    <div class="session-eyebrow reveal">
+      <div class="session-num">3</div>
+      <div class="session-label">Session Three &nbsp;·&nbsp; 3 of 3</div>
+    </div>
+
+    <h2 class="session-title reveal">Digital Visibility</h2>
+    <p class="session-tagline reveal">Building a strong online presence for personal branding and career growth</p>
+
+    <!-- Speaker -->
+    <div class="speaker-card reveal">
+      <div class="speaker-avatar">DK</div>
+      <div>
+        <div class="sp-name">Dhananjay Kumbhar</div>
+        <div class="sp-role">Assistant Professor &amp; Director – Training and Placement · Sanjivani University</div>
+        <div class="sp-tags">
+          <span class="sp-tag">Digital Communication</span>
+          <span class="sp-tag">Career Development</span>
+          <span class="sp-tag">Personal Branding</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meta -->
+    <div class="meta-bar reveal">
+      <div class="meta-cell"><label>Date</label><span>11 June 2026</span></div>
+      <div class="meta-cell"><label>Time</label><span>10:30 AM</span></div>
+      <div class="meta-cell"><label>Venue</label><span>Tinkerers' Lab</span></div>
+      <div class="meta-cell"><label>Participants</label><span>Students &amp; Faculty</span></div>
+    </div>
+
+    <!-- Topics -->
+    <p class="sec-lbl reveal">// Topics Covered</p>
+    <div class="topic-grid reveal">
+      <div class="topic-chip"><div class="chip-num">01</div><div class="chip-text">Understanding digital visibility</div></div>
+      <div class="topic-chip"><div class="chip-num">02</div><div class="chip-text">Personal branding strategies</div></div>
+      <div class="topic-chip"><div class="chip-num">03</div><div class="chip-text">Professional networking platforms</div></div>
+      <div class="topic-chip"><div class="chip-num">04</div><div class="chip-text">Content creation &amp; sharing</div></div>
+      <div class="topic-chip"><div class="chip-num">05</div><div class="chip-text">Career growth through digital presence</div></div>
+    </div>
+
+    <!-- Two col -->
+    <div class="two-col reveal">
+      <div class="info-box">
+        <h4>Student Q&amp;A Topics</h4>
+        <ul class="blist">
+          <li><span class="blist-dot"></span>Building a professional LinkedIn profile</li>
+          <li><span class="blist-dot"></span>Creating an online portfolio</li>
+          <li><span class="blist-dot"></span>Managing personal &amp; professional accounts</li>
+          <li><span class="blist-dot"></span>Best practices for content sharing</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <h4>Key Takeaways</h4>
+        <ul class="blist">
+          <li><span class="blist-dot"></span>Digital visibility drives career development</li>
+          <li><span class="blist-dot"></span>Personal branding helps candidates stand out</li>
+          <li><span class="blist-dot"></span>Consistent content increases engagement</li>
+          <li><span class="blist-dot"></span>Authenticity is key to digital success</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Outcomes -->
+    <p class="sec-lbl reveal">// Learning Outcomes</p>
+    <div class="outcomes-grid reveal">
+      <div class="oc-item"><span class="oc-check">✔</span>Understand the concept of digital visibility</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Recognize the importance of online presence</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Learn personal branding techniques</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Explore digital tools for networking</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Create strategies for digital identity</div>
+      <div class="oc-item"><span class="oc-check">✔</span>Improve professional profiles and portfolios</div>
+    </div>
+
+    <!-- Quote -->
+    <div class="quote-block reveal">
+      <p class="quote-text">"Your visibility today shapes your opportunities tomorrow."</p>
+      <p class="quote-theme">Tinkerers' Lab · Sanjivani University · 11 June 2026</p>
+    </div>
+
+  </section>
+</div>
+
+<footer>
+  Prepared by &nbsp;<span>Tinkerers' Lab</span>&nbsp; · &nbsp;<span>Sanjivani University</span>&nbsp; · &nbsp;<span>Summer Internship Program 2026</span>
+</footer>
+
+<script>
+/* STARS */
+const starsEl=document.getElementById('stars');
+for(let i=0;i<120;i++){
+  const s=document.createElement('div');s.className='star';
+  const sz=Math.random()*2+0.5;
+  s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--dur:${Math.random()*4+2}s;--del:${Math.random()*4}s;--op:${Math.random()*0.5+0.3};`;
+  starsEl.appendChild(s);
+}
+
+/* CURSOR */
+const cur=document.getElementById('cursor'),dot=document.getElementById('cursorDot');
+let mx=0,my=0,cx=0,cy=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px';});
+(function animCur(){cx+=(mx-cx)*0.12;cy+=(my-cy)*0.12;cur.style.left=cx+'px';cur.style.top=cy+'px';requestAnimationFrame(animCur);})();
+document.querySelectorAll('a,.speaker-card,.topic-chip,.info-box,.oc-item').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.transform='translate(-50%,-50%) scale(2.2)';cur.style.borderColor='var(--purple)';});
+  el.addEventListener('mouseleave',()=>{cur.style.transform='translate(-50%,-50%) scale(1)';cur.style.borderColor='var(--cyan)';});
+});
+
+/* REVEAL */
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+/* HERO PARALLAX */
+document.addEventListener('mousemove',e=>{
+  const orb=document.querySelector('.hero-orb');if(!orb)return;
+  const rx=(e.clientX/window.innerWidth-0.5)*24,ry=(e.clientY/window.innerHeight-0.5)*24;
+  orb.style.transform=`translate(calc(-50% + ${rx}px),calc(-50% + ${ry}px))`;
+});
+</script>
+</body>
+</html>

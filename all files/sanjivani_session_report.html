@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Documentation Report — Sanjivani University</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f7f8fa; color: #1a1a2e; }
+  .page { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+  /* Header */
+  .uni-header { text-align: center; background: #fff; border-radius: 14px; border: 1px solid #e8eaf0; padding: 2rem 2rem 1.5rem; margin-bottom: 2rem; }
+  .uni-name { font-size: 24px; font-weight: 700; color: #1a1a2e; letter-spacing: 1.5px; text-transform: uppercase; }
+  .uni-sub { font-size: 13px; color: #888; margin-top: 4px; letter-spacing: 2px; text-transform: uppercase; }
+  .report-badge { display: inline-block; margin-top: 12px; font-size: 12px; background: #f0f1f5; color: #555; padding: 4px 14px; border-radius: 20px; letter-spacing: 1px; }
+
+  /* Session divider */
+  .divider { display: flex; align-items: center; gap: 10px; margin: 2rem 0 1.2rem; }
+  .divider span { font-size: 11px; color: #aaa; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e8eaf0; }
+
+  /* Session card */
+  .card { background: #fff; border-radius: 14px; border: 1px solid #e8eaf0; overflow: hidden; margin-bottom: 2.5rem; }
+
+  /* Card header band */
+  .card-header { display: flex; align-items: flex-start; gap: 14px; padding: 1.4rem 1.6rem; }
+  .dt-header { background: #eef2ff; border-bottom: 1px solid #c7d4f5; }
+  .ipr-header { background: #edfaf3; border-bottom: 1px solid #b6dfc7; }
+  .dv-header  { background: #fff8ef; border-bottom: 1px solid #f0d4b0; }
+  .icon-box { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px; }
+  .dt-icon  { background: #dce6ff; }
+  .ipr-icon { background: #c8edd8; }
+  .dv-icon  { background: #ffe8cc; }
+  .card-title { font-size: 17px; font-weight: 600; color: #1a1a2e; }
+  .card-subtitle { font-size: 13px; color: #888; margin-top: 3px; line-height: 1.5; }
+
+  /* Meta bar */
+  .meta-bar { display: flex; flex-wrap: wrap; border-bottom: 1px solid #f0f1f5; }
+  .meta-item { flex: 1; min-width: 120px; padding: 10px 16px; border-right: 1px solid #f0f1f5; }
+  .meta-item:last-child { border-right: none; }
+  .meta-label { font-size: 10px; color: #bbb; text-transform: uppercase; letter-spacing: 1.5px; }
+  .meta-value { font-size: 13px; font-weight: 600; color: #333; margin-top: 2px; }
+
+  /* Card body */
+  .card-body { padding: 1.4rem 1.6rem; }
+
+  /* Speaker block */
+  .speaker-block { display: flex; align-items: flex-start; gap: 14px; background: #f8f9fc; border: 1px solid #ebebf0; border-radius: 10px; padding: 1rem 1.1rem; margin-bottom: 1.4rem; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; color: #fff; }
+  .dt-av  { background: #4f6ef7; }
+  .ipr-av { background: #22a05d; }
+  .dv-av  { background: #d47c1a; }
+  .sp-name { font-size: 14px; font-weight: 600; color: #1a1a2e; }
+  .sp-role { font-size: 12px; color: #888; margin-top: 2px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+  .tag { font-size: 11px; color: #666; background: #fff; border: 1px solid #e0e2ea; border-radius: 20px; padding: 2px 9px; }
+
+  /* Topic chips */
+  .topic-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 1.2rem; }
+  .chip { background: #f8f9fc; border: 1px solid #ebebf0; border-radius: 9px; padding: 9px 11px; }
+  .chip-num { font-size: 11px; font-weight: 600; color: #bbb; }
+  .chip-text { font-size: 12px; color: #444; margin-top: 2px; line-height: 1.4; }
+
+  /* Two column */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.2rem; }
+  .box { border: 1px solid #ebebf0; border-radius: 9px; padding: 1rem 1.1rem; }
+  .box-label { font-size: 10px; color: #bbb; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+  .blist { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .blist li { font-size: 12.5px; color: #555; padding-left: 14px; position: relative; line-height: 1.5; }
+  .blist li::before { content: ''; position: absolute; left: 0; top: 6px; width: 5px; height: 5px; border-radius: 50%; }
+  .dt-dot::before  { background: #4f6ef7; }
+  .ipr-dot::before { background: #22a05d; }
+  .dv-dot::before  { background: #d47c1a; }
+
+  /* Outcomes */
+  .outcomes-box { border: 1px solid #ebebf0; border-radius: 9px; padding: 1rem 1.1rem; margin-bottom: 1.2rem; }
+  .outcomes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .oc-item { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; color: #555; line-height: 1.4; }
+  .check { font-size: 14px; flex-shrink: 0; margin-top: 0px; }
+  .dt-check  { color: #4f6ef7; }
+  .ipr-check { color: #22a05d; }
+  .dv-check  { color: #d47c1a; }
+
+  /* Quote */
+  .quote-block { padding: 1rem 1.25rem; border-left: 3px solid; border-radius: 0 9px 9px 0; background: #f8f9fc; }
+  .dt-quote  { border-color: #4f6ef7; }
+  .ipr-quote { border-color: #22a05d; }
+  .dv-quote  { border-color: #d47c1a; }
+  .quote-text { font-size: 13px; color: #555; font-style: italic; line-height: 1.7; }
+  .theme-note { font-size: 11px; color: #aaa; margin-top: 5px; }
+
+  /* Footer */
+  .footer { text-align: center; padding-top: 2rem; margin-top: 1rem; border-top: 1px solid #e8eaf0; font-size: 12px; color: #aaa; }
+
+  @media (max-width: 560px) {
+    .two-col { grid-template-columns: 1fr; }
+    .outcomes-grid { grid-template-columns: 1fr; }
+    .meta-item { min-width: 100px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- University Header -->
+  <div class="uni-header">
+    <div class="uni-name">Sanjivani University</div>
+    <div class="uni-sub">Tinkerers&rsquo; Lab</div>
+    <div class="report-badge">Session Documentation Report &mdash; Summer Internship Program 2026</div>
+  </div>
+
+  <!-- ═══════════════════════ SESSION 1: DESIGN THINKING ═══════════════════════ -->
+  <div class="divider"><span>Session 1 of 3</span></div>
+
+  <div class="card">
+    <div class="card-header dt-header">
+      <div class="icon-box dt-icon">💡</div>
+      <div>
+        <div class="card-title">Design Thinking</div>
+        <div class="card-subtitle">Human-centered approach to innovation and creative problem-solving</div>
+      </div>
+    </div>
+
+    <div class="meta-bar">
+      <div class="meta-item"><div class="meta-label">Date</div><div class="meta-value">26 May 2026</div></div>
+      <div class="meta-item"><div class="meta-label">Venue</div><div class="meta-value">Tinkerers' Lab</div></div>
+      <div class="meta-item"><div class="meta-label">Participants</div><div class="meta-value">SIP 2026 Batch</div></div>
+    </div>
+
+    <div class="card-body">
+      <div class="speaker-block">
+        <div class="avatar dt-av">SG</div>
+        <div>
+          <div class="sp-name">Prof. Srilalitha Girija Kumari Sagi</div>
+          <div class="sp-role">Director – Executive Education & MDPs &middot; School of Commerce & Management</div>
+          <div class="tags">
+            <span class="tag">International Business Strategist</span>
+            <span class="tag">Cross-Cultural Management</span>
+            <span class="tag">Innovation Mentor</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="topic-grid">
+        <div class="chip"><div class="chip-num">01</div><div class="chip-text">Design thinking principles</div></div>
+        <div class="chip"><div class="chip-num">02</div><div class="chip-text">Empathy & user understanding</div></div>
+        <div class="chip"><div class="chip-num">03</div><div class="chip-text">Problem identification & framing</div></div>
+        <div class="chip"><div class="chip-num">04</div><div class="chip-text">Idea generation & brainstorming</div></div>
+        <div class="chip"><div class="chip-num">05</div><div class="chip-text">Prototyping & testing</div></div>
+        <div class="chip"><div class="chip-num">06</div><div class="chip-text">Innovation & entrepreneurship</div></div>
+      </div>
+
+      <div class="two-col">
+        <div class="box">
+          <div class="box-label">Core Principles</div>
+          <ul class="blist">
+            <li class="dt-dot">Innovate — generate meaningful, impactful ideas</li>
+            <li class="dt-dot">Empathize — understand real user needs</li>
+            <li class="dt-dot">Implement — convert ideas into actionable solutions</li>
+          </ul>
+        </div>
+        <div class="box">
+          <div class="box-label">Key Takeaways</div>
+          <ul class="blist">
+            <li class="dt-dot">Innovation begins with understanding people</li>
+            <li class="dt-dot">Creativity develops through structured thinking</li>
+            <li class="dt-dot">Failure is an opportunity for learning</li>
+            <li class="dt-dot">Collaboration drives better solutions</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="outcomes-box">
+        <div class="box-label">Learning Outcomes</div>
+        <div class="outcomes-grid">
+          <div class="oc-item"><span class="check dt-check">✔</span>Understand the design thinking process</div>
+          <div class="oc-item"><span class="check dt-check">✔</span>Apply empathy-based problem-solving</div>
+          <div class="oc-item"><span class="check dt-check">✔</span>Develop innovative and creative solutions</div>
+          <div class="oc-item"><span class="check dt-check">✔</span>Enhance teamwork and collaboration</div>
+          <div class="oc-item"><span class="check dt-check">✔</span>Improve critical and analytical thinking</div>
+          <div class="oc-item"><span class="check dt-check">✔</span>Build confidence in real-world challenges</div>
+        </div>
+      </div>
+
+      <div class="quote-block dt-quote">
+        <div class="quote-text">&ldquo;Innovation begins when we understand people, think creatively, and act courageously.&rdquo;</div>
+        <div class="theme-note">Theme &mdash; Learn by Doing. Lead by Innovating.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ SESSION 2: IPR ═══════════════════════ -->
+  <div class="divider"><span>Session 2 of 3</span></div>
+
+  <div class="card">
+    <div class="card-header ipr-header">
+      <div class="icon-box ipr-icon">🛡️</div>
+      <div>
+        <div class="card-title">Intellectual Property Rights (IPR)</div>
+        <div class="card-subtitle">Protecting innovations, inventions, and creative works through legal frameworks</div>
+      </div>
+    </div>
+
+    <div class="meta-bar">
+      <div class="meta-item"><div class="meta-label">Date</div><div class="meta-value">10 June 2026</div></div>
+      <div class="meta-item"><div class="meta-label">Time</div><div class="meta-value">12:30 PM onwards</div></div>
+      <div class="meta-item"><div class="meta-label">Venue</div><div class="meta-value">Tinkerers' Lab</div></div>
+      <div class="meta-item"><div class="meta-label">Participants</div><div class="meta-value">Students & Faculty</div></div>
+    </div>
+
+    <div class="card-body">
+      <div class="speaker-block">
+        <div class="avatar ipr-av">MS</div>
+        <div>
+          <div class="sp-name">Dr. M. Sujith</div>
+          <div class="sp-role">Innovation Leader & IPR Expert</div>
+          <div class="tags">
+            <span class="tag">Patent Filing</span>
+            <span class="tag">Technology Transfer</span>
+            <span class="tag">Entrepreneurship Development</span>
+            <span class="tag">Innovation Management</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="topic-grid">
+        <div class="chip"><div class="chip-num">01</div><div class="chip-text">Patents — protecting inventions</div></div>
+        <div class="chip"><div class="chip-num">02</div><div class="chip-text">Copyrights — creative works</div></div>
+        <div class="chip"><div class="chip-num">03</div><div class="chip-text">Trademarks — brand identity</div></div>
+        <div class="chip"><div class="chip-num">04</div><div class="chip-text">Industrial designs</div></div>
+        <div class="chip"><div class="chip-num">05</div><div class="chip-text">Trade secrets</div></div>
+        <div class="chip"><div class="chip-num">06</div><div class="chip-text">Innovation & commercialization</div></div>
+      </div>
+
+      <div class="two-col">
+        <div class="box">
+          <div class="box-label">Student Q&amp;A Topics</div>
+          <ul class="blist">
+            <li class="ipr-dot">How to apply for a patent</li>
+            <li class="ipr-dot">Patentability criteria for student projects</li>
+            <li class="ipr-dot">Copyright for software & digital content</li>
+            <li class="ipr-dot">IP ownership in collaborative projects</li>
+          </ul>
+        </div>
+        <div class="box">
+          <div class="box-label">Key Takeaways</div>
+          <ul class="blist">
+            <li class="ipr-dot">Ideas and innovations are valuable assets</li>
+            <li class="ipr-dot">Patents help secure technological inventions</li>
+            <li class="ipr-dot">Trademarks strengthen brand identity</li>
+            <li class="ipr-dot">IPR management creates business opportunities</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="outcomes-box">
+        <div class="box-label">Learning Outcomes</div>
+        <div class="outcomes-grid">
+          <div class="oc-item"><span class="check ipr-check">✔</span>Understand fundamentals of IPR</div>
+          <div class="oc-item"><span class="check ipr-check">✔</span>Differentiate patents, copyrights & trademarks</div>
+          <div class="oc-item"><span class="check ipr-check">✔</span>Learn the process of protecting ideas</div>
+          <div class="oc-item"><span class="check ipr-check">✔</span>Recognize legal ownership of creations</div>
+          <div class="oc-item"><span class="check ipr-check">✔</span>Explore patenting of student projects</div>
+          <div class="oc-item"><span class="check ipr-check">✔</span>Develop awareness of IP laws</div>
+        </div>
+      </div>
+
+      <div class="quote-block ipr-quote">
+        <div class="quote-text">&ldquo;Ideas are powerful. Protect them. Own them. Grow with them.&rdquo;</div>
+        <div class="theme-note">Theme &mdash; Be an Innovator. Be IP Smart.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ SESSION 3: DIGITAL VISIBILITY ═══════════════════════ -->
+  <div class="divider"><span>Session 3 of 3</span></div>
+
+  <div class="card">
+    <div class="card-header dv-header">
+      <div class="icon-box dv-icon">🌐</div>
+      <div>
+        <div class="card-title">Digital Visibility</div>
+        <div class="card-subtitle">Building a strong online presence for personal branding and career growth</div>
+      </div>
+    </div>
+
+    <div class="meta-bar">
+      <div class="meta-item"><div class="meta-label">Date</div><div class="meta-value">11 June 2026</div></div>
+      <div class="meta-item"><div class="meta-label">Time</div><div class="meta-value">10:30 AM</div></div>
+      <div class="meta-item"><div class="meta-label">Venue</div><div class="meta-value">Tinkerers' Lab</div></div>
+      <div class="meta-item"><div class="meta-label">Participants</div><div class="meta-value">Students & Faculty</div></div>
+    </div>
+
+    <div class="card-body">
+      <div class="speaker-block">
+        <div class="avatar dv-av">DK</div>
+        <div>
+          <div class="sp-name">Dhananjay Kumbhar</div>
+          <div class="sp-role">Assistant Professor & Director – Training and Placement &middot; Sanjivani University</div>
+          <div class="tags">
+            <span class="tag">Digital Communication</span>
+            <span class="tag">Career Development</span>
+            <span class="tag">Personal Branding</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="topic-grid">
+        <div class="chip"><div class="chip-num">01</div><div class="chip-text">Understanding digital visibility</div></div>
+        <div class="chip"><div class="chip-num">02</div><div class="chip-text">Personal branding strategies</div></div>
+        <div class="chip"><div class="chip-num">03</div><div class="chip-text">Professional networking platforms</div></div>
+        <div class="chip"><div class="chip-num">04</div><div class="chip-text">Content creation & sharing</div></div>
+        <div class="chip"><div class="chip-num">05</div><div class="chip-text">Career growth through digital presence</div></div>
+      </div>
+
+      <div class="two-col">
+        <div class="box">
+          <div class="box-label">Student Q&amp;A Topics</div>
+          <ul class="blist">
+            <li class="dv-dot">Building a professional LinkedIn profile</li>
+            <li class="dv-dot">Creating an online portfolio</li>
+            <li class="dv-dot">Managing personal & professional accounts</li>
+            <li class="dv-dot">Best practices for content sharing</li>
+          </ul>
+        </div>
+        <div class="box">
+          <div class="box-label">Key Takeaways</div>
+          <ul class="blist">
+            <li class="dv-dot">Digital visibility drives career development</li>
+            <li class="dv-dot">Personal branding helps candidates stand out</li>
+            <li class="dv-dot">Consistent content increases engagement</li>
+            <li class="dv-dot">Authenticity is key to digital success</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="outcomes-box">
+        <div class="box-label">Learning Outcomes</div>
+        <div class="outcomes-grid">
+          <div class="oc-item"><span class="check dv-check">✔</span>Understand the concept of digital visibility</div>
+          <div class="oc-item"><span class="check dv-check">✔</span>Recognize the importance of online presence</div>
+          <div class="oc-item"><span class="check dv-check">✔</span>Learn personal branding techniques</div>
+          <div class="oc-item"><span class="check dv-check">✔</span>Explore digital tools for networking</div>
+          <div class="oc-item"><span class="check dv-check">✔</span>Create strategies for digital identity</div>
+          <div class="oc-item"><span class="check dv-check">✔</span>Improve professional profiles and portfolios</div>
+        </div>
+      </div>
+
+      <div class="quote-block dv-quote">
+        <div class="quote-text">&ldquo;Your visibility today shapes your opportunities tomorrow.&rdquo;</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Prepared by Tinkerers' Lab &middot; Sanjivani University &middot; Summer Internship Program 2026</div>
+
+</div>
+</body>
+</html>
